@@ -1,0 +1,33 @@
+body {
+  background-image: url("/img/linedpaper/linedpaper.png");
+  background-repeat: repeat;
+  margin: 0;
+  overflow: hidden;
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  justify-content: center; /*centers items on the line (the x-axis by default)*/
+  align-items: center; /*centers items on the cross-axis (y by default)*/
+
+}
+
+.header {
+display:flex;
+flex-direction: column;
+align-items: center;
+justify-content: center;
+font-family: 'Dawning of a New Day', cursive, Serif;
+font-size: 2em;
+text-align: center;
+color:rgb(97, 97, 97)
+}
+
+@media screen and (max-width: 600px) {
+.header {
+  font-size: 1em;
+}
+}
+
+
+
