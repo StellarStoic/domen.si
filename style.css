@@ -1,33 +1,259 @@
-body {
-  background-image: url("/img/linedpaper/linedpaper.png");
-  background-repeat: repeat;
-  margin: 0;
-  overflow: hidden;
-  position: absolute;
+/* Navigation menu from  https://codepen.io/SitePoint/pen/uIemr */
+
+/* Navigation Menu - Background */
+.navigation {
+  /* critical sizing and position styles */
   width: 100%;
   height: 100%;
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 0;
+  
+  /* non-critical appearance styles */
+  list-style: none;
+  background: #111;
+}
+
+/* Navigation Menu - List items */
+.nav-item {
+  /* non-critical appearance styles */
+  width: 200px;
+  border-top: 1px solid #111;
+  border-bottom: 1px solid #000;
+}
+
+.nav-item a {
+  /* non-critical appearance styles */
+  display: block;
+  padding: 0.7em;
+  background: linear-gradient(135deg, rgba(0,0,0,0) 0%,rgba(0,0,0,0.65) 100%);
+  color: white;
+  font-size: 1.0em;
+  text-decoration: none;
+  transition: color 0.2s, background 0.5s;
+}
+
+.nav-item a:hover {
+  color: #04fc4e;
+  background: linear-gradient(135deg, rgba(0,0,0,0) 0%,rgba(19, 168, 106, 0.65) 100%);
+}
+
+/* container - Everything that isn't navigation */
+.container {
+  /* Critical position and size styles */
+  min-height: 100%;
+  min-width: 100%;
+  background-image: url("/img/linedpaper-dark.png");
+  background-repeat: repeat;
+  position: relative;
+  top: 0px;
+  bottom: 100px;
+  left: 0px;
+  z-index: 1;
+  
+  /* non-critical apperance styles */
+  /*padding: 4em;
+  background-image: linear-gradient(135deg, rgb(254,255,255) 0%,rgb(221,241,249) 35%,rgb(160,216,239) 100%);
+  background-size: 200%;*/
+}
+
+/* Nav Trigger */
+.nav-trigger {
+  /* critical styles - hide the checkbox input */
+  position: absolute;
+  clip: rect(0, 0, 0, 0);
+}
+
+label[for="nav-trigger"] {
+  /* critical positioning styles */
+  position: fixed;
+  left: 15px; top: 15px;
+  z-index: 2;
+  
+  /* non-critical apperance styles */
+  height: 30px;
+  width: 30px;
+  cursor: pointer;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' xmlns:xlink='http://www.w3.org/1999/xlink' version='1.1' x='0px' y='0px' width='30px' height='30px' viewBox='0 0 30 30' enable-background='new 0 0 30 30' xml:space='preserve'><rect width='30' height='6'/><rect y='24' width='30' height='6'/><rect y='12' width='30' height='6'/></svg>");
+  background-size: contain;
+}
+
+/* Make the Magic Happen */
+.nav-trigger + label, .container {
+  transition: left 0.2s;
+}
+
+.nav-trigger:checked + label {
+  left: 215px;
+}
+
+.nav-trigger:checked ~ .container {
+  left: 200px;
+  box-shadow: 0 0 5px 5px rgba(0,0,0,0.5);
+}
+
+body {
+	/* Without this, the body has excess horizontal scroll when the menu is open */
+  overflow-x: hidden;
+  
+  margin: 0;
+  /* overflow: hidden; */
+  flex-wrap: wrap;
+  height: 100vh;
   display: flex;
-  justify-content: center; /*centers items on the line (the x-axis by default)*/
-  align-items: center; /*centers items on the cross-axis (y by default)*/
-
+  /* justify-content: center; */
+  align-content: center;
 }
 
+/* Additional non-critical styles */
 .header {
-display:flex;
-flex-direction: column;
-align-items: center;
-justify-content: center;
-font-family: 'Dawning of a New Day', cursive, Serif;
-font-size: 2em;
-text-align: center;
-color:rgb(97, 97, 97)
+  display:flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Dawning of a New Day', cursive, Serif;
+  font-size: 2em;
+  /* height: 100%; */
+  text-align: center;
+  color:rgb(97, 97, 97);
+  margin-top: 78rem; /*I can't figure it out why I have to add so much margin on the top?*/
+  padding: 50px;
+  }
+  
+  @media screen and (max-width: 600px) {
+  .header {
+    font-size: 1em;
+  }
+  }
+  
+  /* h3, p {
+    max-width: 1200px;
+    margin: 0 auto 1em;
+  } */
+
+
+/* Micro reset */
+
+*,*:before,*:after{-webkit-box-sizing:border-box;-moz-box-sizing:border-box;box-sizing:border-box;margin:0;padding:0;}
+html, body { height: 100%; width: 100%; font-family: Helvetica, Arial, sans-serif; }
+
+/* CONTACT.html */
+
+.social {
+  /* positioning */
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-content: center;
+  align-items: baseline;
+  height: 100vh;
+  
+  /* style */
+  font-size: 200px;
 }
 
-@media screen and (max-width: 600px) {
-.header {
-  font-size: 1em;
+a {
+  color: inherit;
+  text-decoration: none;
 }
+
+/* a:hover {
+  transition: ease-in;
+  transition-duration: 2500ms;
+  color: aliceblue; 
+}*/
+
+.fa-github {
+  padding:18px;
+  /* HOVER OFF */
+  -webkit-transition:1500ms;
+}
+
+.fa-github:hover{
+  transition: ease-in;
+  /* transition-duration: 1500ms; */
+  color: rgb(227, 229, 230);
+  /* HOVER ON */
+  -webkit-transition: ease-out 1500ms;
+}
+
+.fa-twitter {
+  padding: 18px;
+  /* HOVER OFF */
+  -webkit-transition:1500ms;
+}
+
+.fa-twitter:hover {
+  transition: ease-in;
+  /* transition-duration: 1500ms; */
+  color: rgba(4, 198, 247, 0.801);
+  /* HOVER ON */
+  -webkit-transition: ease-out 1500ms;
+}
+
+.fa-instagram {
+  padding: 18px;
+  /* HOVER OFF */
+  -webkit-transition:1500ms;
+}
+
+.fa-instagram:hover {
+  transition: ease-in;
+  /* transition-duration: 1500ms; */
+  background:-moz-linear-gradient(top,#1315a8a8 5%, #92048b 30%, #fca504 75%, #ffee018f 100%);
+  background: -webkit-linear-gradient(top,#1315a8a8 5%, #92048b 30%, #fca504 75%, #ffee018f 100%);
+  background: linear-gradient(to bottom,#1315a8a8 5%, #92048b 30%, #fca504 75%, #ffee018f 100%);
+  -webkit-background-clip: text;
+  -moz-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color:transparent;
+  /* HOVER ON */
+  -webkit-transition: ease-out 1500ms;
 }
 
 
+.fa-envelope {
+  padding: 18px;
+  /* HOVER OFF */
+  -webkit-transition:1500ms;
+}
 
+.fa-envelope:hover {
+  transition: ease-in;
+  /* transition-duration: 1500ms; */
+  color: rgba(145, 34, 34, 0.671);
+  /* HOVER ON */
+  -webkit-transition: ease-out 1500ms;
+}
+
+.fa-phone-square {
+  padding-left: 18px;
+  /* HOVER OFF */
+  -webkit-transition:1500ms;
+}
+
+.fa-phone-square:hover {
+  transition: ease-out;
+  /* transition-duration: 1500ms; */
+  color: #00000000;
+  /* HOVER ON */
+  -webkit-transition: ease-out 1500ms;
+}
+
+/* UNDER CONSTRUCTION */
+
+#constructionSite {
+  display:block;
+  position: absolute;
+  top: 0; 
+  left: 0;
+  bottom: 0;
+  /* Preserve aspet ratio */
+  width: 100%;
+  height: 100%;
+  max-height: 100%;
+  overflow: hidden;
+}
