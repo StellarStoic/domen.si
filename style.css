@@ -67,6 +67,10 @@
   clip: rect(0, 0, 0, 0);
 }
 
+
+@keyframes fadeOut { 
+  from { opacity: 0.05; } 
+}
 label[for="nav-trigger"] {
   /* critical positioning styles */
   position: fixed;
@@ -77,8 +81,9 @@ label[for="nav-trigger"] {
   height: 30px;
   width: 30px;
   cursor: pointer;
-  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' xmlns:xlink='http://www.w3.org/1999/xlink' version='1.1' x='0px' y='0px' width='30px' height='30px' viewBox='0 0 30 30' enable-background='new 0 0 30 30' xml:space='preserve'><rect width='30' height='6'/><rect y='24' width='30' height='6'/><rect y='12' width='30' height='6'/></svg>");
+  background-image: url("./img/menu.svg");
   background-size: contain;
+  animation: 2.6s fadeOut infinite alternate;
 }
 
 /* Make the Magic Happen */
@@ -266,7 +271,45 @@ a {
   width: 100%;
   height: 100%;
   object-fit: fill;
+  
 }
+
+/* Infinate FadeIn https://codepen.io/Ahrengot/pen/bKdLC */
+@keyframes fadeIn { 
+  from { opacity: 0.2; } 
+}
+
+#constructionSiteIcon {
+  font-size: 300px;
+  z-index: 1;
+  color: rgba(240, 248, 255, 0.507);
+  animation: fadeIn 1.8s infinite alternate;
+}
+
+#constructionSiteParagraph{
+  padding-top:40px;
+  color: rgba(240, 248, 255, 0.603);
+  font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+  font-weight: 100;
+  font-size: 100px;
+  line-height: 30px;
+  z-index: 1;
+  animation: fadeIn 1.8s infinite alternate;
+}
+  
+  @media screen and (max-width: 888px) {
+    #content{
+      text-align: center;
+    }
+    
+    #constructionSiteIcon {
+      font-size: 120px;
+  }
+  
+    #constructionSiteParagraph{
+      font-size:45px;
+  }
+  }
 
 /* Contact - Show modal */
 
