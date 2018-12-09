@@ -149,10 +149,14 @@ html, body { height: 100%; width: 100%; font-family: Helvetica, Arial, sans-seri
   justify-content: center;
   align-content: center;
   align-items: baseline;
-  height: 100vh;
-  
+  height: 100vh;  
   /* style */
   font-size: 200px;
+}
+
+/* support for chrome to center icons in the middle of the screen */
+.social:not(*:root) {
+  padding-top: 32vh;
 }
 
 @media screen and (max-width: 600px) {
