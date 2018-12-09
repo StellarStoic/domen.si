@@ -211,6 +211,7 @@ a {
   -webkit-transition: ease-out 1500ms;
 }
 
+
 .fa-instagram {
   padding: 18px;
   /* HOVER OFF */
@@ -220,17 +221,10 @@ a {
 .fa-instagram:hover {
   transition: ease-in;
   /* transition-duration: 1500ms; */
-  background:-moz-linear-gradient(top,#1315a8a8 5%, #92048b 30%, #fca504 75%, #ffee018f 100%);
-  background: -webkit-linear-gradient(top,#1315a8a8 5%, #92048b 30%, #fca504 75%, #ffee018f 100%);
-  background: linear-gradient(to bottom,#1315a8a8 5%, #92048b 30%, #fca504 75%, #ffee018f 100%);
-  -webkit-background-clip: text;
-  -moz-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color:transparent;
+  color: rgba(175, 194, 4, 0.671);
   /* HOVER ON */
   -webkit-transition: ease-out 1500ms;
 }
-
 
 .fa-envelope {
   padding: 18px;
