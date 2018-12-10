@@ -25,6 +25,62 @@
   border-bottom: 1px solid #000;
 }
 
+/* Dropdown Menu...https://codepen.io/andornagy/pen/xhiJH */
+
+/* Hide Dropdowns by Default */
+.codeDropDownMenu {
+  display: none;
+  position: absolute;
+}
+
+/* Display Dropdowns on Hover */
+.navigation #codeDDmenu:hover > .codeDropDownMenu {
+	display:inherit;
+}
+
+.codeDropDownMenu li{
+  width:145px;
+	float:none;
+	display:list-item;
+  position: relative;
+  background: greenyellow;
+  color: #000;
+  list-style: none;
+  font-size: 15px;
+}
+
+.codeDropDownMenu a {
+  color: black;
+}
+
+/* Hide Dropdowns by Default */
+.otherStuffDropDownMenu {
+  display: none;
+  position: absolute;
+}
+
+/* Display Dropdowns on Hover */
+.navigation #otherStuffDDMenu:hover > .otherStuffDropDownMenu {
+	display:inherit;
+}
+
+.otherStuffDropDownMenu li{
+  width:150px;
+	float:none;
+	display:list-item;
+  position: relative;
+  margin-right: 5px;
+  background: greenyellow;
+  color: #000;
+  list-style: none;
+  font-size: 15px;
+}
+
+.otherStuffDropDownMenu a {
+  color: black;
+}
+/* END Dropdown Menu */
+
 .nav-item a {
   /* non-critical appearance styles */
   display: block;
