@@ -169,7 +169,8 @@ html, body { height: 100%; width: 100%; font-family: Helvetica, Arial, sans-seri
   .social {
     display: flex;
     flex-direction: column;
-    font-size: 80px;
+    height:100%;
+    font-size: 60px;
   }
   }
 @media screen and (max-width: 830px) {
@@ -243,6 +244,12 @@ a {
   -webkit-transition: ease-out 1500ms;
 }
 
+@media (max-width : 640px) {
+  .fa-envelope {
+    margin-left: -5px;
+  }
+}
+
 .fa-phone-square {
   padding-left: 18px;
   /* HOVER OFF */
@@ -293,15 +300,16 @@ a {
   cursor: pointer;
 }
 
-@media (max-width : 37.500rem) {
+@media (max-width : 888px) {
 
   .modal {
+    display:block;
   	top: 0;
   	left: 0;
-    width: 100%;
-    height: 100%;
+    width: 100vw;
+    height: auto;
     margin: 0;
-    padding: 1.250rem
+    padding: 15px;
   }
 
   .modal-content{
