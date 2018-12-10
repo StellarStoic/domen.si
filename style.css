@@ -41,6 +41,62 @@
   background: linear-gradient(135deg, rgba(0,0,0,0) 0%,rgba(19, 168, 106, 0.65) 100%);
 }
 
+/* Dropdown Menu...https://codepen.io/andornagy/pen/xhiJH */
+
+/* Hide Dropdowns by Default */
+.codeDropDownMenu {
+  display: none;
+  position: absolute;
+}
+
+/* Display Dropdowns on Hover */
+.navigation #codeDDmenu:hover > .codeDropDownMenu {
+	display:inherit;
+}
+
+.codeDropDownMenu li{
+  width:145px;
+	float:none;
+	display:list-item;
+  position: relative;
+  background: greenyellow;
+  color: #000;
+  list-style: none;
+  font-size: 15px;
+}
+
+.codeDropDownMenu a {
+  color: black;
+}
+
+/* Hide Dropdowns by Default */
+.otherStuffDropDownMenu {
+  display: none;
+  position: absolute;
+}
+
+/* Display Dropdowns on Hover */
+.navigation #otherStuffDDMenu:hover > .otherStuffDropDownMenu {
+	display:inherit;
+}
+
+.otherStuffDropDownMenu li{
+  width:150px;
+	float:none;
+	display:list-item;
+  position: relative;
+  margin-right: 5px;
+  background: greenyellow;
+  color: #000;
+  list-style: none;
+  font-size: 15px;
+}
+
+.otherStuffDropDownMenu a {
+  color: black;
+}
+/* END Dropdown Menu */
+
 /* container - Everything that isn't navigation */
 .container {
   /* Critical position and size styles */
@@ -280,7 +336,7 @@ a {
   margin-top: -300px;
   padding: 50px;
   border-radius: 5px;
-  z-index: 10;
+  /* z-index: 0; */
   box-shadow: 0 0 0 99999px rgba(0, 0, 0, 0.61);
 }
 
@@ -303,7 +359,7 @@ a {
 @media (max-width : 888px) {
 
   .modal {
-    display:block;
+    /* display:block; */
   	top: 0;
   	left: 0;
     width: 100vw;
