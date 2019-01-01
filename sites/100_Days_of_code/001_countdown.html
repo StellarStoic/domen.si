@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>New Year Countdown</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" type="text/css" media="screen" href="001_countdown.css" />
+    
+</head>
+<body>
+    <div class="center">
+        <h1><span>2020</span><br>New Year countdown</h1>
+        <div id="clock"></div>
+    </div>
+    
+    <!-- using Countdown from hilios https://github.com/hilios/jQuery.countdown -->
+    <script src="https://code.jquery.com/jquery-3.3.1.js" 
+    integrity="sha256-2Kok7MbOyxpgUVvAk/HJ2jigOSYS2auK4Pfzbm7uH60=" 
+    crossorigin="anonymous">
+    </script>
+    <script src="001_countdown.js"></script>
+    <script type="text/javascript">
+        $('#clock').countdown('2020/1/1', function(event){
+            let $this = $(this).html(event.strftime(''
+                + '<div><span>%w</span><span> Weeks</span></div>'
+                + '<div><span>%D</span><span> Days</span></div>'
+                + '<div><span>%I</span><span> Hours</span></div>'
+                + '<div><span>%N</span><span> Minutes</span></div>'
+                + '<div><span>%T</span><span> Seconds</span></div>'
+                ))
+        })
+    </script>
+</body>
+</html>
