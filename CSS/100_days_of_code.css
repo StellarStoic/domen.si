@@ -1,3 +1,26 @@
-p {
+body {
+  background-color: rgb(36, 35, 35);
+}
+
+li {
+  font-size: 1.3em;
+  list-style: none;
+  margin-left: -20px;
+}
+
+a {
+  text-decoration-line: none;
+  color: aliceblue;
+}
+
+.fa-home {
+  color:  #04f5adb0;
+}
+
+#backHome {
+  position: fixed;
   font-size: 2em;
+  right: 18px;
+  bottom: 18px;
+  
 }

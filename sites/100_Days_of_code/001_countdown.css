@@ -4,7 +4,13 @@ body {
   margin: 0;
   padding: 0;
   font-family: 'Press Start 2P', cursive;
-  background: #fbfad3);
+  background:url("/img/100DaysOfCode/001_countdown.jpg"), #3d3d3d;
+  background-size: cover;
+  background-repeat: no-repeat;
+  min-height: 100vh;
+  min-width: 100vw;
+  overflow: hidden;
+
 }
 
 .center {
@@ -25,7 +31,7 @@ h1 {
 h1 span {
   font-size: 4em;
   line-height: .8em;
-  color: #c6e377
+  color: #c6e3779d
 }
 
 #clock {
@@ -44,5 +50,109 @@ h1 span {
   border: 2px solid rgb(34, 34, 34);
 }
 
+/* Somehow the numbers and text didn't align in center vertically */
+#clock div:nth-child(4) {
+  text-align: right;
+}
 
+#goBack {
+  position: fixed;
+  top: 18px;
+  left: 18px;
+  font-size: 2em;
+}
+
+i, a, .fas {
+  color: #c6e3779d;
+}
+
+#copyright {
+  position: fixed;
+  bottom:20px;
+  right: 20px;
+  font-size: 0.5em;
+}
+
+/* Mobile phones */
+@media only screen and (max-width: 600px) {
+
+  h1 {
+    margin-top: 0px;
+    font-size: 8px;
+  }
+
+  #clock {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.5em;
+    
+  }
+
+  #clock div {
+   width: 50px;
+   padding: 12px;
+   text-align: inherit;
+   margin: 3px;
+   background: #36622b7e;
+   border: 2px solid rgb(34, 34, 34);
+  }
+
+  #copyright {
+    font-size: 0.4em;
+    bottom: 3px;
+    text-align: center;
+  }
+}
+
+/* Mobile phones landscape */
+@media only screen and (max-width: 600px)
+ and (orientation: landscape) {
+  #clock {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.5em;
+    
+  }
+}
+
+/* Tablets */
+@media only screen and (min-width: 601px) and
+(max-width: 800px) {
+
+  h1 {
+    margin-top: 0px;
+    font-size: 20px;
+  }
+
+  #clock {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2em;
+  }
+
+  #clock div {
+   width: 350px;
+   padding: 20px;
+   text-align: center;
+   margin: 8px;
+   background: #36622b7e;
+   border: 2px solid rgb(34, 34, 34);
+  }
+
+  #clock div:nth-child(4) {
+    text-align: center;
+  }
+
+  #copyright {
+    font-size: 0.7em;
+    bottom: 3px;
+    text-align: center;
+  }
+}
 
