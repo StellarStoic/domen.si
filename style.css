@@ -175,13 +175,14 @@ body {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  font-family: 'Dawning of a New Day', cursive, Serif;
-  font-size: 4em;
+  font-family: 'Lato', cursive, Serif;
+  font-size: 2.5rem;
   line-height: 1em;
   height: 100vh;
   text-align: center;
   color:rgb(97, 97, 97);
-  /* margin-top: 0px; */
+  margin-left: 17%;
+  margin-right: 17%;
   padding: 50px;
   }
   
