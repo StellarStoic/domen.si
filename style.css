@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css?family=Lato');
+@import url('https://fonts.googleapis.com/css?family=Tangerine');
 
 /* Navigation menu from  https://codepen.io/SitePoint/pen/uIemr */
 
@@ -173,6 +175,11 @@ body {
   align-content: center;
 }
 
+#title {
+  font-style: italic;
+  font-weight: 400;
+}
+
 /* Additional non-critical styles */
 .header {
   display:flex;
@@ -193,14 +200,24 @@ body {
   
   @media screen and (max-width: 600px) {
   .header {
-    font-size: 1em;
+    font-size: 0.8em;
+    margin-left: -10px;
+    margin-right: -10px;
   }
   }
   @media screen and (max-width: 830px) {
   .header {
-    font-size: 2em;
+    font-size: 1.7em;
   }
-  }
+ }
+
+ /* Carpe diem blockquote at home page */
+ #cd {
+   position: absolute;
+   font-family: 'Tangerine', cursive;
+   bottom: 10px;
+   right: 50px;
+ }
 
 /* Micro reset */
 
