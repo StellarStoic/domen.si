@@ -1,15 +1,87 @@
 @import url('https://fonts.googleapis.com/css?family=Lato:100');
 
 
-#whoAmI {
-  margin-left: -10%;
-  margin-right: -10%;
-  line-height: 2rem;
-  font-size: 1.3rem;
-  font-family: 'Lato', sans-serif;
+/* Extra small devices (phones, 600px and down) */
+
+@media only screen and (max-width: 600px) {
+  #whoAmI {
+    margin-left: -40%;
+    margin-right: -40%;
+    font-size: 1rem;
+    line-height: 1.1rem;
+    color: #f7fdb1;
+  }
+
+  #whoAmI h2 {
+    color: #ded473;
+    margin-bottom: 1.3rem;
+  }
 }
 
-#whoAmI h2 {
-  color: rgba(255, 255, 255, 0.87);
-  margin-bottom: 1.3rem;
+/* Small devices (portrait tablets and large phones, 600px and up) */
+
+@media only screen and (min-width: 600px) {
+  #whoAmI {
+    margin-left: -40%;
+    margin-right: -40%;
+    font-size: 1.1rem;
+    line-height: 1.1rem;
+    color: #13abc4;
+  }
+
+  #whoAmI h2 {
+    color: #7efaff;
+    margin-bottom: 1.3rem;
+  }
 }
+
+/* Medium devices (landscape tablets, 768px and up) */
+
+@media only screen and (min-width: 768px) {
+  #whoAmI {
+    margin-left: -20%;
+    margin-right: -20%;
+    font-size: 1.2rem;
+    line-height: 1.1em;
+    color: #729d39;
+  }
+
+  #whoAmI h2 {
+    color: #c6e377;
+    margin-bottom: 1.3rem;
+  }
+}
+
+/* Large devices (laptops/desktops, 992px and up) */
+
+@media only screen and (min-width: 992px) {
+  #whoAmI {
+    margin-left: -20%;
+    margin-right: -20%;
+    font-size: 1.4rem;
+    line-height: 1.6rem;
+    color: #774e26;
+  }
+
+  #whoAmI h2 {
+    color: #a86d1f;
+    margin-bottom: 1.5rem;
+  }
+} 
+
+/* Extra large devices (large laptops and desktops, 1200px and up) */
+@media only screen and (min-width: 1200px) {
+  #whoAmI {
+    margin-left: -10%;
+    margin-right: -10%;
+    line-height: 2rem;
+    font-size: 1.6rem;
+    font-family: 'Lato', sans-serif;
+    color: #95a792;
+  }
+  
+  #whoAmI h2 {
+    color: #e3d9ca;
+    margin-bottom: 1.5rem;
+  }
+} 
