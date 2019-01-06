@@ -1,0 +1,15 @@
+@import url('https://fonts.googleapis.com/css?family=Lato:100');
+
+
+#whoAmI {
+  margin-left: -10%;
+  margin-right: -10%;
+  line-height: 2rem;
+  font-size: 1.3rem;
+  font-family: 'Lato', sans-serif;
+}
+
+#whoAmI h2 {
+  color: rgba(255, 255, 255, 0.87);
+  margin-bottom: 1.3rem;
+}
