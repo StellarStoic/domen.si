@@ -15,6 +15,7 @@
   #whoAmI h2 {
     color: #ded473;
     margin-bottom: 1.3rem;
+    font-weight: 300;
   }
 }
 
@@ -32,6 +33,7 @@
   #whoAmI h2 {
     color: #7efaff;
     margin-bottom: 1.3rem;
+    font-weight: 300;
   }
 }
 
@@ -49,6 +51,7 @@
   #whoAmI h2 {
     color: #c6e377;
     margin-bottom: 1.3rem;
+    font-weight: 300;
   }
 }
 
@@ -66,6 +69,7 @@
   #whoAmI h2 {
     color: #a86d1f;
     margin-bottom: 1.5rem;
+    font-weight: 300;
   }
 } 
 
@@ -83,5 +87,6 @@
   #whoAmI h2 {
     color: #e3d9ca;
     margin-bottom: 1.5rem;
+    font-weight: 300;
   }
 } 
