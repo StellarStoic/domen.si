@@ -200,13 +200,24 @@ body {
   
   @media screen and (max-width: 600px) {
   .header {
+    font-size: 1em;
+    /* margin-left: -10px;
+    margin-right: -10px; */
+  }
+
+  .homepage {
     font-size: 0.8em;
     margin-left: -10px;
     margin-right: -10px;
   }
+
   }
   @media screen and (max-width: 830px) {
   .header {
+    font-size: 2em;
+  }
+
+  .homepage {
     font-size: 1.7em;
   }
  }
