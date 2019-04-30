@@ -1,7 +1,7 @@
 @import url('https://fonts.googleapis.com/css?family=Lato');
 @import url('https://fonts.googleapis.com/css?family=Tangerine');
 
-/* Navigation menu from  https://codepen.io/SitePoint/pen/uIemr */
+/* Navigation menu inspiration from  https://codepen.io/SitePoint/pen/uIemr */
 
 /* Navigation Menu - Background */
 .navigation {
@@ -201,8 +201,9 @@ body {
   @media screen and (max-width: 600px) {
   .header {
     font-size: 1em;
+    font-weight: 200;
     /* margin-left: -10px;
-    margin-right: -10px; */
+    margin-right: -10px;*/
   }
 
   .homepage {
@@ -218,7 +219,7 @@ body {
   }
 
   .homepage {
-    font-size: 1.7em;
+    font-size: 1.5em;
     font-weight: 100;
   }
   }
