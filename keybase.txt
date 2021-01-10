@@ -1,0 +1,56 @@
+==================================================================
+https://keybase.io/simplepotato
+--------------------------------------------------------------------
+
+I hereby claim:
+
+  * I am an admin of https://domen.si
+  * I am simplepotato (https://keybase.io/simplepotato) on keybase.
+  * I have a public key ASDT3-RKxGezoYGaFNPZDnhux7zdaAQCF88fP40iqf9Qrwo
+
+To do so, I am signing this object:
+
+{
+  "body": {
+    "key": {
+      "eldest_kid": "0120e9fccbef4b9ebfecde015f96e479b55eef6ded5cfc9bd9d31300b9d81bdc97f20a",
+      "host": "keybase.io",
+      "kid": "0120d3dfe44ac467b3a1819a14d3d90e786ec7bcdd68040217cf1f3f8d22a9ff50af0a",
+      "uid": "2137033c426f90eb1d29008188024919",
+      "username": "simplepotato"
+    },
+    "merkle_root": {
+      "ctime": 1610280359,
+      "hash": "f9162d373297fcf65132ba4094464074c7ba171df82d16a822b84e1beaa9250f2a097caf2bfbc96ad1c2e8e0c40a2733095a1ddabfc7260f857a45d004e65338",
+      "hash_meta": "f3e7896b18c8e386f6bbf52ff1ef258acd964fdc8575ee9f7068be52ec73887b",
+      "seqno": 18674092
+    },
+    "service": {
+      "entropy": "pbFp6GCi4A0yUADqZKXHHJXk",
+      "hostname": "domen.si",
+      "protocol": "https:"
+    },
+    "type": "web_service_binding",
+    "version": 2
+  },
+  "client": {
+    "name": "keybase.io go client",
+    "version": "5.5.0"
+  },
+  "ctime": 1610280543,
+  "expire_in": 504576000,
+  "prev": "21403cac454c9819af913577d1949ccbe8f7ad5bd4e1799358cbd8a2fc0c2dad",
+  "seqno": 68,
+  "tag": "signature"
+}
+
+which yields the signature:
+
+hKRib2R5hqhkZXRhY2hlZMOpaGFzaF90eXBlCqNrZXnEIwEg09/kSsRns6GBmhTT2Q54bse83WgEAhfPHz+NIqn/UK8Kp3BheWxvYWTESpcCRMQgIUA8rEVMmBmvkTV30ZScy+j3rVvU4XmTWMvYovwMLa3EIARlgMrEo+uBGQpH5sZa9HPM5BM1stKL9JGGPPt+8ij9AgHCo3NpZ8RAf3HNh0fm+2I2yUh5m9L4zOBEkVRKEa9YRzNaJTFr2To/XjR6dQF+RoaVLdZdxgmtaNo1CfACEwM8za6/X2/bBKhzaWdfdHlwZSCkaGFzaIKkdHlwZQildmFsdWXEIE5Szmf1YwfHjhXLeWOkR0z8dS3Ajb/RAt+IC+2JfDeko3RhZ80CAqd2ZXJzaW9uAQ==
+
+And finally, I am proving ownership of this host by posting or
+appending to this document.
+
+View my publicly-auditable identity here: https://keybase.io/simplepotato
+
+==================================================================
