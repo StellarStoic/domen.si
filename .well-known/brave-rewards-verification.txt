@@ -1,0 +1,4 @@
+This is a Brave Rewards publisher verification file.
+
+Domain: domen.si
+Token: 04000762adfb77773e688b919dec8ebc415127c7cbb87a508bae412a641b5eeb
