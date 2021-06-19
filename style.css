@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css?family=Lato');
+@import url('https://fonts.googleapis.com/css?family=Lato:300');
 @import url('https://fonts.googleapis.com/css?family=Tangerine');
 
 /* Navigation menu inspiration from  https://codepen.io/SitePoint/pen/uIemr */
@@ -17,7 +17,7 @@
   
   /* non-critical appearance styles */
   list-style: none;
-  background: #111;
+  background: rgb(19, 28, 25);
 }
 
 /* Navigation Menu - List items */
@@ -108,7 +108,7 @@
   /* Critical position and size styles */
   min-height: 100%;
   min-width: 100%;
-  background-image: url("/img/linedpaper-dark.png");
+  background-image: linear-gradient(135deg, rgb(5, 5, 5) 0%,rgb(26, 27, 27) 35%,rgb(21, 62, 65) 100%) ;
   background-repeat: round;
   position: absolute;
   top: 0px;
@@ -165,19 +165,19 @@ label[for="nav-trigger"] {
 body {
 	/* Without this, the body has excess horizontal scroll when the menu is open */
   overflow-x: hidden;
-  
+  box-sizing: content-box;
   display: flex;
   margin: 0;
   /* overflow: hidden; */
   flex-wrap: wrap;
-  height: 100vh;
+  height: 0vh;
   /* justify-content: center; */
   align-content: center;
 }
 
 #title {
   font-style: italic;
-  font-weight: 400;
+  font-weight: 100;
 }
 
 /* Additional non-critical styles */
@@ -235,7 +235,7 @@ body {
 /* Micro reset */
 
 *,*:before,*:after{-webkit-box-sizing:border-box;-moz-box-sizing:border-box;box-sizing:border-box;margin:0;padding:0;}
-html, body { height: 100%; width: 100%; font-family: Helvetica, Arial, sans-serif; }
+html, body { height: 100%; width: 100%; font-family: Lato, Helvetica, Arial, sans-serif; }
 
 /* CONTACT.html */
 
@@ -261,12 +261,12 @@ html, body { height: 100%; width: 100%; font-family: Helvetica, Arial, sans-seri
     display: flex;
     flex-direction: column;
     height:100%;
-    font-size: 60px;
+    font-size: 50px;
   }
   }
 @media screen and (max-width: 830px) {
   .social {
-    font-size: 80px;
+    font-size: 60px;
   }
   }
 
