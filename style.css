@@ -33,7 +33,7 @@
   display: block;
   padding: 0.7em;
   background: linear-gradient(135deg, rgba(0,0,0,0) 0%,rgba(0,0,0,0.65) 100%);
-  color: white;
+  color: rgb(255, 255, 255);
   font-family: 'Lato', sans-serif;
   font-weight: 400;
   font-style: italic;
@@ -43,7 +43,7 @@
 }
 
 .nav-item a:hover {
-  color: #04fc4e;
+  color: #04fc4eb8;
   background: linear-gradient(135deg, rgba(0,0,0,0) 0%,rgba(19, 168, 106, 0.65) 100%);
 }
 
@@ -108,7 +108,7 @@
   /* Critical position and size styles */
   min-height: 100%;
   min-width: 100%;
-  background-image: linear-gradient(135deg, rgb(5, 5, 5) 0%,rgb(26, 27, 27) 35%,rgb(21, 62, 65) 100%) ;
+  background-image: linear-gradient(135deg, rgb(15, 17, 16) 0%,rgb(27, 31, 31) 35%,rgb(21, 62, 65) 100%) ;
   background-repeat: round;
   position: absolute;
   top: 0px;
@@ -260,8 +260,8 @@ html, body { height: 100%; width: 100%; font-family: Lato, Helvetica, Arial, san
   .social {
     display: flex;
     flex-direction: column;
-    height:100%;
-    font-size: 50px;
+    position: relative;
+    height: 100vh;
   }
   }
 @media screen and (max-width: 830px) {
@@ -335,6 +335,21 @@ a {
   -webkit-transition: ease-out 1500ms;
 }
 
+.fa-keybase {
+  padding: 18px;
+  /* HOVER OFF */
+  transition: ease-out;
+  -webkit-transition:1500ms;
+}
+
+.fa-keybase:hover {
+  transition: ease-in;
+  /* transition-duration: 1500ms; */
+  color: rgba(6, 167, 137, 0.974);
+  /* HOVER ON */
+  -webkit-transition: ease-out 1500ms;
+}
+
 .fa-envelope {
   padding: 18px;
   /* HOVER OFF */
@@ -352,7 +367,7 @@ a {
 
 @media (max-width : 640px) {
   .fa-envelope {
-    margin-left: -5px;
+    margin-left: -3px;
   }
 }
 
@@ -424,4 +439,31 @@ a {
     /* padding-right: 1.25rem */
   }
   
+}
+/* Homepage */
+.line-1{
+  position: static;
+  top: 50%;  
+  width: 1em;
+  margin: 0 auto;
+  border-right: 2px solid rgba(255,255,255,.75);
+  font-size: 1em;
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  transform: translateY(-50%);    
+}
+
+/* Animation */
+.anim-typewriter{
+animation: typewriter 2s steps(10) 1s 1 normal both,
+           blinkTextCursor 700ms steps(4) infinite normal;
+}
+@keyframes typewriter{
+from{width: 0;}
+to{width: 4.3em;}
+}
+@keyframes blinkTextCursor{
+from{border-right-color: rgba(255,255,255,.75);}
+to{border-right-color: transparent ;}
 }
