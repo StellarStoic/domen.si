@@ -6,7 +6,7 @@ I hereby claim:
 
   * I am an admin of https://domen.si
   * I am simplepotato (https://keybase.io/simplepotato) on keybase.
-  * I have a public key ASDT3-RKxGezoYGaFNPZDnhux7zdaAQCF88fP40iqf9Qrwo
+  * I have a public key with fingerprint 8E37 D3DC 22E0 AE0D 24E7  59E5 80D7 3475 A3EF 4DBD
 
 To do so, I am signing this object:
 
@@ -14,39 +14,58 @@ To do so, I am signing this object:
   "body": {
     "key": {
       "eldest_kid": "0120e9fccbef4b9ebfecde015f96e479b55eef6ded5cfc9bd9d31300b9d81bdc97f20a",
+      "fingerprint": "8e37d3dc22e0ae0d24e759e580d73475a3ef4dbd",
       "host": "keybase.io",
-      "kid": "0120d3dfe44ac467b3a1819a14d3d90e786ec7bcdd68040217cf1f3f8d22a9ff50af0a",
+      "key_id": "80d73475a3ef4dbd",
+      "kid": "010173b71574ee1bd6b87e8c656a52acbf15c4c8b3c0f6bd6f5595fb5cc5ac68554c0a",
       "uid": "2137033c426f90eb1d29008188024919",
       "username": "simplepotato"
     },
-    "merkle_root": {
-      "ctime": 1610280359,
-      "hash": "f9162d373297fcf65132ba4094464074c7ba171df82d16a822b84e1beaa9250f2a097caf2bfbc96ad1c2e8e0c40a2733095a1ddabfc7260f857a45d004e65338",
-      "hash_meta": "f3e7896b18c8e386f6bbf52ff1ef258acd964fdc8575ee9f7068be52ec73887b",
-      "seqno": 18674092
-    },
     "service": {
-      "entropy": "pbFp6GCi4A0yUADqZKXHHJXk",
       "hostname": "domen.si",
       "protocol": "https:"
     },
     "type": "web_service_binding",
-    "version": 2
+    "version": 1
   },
-  "client": {
-    "name": "keybase.io go client",
-    "version": "5.5.0"
-  },
-  "ctime": 1610280543,
-  "expire_in": 504576000,
-  "prev": "21403cac454c9819af913577d1949ccbe8f7ad5bd4e1799358cbd8a2fc0c2dad",
-  "seqno": 68,
+  "ctime": 1663875673,
+  "expire_in": 157680000,
+  "prev": "165c026b1dba627e525b8fe72d60ad77a38cde581d0192bf1e4fcaf79ab83058",
+  "seqno": 99,
   "tag": "signature"
 }
 
 which yields the signature:
 
-hKRib2R5hqhkZXRhY2hlZMOpaGFzaF90eXBlCqNrZXnEIwEg09/kSsRns6GBmhTT2Q54bse83WgEAhfPHz+NIqn/UK8Kp3BheWxvYWTESpcCRMQgIUA8rEVMmBmvkTV30ZScy+j3rVvU4XmTWMvYovwMLa3EIARlgMrEo+uBGQpH5sZa9HPM5BM1stKL9JGGPPt+8ij9AgHCo3NpZ8RAf3HNh0fm+2I2yUh5m9L4zOBEkVRKEa9YRzNaJTFr2To/XjR6dQF+RoaVLdZdxgmtaNo1CfACEwM8za6/X2/bBKhzaWdfdHlwZSCkaGFzaIKkdHlwZQildmFsdWXEIE5Szmf1YwfHjhXLeWOkR0z8dS3Ajb/RAt+IC+2JfDeko3RhZ80CAqd2ZXJzaW9uAQ==
+-----BEGIN PGP MESSAGE-----
+Version: Keybase OpenPGP v2.1.13
+Comment: https://keybase.io/crypto
+
+yMN0AnicbVJ7UFRVGF9AgYCCKcPRER/XgAmX9dzHuY8FdC3RWIUoaoyGonvuPRfX
+fdxld3k4oDhplETIIwoQBvBF6MhMMZhoOrKSjGHONA2DDNTABIwZDWESIQ52l9H/
+Ov+cOd/3+/2+3/edr/fZAF2I36FBJu/kdOoVv/6eujydpL+UWUQgVd5PGIsIK166
+sE3Gbk+21SITRgKQFMCCIkkIKwwSMFKwJGNAQkVgMcMJCEKMFVbGMpQUSUCyINMk
+DQASZJ5EsiRwCgVEQk8oFkcOdjldFodHk+Uxzcm0LFEUBiIGMsVgDgoY8kDmaIaD
+Iq2Vk5GsEfeqbh9DM4dENzZYVC2mPbKX7P0P/qlvQHI04kjIMRhrTljEc5iXWMiK
+kBIlpJBQYiQe0RJQWC2tQChABUFJgqLE8hAy0pLvvCU5iqQ5QNMSQ7GKADAiZUoA
+gCd5HlCMQAo+oBu7HKIda2i3xe60YafqET0qcUBPaJl8i4R9w/V18wQlq3bsMLgt
+GtfpUj2qpNq06F6Px+k2+lie/U4frACj7CcC2cjikLU5aox87HJbVAdhJDWk5LH4
+FEmWpXkOshytJ3Ch0+LC2RYfAnIsD7Tjq4PzNUmShRKgWK0LJLIUhyEFEa9gjpJZ
+IMocJ9K89smQJ2VACpQ2Kswokqhwgoh4GkCe8LWU61AJoyBoPsWcpZ5zHKInz4WJ
+A96erGU6vxBd4HJ/34LpQp6JeLp2iTB8MaH89QcrXl7I+azX+95aprR9Z+8IG9Uy
+D/KGtoaF2hnuYSOfPLw6Wm2unb16//lK26b0xNtrztUVt94CM5/Eb3+UGhjTzvc8
+Lo35p2W6ubZ+D74dnNxySsA17esDjmQEvdLQubrROovK4/QO3c31Buq77o6sR2FT
+1eD8O/4fN772/kpb29SEt2Sz6XD/v28aDptvDMYmz94NP51ycC5lY1PB0cies8NJ
+QB5fKEuquLzLvrKtqnVHbf9QTRq83vXjtxHBG9Y4x4ZfoJb/0WoQ7xQfDxyLnAwM
+HPx9ILycv3e5IfmMfq35ZMnVpNzFX2IDBo4VlX30TSfavq/g1eayvr75jr6JmZ+y
+3DXffxhcEafbnD4ckXgpCB6LqnzYFAq7F/lbyoy3xf+NhI6LQ7vNWy5aN54hrsS4
+enak2K+T1SGZkXsyTyyULDP5fTqSVlXxV6H+ce7PYztj7rVfyOjvji4MOWKqYNft
+vvNiXOi1l3JtdbPH01s+aGMjz3d5D+GmwaO6bbsqq7YkIljesNWqH4m4O/XlwrXi
+TRlfFeeMb3j7/tznpX+u6NZ5GX34eEDSZNfZVY1VrevwbFBym8H6oLrP/PXiwLtl
+81PmtOdG+Wn/U536+NS38qMm9yWMWktPzMWf++1m2IVfw2/8bXR/0Vs/erDWZDJM
++C2cNseKo6YfzEWr6qNLtiX+BzOqvfE=
+=vmg3
+-----END PGP MESSAGE-----
 
 And finally, I am proving ownership of this host by posting or
 appending to this document.
