@@ -300,7 +300,7 @@ a {
 .fa-twitter:hover {
   transition: ease-in;
   /* transition-duration: 1500ms; */
-  color: rgba(4, 198, 247, 0.801);
+  color:#1DA1F2;
   /* HOVER ON */
   -webkit-transition: ease-out 1500ms;
 }
@@ -346,6 +346,21 @@ a {
   transition: ease-in;
   /* transition-duration: 1500ms; */
   color: rgba(6, 167, 137, 0.974);
+  /* HOVER ON */
+  -webkit-transition: ease-out 1500ms;
+}
+
+.fa-telegram {
+  padding: 18px;
+  /* HOVER OFF */
+  transition: ease-out;
+  -webkit-transition:1500ms;
+}
+
+.fa-telegram:hover {
+  transition: ease-in;
+  /* transition-duration: 1500ms; */
+  color:#0088CC;
   /* HOVER ON */
   -webkit-transition: ease-out 1500ms;
 }
