@@ -1,31 +1,11 @@
 @import url("https://fonts.googleapis.com/css?family=Montserrat:400,400i,700");
-* {
-  margin: 0;
-  box-sizing: border-box;
-  padding: 0;
-}
-.title{  
-  text-align:center;
-  margin-bottom:3rem;
-  color:#fff;
-  text-shadow:-5px 5px 2px #546E7A;
-}
 
 .centr{
 border: 5px solid #FFFF00;
 display: flex;
 justify-content: center;
 }
-body {
-  width: 100%;
-  height: 100vh;
-  display: flex;
-  align-items:center;
-  justify-content:center;
-  gap:50px;
-  flex-direction:column;
-  background:#37474F;
-  font-family: Montserrat, sans-serif;
+
 }
 .input-field{
   width:350px;
@@ -58,13 +38,7 @@ input{
     color:#fff;
     animation: arrowani 0.5s linear infinite alternate;
   }
-  
-  p{
-    position:absolute;
-    bottom:-25px;
-    color:#fff;
-    display:none;
-  }
+
   #strength{
     font-weight:600;
   }
