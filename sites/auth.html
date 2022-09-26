@@ -6,15 +6,12 @@
   <head>
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <title>Domen-About</title>
+    <title>Domen</title>
     <meta name="author" content="Domen Kastner">
     <meta name="description" content="Personal site about me, my Gigs and my interests">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="stylesheet" href="/style.css">
-    <link rel="stylesheet" href="/CSS/about.css">
-    
-    <!-- Google fonts -->
-    <link href="" rel="stylesheet">
+    <link rel="stylesheet" href="/CSS/auth.css">
     
     <!-- third-generation iPad with high-resolution Retina display: -->
     <link rel="apple-touch-icon-precomposed" sizes="144x144" href="./img/favicon/smejko.png">
@@ -26,6 +23,7 @@
     <link rel="apple-touch-icon-precomposed" href="./img/favicon/smejko.png">
     <!-- basic favicon -->
     <link rel="shortcut icon" type="image/png" href="./img/favicon/smejko.png" sizes="32x32" />
+    
     
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.5.0/css/all.css" integrity="sha384-B4dIYHKNBt8Bc12p+WXckhzcICo0wtJAoU8YZTY5qE0Id1GSseTk6S+L3BlXeVIU" crossorigin="anonymous">
@@ -61,10 +59,10 @@
             <li><a href="#">null</a></li>
           </ul>
         </li>
-        <li class="nav-item"><a href="#">TestMenu1</a></li>
-        <li id="otherStuffDDMenu" class="nav-item"><a href="#">TestMenu2</a>
+        <li class="nav-item"><a href="#">Hike and Fly</a></li>
+        <li id="otherStuffDDMenu" class="nav-item"><a href="#">Other stuff</a>
           <ul class="otherStuffDropDownMenu">
-            <li><a href="#">TestMenu3</a></li>
+            <li><a href="sites/constructionSite.html">Weather</a></li>
             <li><a href="#">null</a></li>
             <li><a href="#">null</a></li>
             <li><a href="#">null</a></li>
@@ -78,24 +76,40 @@
       <label for="nav-trigger"></label>
     <!-- END navigation -->
     
+    <!-- container -->
     <div class="container">
-        <div class="header">
-            <div id="whoAmI">
+      <!-- header -->
+      <div class="header homepage">
+        <!-- addr -->
+        <div class="addr">
 
-                <h2>Who am I?</h2>
+          <div class="centr">
+          
+            Enter password: <input id='password' type='text'  />
+            <a href="contact.html" onclick="javascript:return validatePass()">enter</a>
+            <script>
+            function validatePass(){
+                if(document.getElementById('password').value == 'S1bl1ng5_Grad3d_53cur1ty_Pr0t3ct10n'){
+                    return true;
+                }else{
+                    alert('Ϻɹouƃ dɐssʍoɹp ¡¡¡ Iⅎ ʎon ɔɐu╻ʇ ɔɹɐɔʞ ᴉʇʻ ʍǝ dɹoqɐqʅʎ pou╻ʇ ɥɐʌǝ ɯnɔɥ ᴉu ɔoɯɯou ꓭnʇ ʇɥɐuʞs ⅎoɹ ʎonɹ ᴉuʇǝɹǝsʇ. Soɹɹʎ' );
+                    return false;
+                }
+            }
+            </script>
 
-                <p id="textTrue">Hi, my name is Domen and I am an introverted senior millennial, super interested in everything tech and nature. I'm building simple static responsive websites purely as a hobbyist. Yet my free time is expensive. It takes me some time to build and test, but I get things done eventually. The reason for this is 9-5 job where I'm far away from my beloved computer. <strong>Need a simple website?</strong> Find me on the <a class="text-flicker-in-glow" id="internets" href="auth.html"><strong >internets</strong>.</a><br>
-                  I'm not smart. I'm just a super curious person, interested into too many things that I can handle. Sometimes I wish I could feel boredom, but I don't have this ability, never had.
-                  For example, my podcast app playlist is like a mile long, a mountain of books waiting to be read, doing stuff indoors / outdoors, exercising, procrastinating, researching, exploring new hiking trails or just relexing at the nearby forest...<br>
-                  Among all this, I'm still trying to take that Instagram photo that will go viral. Ha, just kidding!
-                  If you want to know more about me in pictures, I suggest you click on the Instagram icon in contacts but I don't post that much lately.
-You probably know the saying that a picture is worth a thousand words, and I believe you will then understand, why I don't have so much time sitting behind the screens. But when I get the momentum I can't get off of it!
-Hm... maybe I'll make a gallery section someday, maybe next month idk. 
-                </p>
-            </div>
+          </div>
+          <!--centr END-->
+
         </div>
+        <!-- END addr -->
+      </div>
+      <!-- END header -->
     </div>
+    <!-- END container -->
+
     
-    <script src="/script/script.js" async defer></script>
+    <script src="/scripts/script.js" async defer></script>
+    <script src="/scripts/auth.js" async defer></script>
   </body>
-  </html>
+</html>
