@@ -7,5 +7,3 @@ function validatePass(){
             return false;
 }
 }
-
-
