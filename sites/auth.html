@@ -40,7 +40,7 @@
 
   </head>
 
-  <body>
+  <>
     <!--[if lt IE 7]>
       <p class="browsehappy">You are using an <strong>outdated</strong> browser. Please <a href="#">upgrade your browser</a> to improve your experience.</p>
     <![endif]-->
@@ -79,29 +79,39 @@
     <!-- container -->
     <div class="container">
       <!-- header -->
-      <div class="header homepage">
-        <!-- addr -->
-        <div class="addr">
+      <div class="header homepage">    
 
           <div class="centr">
-
-          
-            <p id="pass">Enter Password</p> <input id='password' type='password'  />
+            <p id="pass">Hack in to reveal all my socials</p> <input id='password' type='password'  />
             <a href="d1b9f064e8f736f10d8d53e5f21a567d.html" onclick="javascript:return validatePass()"><i class="fas fa-chevron-right knof"></i></a>
-            
-
           </div>
           <!--centr END-->
 
-        </div>
-        <!-- END addr -->
+          <div class="contact_partial">
+            <a href="mailto:&#104;&#105;&#107;&#101;&#097;&#114;&#111;&#117;&#110;&#100;&#064;&#112;&#114;&#111;&#116;&#111;&#110;&#046;&#109;&#101;?subject=Mail from domen.si" title="E-mail" ><i class="far fa-envelope"></i></a>
+            <a href="#" class="show-modal open-modal" title="Should you call me?" rel="modulepreload"><i class="fas fa-phone-square"></i></a>
+          </div>
+            <!-----END contact_partial----->
+
       </div>
       <!-- END header -->
-    </div>
-    <!-- END container -->
+    
 
     
+    
+    <!-- jQuery -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
     <script src="/scripts/script.js" async defer></script>
+    <!-- modal -->
+    <div class="modal">
+      <a class="close-modal" alt="close modal" href="#"><span id="modalClosePlus">+</span></a>
+      <div class='modal-content'>
+        <img id="introvertDoodles" src="/img/Introvert-Doodles.jpg" alt="A guide if you should call an Introvert">
+      </div>
+    </div>
+    <!-- END modal -->
+    </div>
+    <!-- END container -->
     <script src="/scripts/auth.js" async defer></script>
   </body>
 </html>
