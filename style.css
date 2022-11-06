@@ -335,14 +335,14 @@ a {
   -webkit-transition: ease-out 1500ms;
 }
 
-.fa-keybase {
+.fa-mastodon {
   padding: 18px;
   /* HOVER OFF */
   transition: ease-out;
   -webkit-transition:1500ms;
 }
 
-.fa-keybase:hover {
+.fa-mastodon:hover {
   transition: ease-in;
   /* transition-duration: 1500ms; */
   color: rgba(6, 167, 137, 0.974);
