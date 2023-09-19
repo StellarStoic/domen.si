@@ -1,485 +1,650 @@
-@import url('https://fonts.googleapis.com/css?family=Lato:300');
-@import url('https://fonts.googleapis.com/css?family=Tangerine');
+@import url('https://fonts.googleapis.com/css?family=IBM+Plex+Mono:700');
 
-/* Navigation menu inspiration from  https://codepen.io/SitePoint/pen/uIemr */
+@font-face {
+    font-family: 'SyneMono';
+    src: url('/font/SyneMono-Regular.ttf') format('truetype');
+    font-weight: normal;
+    font-style: normal;
+  }
 
-/* Navigation Menu - Background */
-.navigation {
-  /* critical sizing and position styles */
-  width: 100%;
-  height: 100%;
-  position: fixed;
-  top: 0;
-  right: 0;
-  bottom: 0;
-  left: 0;
-  z-index: 0;
-  
-  /* non-critical appearance styles */
-  list-style: none;
-  background: rgb(19, 28, 25);
+  body {
+    /* background Image by Alexa https://pixabay.com/users/alexas_fotos-686414/?utm_source=link-attribution&utm_medium=referral&utm_campaign=image&utm_content=700381" from https://pixabay.com//?utm_source=link-attribution&utm_medium=referral&utm_campaign=image&utm_content=700381 */
+    background-image: url(/pics/site/planinaNV.jpg);
+    background-size: cover;
+    
+    /* background-color: #607965c6; */
+    color: rgb(0, 0, 0);
+    font-family: 'SyneMono', 'IBM Plex Mono', monospaced;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+    position: relative;
 }
 
-/* Navigation Menu - List items */
-.nav-item {
-  /* non-critical appearance styles */
-  width: 200px;
-  border-top: 1px solid #111;
-  border-bottom: 1px solid #000;
+body::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color:rgba(0, 0, 0, 0.081); /* Black with 50% opacity */
+    z-index: -1;
 }
 
-.nav-item a {
-  /* non-critical appearance styles */
-  display: block;
-  padding: 0.7em;
-  background: linear-gradient(135deg, rgba(0,0,0,0) 0%,rgba(0,0,0,0.65) 100%);
-  color: rgb(255, 255, 255);
-  font-family: 'Lato', sans-serif;
-  font-weight: 400;
-  font-style: italic;
-  font-size: 1.0em;
-  text-decoration: none;
-  transition: color 0.2s, background 0.5s;
-}
 
-.nav-item a:hover {
-  color: #04fc4eb8;
-  background: linear-gradient(135deg, rgba(0,0,0,0) 0%,rgba(19, 168, 106, 0.65) 100%);
-}
-
-/* Dropdown Menu...https://codepen.io/andornagy/pen/xhiJH */
-
-/* Hide Dropdowns by Default */
-.codeDropDownMenu {
-  display: none;
-  position: absolute;
-}
-
-/* Display Dropdowns on Hover */
-.navigation #codeDDmenu:hover > .codeDropDownMenu {
-	display:inherit;
-}
-
-.codeDropDownMenu li{
-  width:145px;
-	float:none;
-	display:list-item;
-  position: relative;
-  background: greenyellow;
-  color: #000;
-  list-style: none;
-  font-size: 15px;
-}
-
-.codeDropDownMenu a {
-  color: black;
-}
-
-/* Hide Dropdowns by Default */
-.otherStuffDropDownMenu {
-  display: none;
-  position: absolute;
-}
-
-/* Display Dropdowns on Hover */
-.navigation #otherStuffDDMenu:hover > .otherStuffDropDownMenu {
-	display:inherit;
-}
-
-.otherStuffDropDownMenu li{
-  width:150px;
-	float:none;
-	display:list-item;
-  position: relative;
-  margin-right: 5px;
-  background: greenyellow;
-  color: #000;
-  list-style: none;
-  font-size: 15px;
-}
-
-.otherStuffDropDownMenu a {
-  color: black;
-}
-/* END Dropdown Menu */
-
-/* container - Everything that isn't navigation */
 .container {
-  /* Critical position and size styles */
-  min-height: 100%;
-  min-width: 100%;
-  background-image: linear-gradient(135deg, rgb(15, 17, 16) 0%,rgb(27, 31, 31) 35%,rgb(21, 62, 65) 100%) ;
-  background-repeat: round;
-  position: absolute;
-  top: 0px;
-  /* bottom: 100px; */
-  left: 0px;
-  z-index: 1;
-
-  /* non-critical apperance styles */
-  /*padding: 4em;
-  background-image: linear-gradient(135deg, rgb(254,255,255) 0%,rgb(221,241,249) 35%,rgb(160,216,239) 100%);
-  background-size: 200%;*/
-}
-
-/* Nav Trigger */
-.nav-trigger {
-  /* critical styles - hide the checkbox input */
-  position: absolute;
-  clip: rect(0, 0, 0, 0);
-}
-
-/* Infinate FadeIn https://codepen.io/Ahrengot/pen/bKdLC */
-@keyframes fadeOut { 
-  from { opacity: 0.05; } 
-}
-label[for="nav-trigger"] {
-  /* critical positioning styles */
-  position: fixed;
-  left: 15px; top: 15px;
-  z-index: 2;
-  
-  /* non-critical apperance styles */
-  height: 30px;
-  width: 30px;
-  cursor: pointer;
-  background-image: url("./img/menu.svg");
-  background-size: contain;
-  animation: 2.6s fadeOut infinite alternate;
-}
-
-/* Make the Magic Happen */
-.nav-trigger + label, .container {
-  transition: left 0.2s;
-}
-
-.nav-trigger:checked + label {
-  left: 215px;
-}
-
-.nav-trigger:checked ~ .container {
-  left: 200px;
-  box-shadow: 0 0 5px 5px rgba(0,0,0,0.5);
-}
-
-body {
-	/* Without this, the body has excess horizontal scroll when the menu is open */
-  overflow-x: hidden;
-  box-sizing: content-box;
-  display: flex;
-  margin: 0;
-  /* overflow: hidden; */
-  flex-wrap: wrap;
-  height: 0vh;
-  /* justify-content: center; */
-  align-content: center;
-}
-
-#title {
-  font-style: italic;
-  font-weight: 100;
-}
-
-/* Additional non-critical styles */
-.header {
-  display:flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  font-family: 'Lato', sans-serif;
-  font-weight: 100;
-  font-size: 2.2rem;
-  line-height: 1em;
-  height: 100vh;
-  text-align: center;
-  color:rgb(97, 97, 97);
-  margin-left: 17%;
-  margin-right: 17%;
-  padding: 50px;
-  }
-  
-  @media screen and (max-width: 600px) {
-  .header {
-    font-size: 1em;
-    font-weight: 200;
-    /* margin-left: -10px;
-    margin-right: -10px;*/
-  }
-
-  .homepage {
-    font-size: 0.8em;
-    margin-left: -10px;
-    margin-right: -10px;
-  }
-
-  }
-  @media screen and (max-width: 830px) {
-  .header {
-    font-size: 2em;
-  }
-
-  .homepage {
-    font-size: 1.5em;
-    font-weight: 100;
-  }
-  }
-
- /* Carpe diem blockquote at home page */
-#cd {
-  position: absolute;
-  font-family: 'Tangerine', cursive;
-  bottom: 10px;
-  right: 50px;
-}
-
-/* Micro reset */
-
-*,*:before,*:after{-webkit-box-sizing:border-box;-moz-box-sizing:border-box;box-sizing:border-box;margin:0;padding:0;}
-html, body { height: 100%; width: 100%; font-family: Lato, Helvetica, Arial, sans-serif; }
-
-/* CONTACT.html */
-
-.social {
-  /* positioning */
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  align-content: center;
-  align-items: baseline;
-  height: 100vh;  
-  /* style */
-  font-size: 100px;
-}
-
-/* support for chrome to center icons in the middle of the screen */
-.social:not(*:root) {
-  padding-top: 0vh;
-}
-
-@media screen and (max-width: 600px) {
-  .social {
     display: flex;
     flex-direction: column;
-    position: relative;
+    justify-content: center;
+    align-items: center;
     height: 100vh;
-  }
-  }
-@media screen and (max-width: 830px) {
-  .social {
-    font-size: 60px;
-  }
-  }
+    gap: 20px; /* This creates space between the highlighted words and the text */
 
-a {
-  color: inherit;
-  text-decoration: none;
 }
 
-.fa-github {
-  padding:18px;
-  /* HOVER OFF */
-  transition: ease-out;
-  -webkit-transition:1500ms;
+.text {
+
+    position: absolute;
+    text-align: center;
+    padding: 25px;
+    z-index: 1; /* This makes the text appear in front of the highlighted words */
+    color: rgba(34, 34, 34, 0.887);
+    border: 0.5rem  rgba(106, 106, 106, 0.786);
+    transform: rotate(6deg);
+    font-size: 3vw;
+    background: rgba(0, 0, 0, 0.129); /* Semi-transparent background */
+    -webkit-text-stroke: 1px rgba(255, 255, 255, 0.5); /* white stroke with 50% opacity */
+    backdrop-filter: blur(10px); /* Apply a blur effect to the area behind the element */
 }
 
-.fa-github:hover{
-  transition: ease-in;
-  /* transition-duration: 1500ms; */
-  color: rgb(227, 229, 230);
-  /* HOVER ON */
-  -webkit-transition: ease-out 1500ms;
+.text::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: -1; /* This makes the overlay appear behind the text */
 }
 
-.fa-twitter {
-  padding: 18px;
-  /* HOVER OFF */
-  transition: ease-out;
-  -webkit-transition:1500ms;
+.text.sentence-0,
+.text.sentence-10,
+.text.sentence-20,
+.text.sentence-30,
+.text.sentence-40 {
+    transform: rotate(6deg);
+    font-size: 3.5vw;
 }
 
-.fa-twitter:hover {
-  transition: ease-in;
-  /* transition-duration: 1500ms; */
-  color:#1DA1F2;
-  /* HOVER ON */
-  -webkit-transition: ease-out 1500ms;
+.text.sentence-1,
+.text.sentence-11,
+.text.sentence-21,
+.text.sentence-31,
+.text.sentence-41 {
+    transform: rotate(-8deg);
+    font-size: 3.5vw;
+
 }
 
-.fa-reddit {
-  padding: 18px;
-  /* HOVER OFF */
-  transition: ease-out;
-  -webkit-transition:1500ms;
+.text.sentence-2,
+.text.sentence-12,
+.text.sentence-22,
+.text.sentence-32,
+.text.sentence-42 {
+    transform: rotate(10deg);
+    font-size: 3.5vw;
+
 }
 
-.fa-reddit:hover {
-  transition: ease-in;
-  /* transition-duration: 1500ms; */
-  color: rgba(247, 4, 4, 0.508);
-  /* HOVER ON */
-  -webkit-transition: ease-out 1500ms;
+.text.sentence-3,
+.text.sentence-13,
+.text.sentence-23,
+.text.sentence-33,
+.text.sentence-43 {
+    transform: rotate(-12deg);
+    font-size: 3.5vw;
+
 }
 
-.fa-instagram {
-  padding: 18px;
-  /* HOVER OFF */
-  transition: ease-out;
-  -webkit-transition:1500ms;
+.text.sentence-4,
+.text.sentence-14,
+.text.sentence-24,
+.text.sentence-34,
+.text.sentence-44 {
+    transform: rotate(14deg);
+    font-size: 3.5vw;
+
 }
 
-.fa-instagram:hover {
-  transition: ease-in;
-  /* transition-duration: 1500ms; */
-  color: rgba(175, 194, 4, 0.671);
-  /* HOVER ON */
-  -webkit-transition: ease-out 1500ms;
+.text.sentence-5,
+.text.sentence-15,
+.text.sentence-25,
+.text.sentence-35,
+.text.sentence-45 {
+    transform: rotate(-16deg);
+    font-size: 3.5vw;
 }
 
-.fa-mastodon {
-  padding: 18px;
-  /* HOVER OFF */
-  transition: ease-out;
-  -webkit-transition:1500ms;
+.text.sentence-6,
+.text.sentence-16,
+.text.sentence-26,
+.text.sentence-36,
+.text.sentence-46 {
+    transform: rotate(18deg);
+    font-size: 3.5vw;
 }
 
-.fa-mastodon:hover {
-  transition: ease-in;
-  /* transition-duration: 1500ms; */
-  color: rgba(6, 167, 137, 0.974);
-  /* HOVER ON */
-  -webkit-transition: ease-out 1500ms;
+.text.sentence-7,
+.text.sentence-17,
+.text.sentence-27,
+.text.sentence-37,
+.text.sentence-47 {
+    transform: rotate(-20deg);
+    font-size: 3.5vw;
 }
 
-.fa-telegram {
-  padding: 18px;
-  /* HOVER OFF */
-  transition: ease-out;
-  -webkit-transition:1500ms;
+.text.sentence-8,
+.text.sentence-18,
+.text.sentence-28,
+.text.sentence-38,
+.text.sentence-48 {
+    transform: rotate(22deg);
+    font-size: 3.5vw;
 }
 
-.fa-telegram:hover {
-  transition: ease-in;
-  /* transition-duration: 1500ms; */
-  color:#0088CC;
-  /* HOVER ON */
-  -webkit-transition: ease-out 1500ms;
+.text.sentence-9,
+.text.sentence-19,
+.text.sentence-29,
+.text.sentence-39,
+.text.sentence-49 {
+    transform: rotate(-22deg);
+    font-size: 3.5vw;
 }
 
-.fa-envelope {
-  padding: 18px;
-  /* HOVER OFF */
-  transition: ease-out;
-  -webkit-transition:1500ms;
+.text.sentence-50 {
+    transform: rotate(6deg);
+    font-size: 3.5vw;
+
 }
 
-.fa-envelope:hover {
-  transition: ease-in;
-  /* transition-duration: 1500ms; */
-  color: rgba(145, 34, 34, 0.671);
-  /* HOVER ON */
-  -webkit-transition: ease-out 1500ms;
+
+
+.text:hover {
+    cursor:default;
+    text-decoration: none;
 }
 
-@media (max-width : 640px) {
-  .fa-envelope {
-    margin-left: -3px;
-  }
+/* selected sentence make associated highlighted word blinks */
+.blink {
+    animation: blink 0.5s ease-in-out infinite alternate;
 }
 
-.fa-phone-square {
-  padding-left: 18px;
-  /* HOVER OFF */
-  transition: ease-in;
-  -webkit-transition:1500ms;
+@keyframes blink {
+    from {
+        text-shadow: 0 0 10px #fff, 0 0 20px #fff, 0 0 30px #fff, 0 0 40px rgba(255, 166, 0, 0.371),
+          0 0 70px rgba(255, 166, 0, 0.371), 0 0 80px rgba(255, 166, 0, 0.371), 0 0 100px rgba(255, 166, 0, 0.371), 0 0 150px rgba(255, 166, 0, 0.371);
+      }
+      to {
+        text-shadow: 0 0 5px #ffffff, 0 0 10px #fff, 0 0 15px #fff, 0 0 20px rgba(255, 166, 0, 0.371),
+          0 0 35px rgba(255, 166, 0, 0.371), 0 0 40px rgba(255, 166, 0, 0.371), 0 0 50px rgba(255, 166, 0, 0.371), 0 0 75px rgba(255, 166, 0, 0.371);
+      }
+    }
+
+
+#highlighted-words {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    padding-top: 40px;
+    padding-left: 40px;
+    color: rgb(255, 255, 255);
+    font-size: 5vw;
+    text-align: center;
+    max-width: 80%;
+    height: 80vh; /* Set a fixed height */
+    overflow-y: auto; /* Make it vertically scrollable */
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    -webkit-text-stroke: 1px rgba(255, 255, 255, 0.5); /* white stroke with 50% opacity */
+    z-index: 1; /* This makes the highlighted words appear behind the text */
 }
 
-.fa-phone-square:hover {
-  transition: ease-out;
-  /* transition-duration: 1500ms; */
-  color: #00000000;
-  /* HOVER ON */
-  -webkit-transition: ease-out 1500ms;
+#highlighted-words::before {
+    content: " ";
+    position: absolute;
+    top: 45vh; /* Adjust these values to change the position of the gap */
+    bottom: 45vh;
+    left: 0;
+    right: 0;
+    background: rgba(0, 0, 0, 0.5); /* This creates a semi-transparent overlay */
 }
 
-/* Contact - Show modal */
-
-.modal {
-  /* display: block; */
-  display: none; /*display should be set to none, otherwise modal would popUp on page load*/
-  background-color: #202b1b;
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  width: 600px;
-  height: 600px;
-  margin-left: -292px;
-  margin-top: -300px;
-  padding: 50px;
-  border-radius: 5px;
-  /* z-index: 0; */
-  box-shadow: 0 0 0 99999px rgba(0, 0, 0, 0.61);
+#highlighted-words::-webkit-scrollbar {
+    display: none; /* For Chrome, Safari and Opera */
 }
 
-#introvertDoodles {
-  width: 100%;
-  height: auto;
-  padding:0px;
+#highlighted-words a {
+    display: block; /* This makes each link appear on a new line */
+    margin-bottom: -4vw; /* This adds space below each link */
 }
 
-#modalClosePlus {
-  position: absolute;
-  top: 0;
-  right: 14px;
-  color: aliceblue;
-  font-size: 50px;
-  transform: rotate(45deg);
-  cursor: pointer;
+
+#highlighted-words a:nth-of-type(even) {
+    transform: rotate(6deg);
 }
 
-@media (max-width : 888px) {
+#highlighted-words a:nth-of-type(odd) {
+    transform: rotate(-6deg);
+}
 
-  .modal {
-    /* display:block; */
-  	top: 0;
-  	left: 0;
-    width: 100vw;
-    height: auto;
+/* footer */
+
+footer {
+    position: fixed;
+    bottom: 0;
+    width: 100%;
+    background-color: rgba(0, 0, 0, 0.5); /* Semi-transparent background */
+    color: white;
+    text-align: center;
+    padding: 10px 0;
+    z-index: 1000; /* This makes the footer appear in front of other elements */
+    box-shadow: 0px -20px 20px rgba(0, 0, 0, 0.3); /* Add shadow */
+    transition: box-shadow 0.3s ease; /* Add transition */
+}
+
+footer:hover {
+    box-shadow: 0px -2px 20px rgba(0, 0, 0, 0.5); /* Increase shadow on hover */
+}
+
+
+.footer-content {
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.footer-content a {
+    color: white;
+    text-decoration: none;
+    margin: 0px;
+}
+
+.footer-content a:hover {
+    color: #ddd;
+}
+
+.footer-content p {
     margin: 0;
-    padding: 15px;
-  }
+}
 
-  .modal-content{
-    clear: both;
-    padding-top: 4rem;
-    /* padding-right: 1.25rem */
+/* nostr chat */
+
+#chatWidgetContainer {
+    z-index: 9999;   /* This ensures the widget stays on top of other elements */
+}
+
+/* unvisited link */
+a:link {
+    color: rgba(0, 0, 0, 0.764);
+    text-shadow: 2px 2px 4px rgba(255, 255, 255, 0.5); /* white shadow with 50% opacity */
+    text-decoration: none;
   }
   
-}
-/* Homepage */
-.line-1{
-  position: static;
-  top: 50%;  
-  width: 1em;
-  margin: 0 auto;
-  border-right: 2px solid rgba(255,255,255,.75);
-  font-size: 1em;
-  text-align: center;
-  white-space: nowrap;
-  overflow: hidden;
-  transform: translateY(-50%);    
+  /* visited link */
+  a:visited {
+    color: rgba(0, 0, 0, 0.764);
+    text-shadow: 2px 2px 4px rgba(255, 255, 255, 0.5); /* white shadow with 50% opacity */
+    text-decoration: none;
+  }
+  
+  /* mouse over link */
+  a:hover {
+    color: rgba(255, 166, 0, 0.371);
+    text-shadow: 2px 2px 4px rgba(255, 255, 255, 0.5); /* white shadow with 50% opacity */
+    text-decoration: none;
+  }
+  
+  /* selected link */
+  a:active {
+    color: rgba(0, 0, 0, 0.764);
+    text-shadow: 2px 2px 4px rgba(255, 255, 255, 0.5); /* white shadow with 50% opacity */
+    text-decoration: none;
+  }
+
+/* disable saving images on mobile */
+  img {
+    pointer-events: none; 
 }
 
-/* Animation */
-.anim-typewriter{
-animation: typewriter 2s steps(10) 1s 1 normal both,
-           blinkTextCursor 700ms steps(4) infinite normal;
-}
-@keyframes typewriter{
-from{width: 0;}
-to{width: 4.3em;}
-}
-@keyframes blinkTextCursor{
-from{border-right-color: rgba(255,255,255,.75);}
-to{border-right-color: transparent ;}
+
+
+/* The Modal (background) */
+.modal {
+    display: none;
+    place-items: center;
+    display: none; /* Hidden by default */
+    position: fixed; /* Stay in place */
+    z-index: 1; /* Sit on top */
+    left: 0;
+    top: 0;
+    width: 100%; /* Full width */
+    height: 100%; /* Full height */
+    background-color: rgba(0,0,0,0.9); /* Black w/ opacity */
+
 }
 
+/* Style the buttons */
+.modal-button {
+    position: absolute;
+    top: 50%;
+    width: 50px;
+    height: 50px;
+    font-size: 2em;
+    background-color: rgba(0, 0, 0, 0.5);
+    color: white;
+    border: none;
+    cursor: pointer;
+    text-align: center;
+    line-height: 50px;
+    opacity: 0.7;
+    transition: opacity 0.3s;
+}
+
+/* Change the opacity when hovering over the buttons */
+.modal-button:hover {
+    opacity: 1;
+}
+
+  /* Position the previous button on the left */
+#prevBtn {
+    left: 0;
+    z-index: 1;
+}
+
+  /* Position the next button on the right */
+#nextBtn {
+    right: 0;
+}
+
+/* Style the image */
+.modal-content {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    max-width: 90%; /* Set max width to 80% of the viewport width */
+    max-height: 85%; /* Set max height to 80% of the viewport height */
+    width: auto; /* Set width to auto to maintain aspect ratio */
+    height: auto; /* Set height to auto to maintain aspect ratio */
+    object-fit: contain; /* Ensure the image scales while maintaining its aspect ratio */
+}
+
+.modal-text-content {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    max-width: 80%; /* Set max width to 80% of the viewport width */
+    max-height: 80%; /* Set max height to 80% of the viewport height */
+    overflow-y: auto; /* Make it scrollable */
+    padding: 10px;
+    font-size: 16px;
+    line-height: 1.5;
+    color: #dbdbdb; /* Adjust text color as needed */
+}
+
+/* slider style in modal  */
+
+#modal-text::-webkit-scrollbar {
+    width: 8px;  /* Thinner width of the vertical scrollbar */
+}
+
+#modal-text::-webkit-scrollbar-track {
+    background-color: #ffffffa2;  /* Color of the scrollbar track */
+}
+
+#modal-text::-webkit-scrollbar-thumb {
+    background-color: #333333;  /* Color of the scrollbar thumb */
+    border-radius: 25px;  /* Rounder edges for the scrollbar thumb */
+}
+
+#modal-text::-webkit-scrollbar-thumb:hover {
+    background-color: #555555;  /* Darker color on hover */
+}
+
+#modal-text {
+    scrollbar-width: thin;
+    scrollbar-color: #333333 #ffffffa2;  /* thumb and track color for Firefox */
+}
+
+
+
+
+/* The Close modal Button */
+.close {
+    position: fixed; /* Change from absolute to fixed */
+    top: 15px;
+    right: 35px;
+    color: #f1f1f1;
+    font-size: 40px;
+    font-weight: bold;
+    transition: 0.3s;
+}
+
+.close:hover,
+.close:focus {
+    color: #bbb;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+.centered-video {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+
+
+.slider {
+    position: absolute;
+    left: 20px;
+    bottom: 90%;
+    height: 80%;
+    width: 80vh;
+    -webkit-appearance: none;
+    height: 1vh;
+
+    background-color: #ffffffa2;
+    opacity: 0.7;
+    border-radius: 25px;
+    outline: none;
+    transform: rotate(90deg); /* Rotate the slider to make it vertical */
+    transform-origin: top left; /* Set the point of rotation */
+}
+
+.slider:hover {
+    opacity: 1;
+}
+  
+  
+  .slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    background-color: #000000;
+    height: 24px;
+    width: 24px;
+    border-radius: 25px;
+    cursor: pointer;
+    outline: none;
+  }
+
+  
+
+/* background image */
+
+#background-image {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: -1; /* Put the div behind the content */
+    background: no-repeat center center fixed;
+    background-size: cover;
+    opacity: 0.8; /* Make the image semi-transparent */
+}
+
+
+  
+  /* 
+    ##Device = Tablets, Ipads (landscape)
+    ##Screen = B/w 768px to 1024px
+  */
+  
+  @media (min-width: 768px) and (max-width: 1024px) and (orientation: landscape) {
+    
+    .text {
+        font-size: 3rem;
+    }
+
+    #highlighted-words {
+        font-size: 7vw;
+    }
+
+    #highlighted-words a {
+        display: block; /* This makes each link appear on a new line */
+        margin-bottom: -5vw; /* This adds space below each link */
+    }
+    
+  }
+  
+  /* 
+    ##Device = Low Resolution Tablets, Mobiles (Landscape)
+    ##Screen = B/w 481px to 767px
+  */
+  
+  @media (min-width: 481px) and (max-width: 767px) {
+    
+    .text {
+        /* ... */
+        font-size: 3rem !important; /* Increase the font size for smaller devices */
+        position: absolute;
+        text-align: center;
+        margin: 20px;
+        border-radius: 7px;
+        z-index: 1; /* This makes the text appear in front of the highlighted words */
+        color: rgba(34, 34, 34, 0.887);
+        border: 0.5rem rgba(106, 106, 106, 0.786);
+        background: rgba(0, 0, 0, 0.129); /* Semi-transparent background */
+        -webkit-text-stroke: 1px rgba(255, 255, 255, 0.5); /* white stroke with 50% opacity */
+        backdrop-filter: blur(10px); /* Apply a blur effect to the area behind the element */
+    }
+
+    #highlighted-words {
+        font-size: 10vw; /* Increase the font size for smaller devices */
+  }
+
+  #highlighted-words a {
+    display: block; /* This makes each link appear on a new line */
+    margin-bottom: -5vw; /* This adds space below each link */
+}
+}
+
+  /* 
+    ##Device = Most of the Smartphones Mobiles (Portrait)
+    ##Screen = B/w 320px to 479px
+  */
+  
+  @media (min-width: 320px) and (max-width: 480px) {
+    
+    .text {
+        /* ... */
+        font-size: 3rem !important; /* Increase the font size for smaller devices */
+        position: absolute;
+        text-align: center;
+        margin: 10px;
+        border-radius: 7px;
+        z-index: 1; /* This makes the text appear in front of the highlighted words */
+        color: rgba(34, 34, 34, 0.887);
+        border: 0.5rem rgba(106, 106, 106, 0.786);
+        background: rgba(0, 0, 0, 0.129); /* Semi-transparent background */
+        -webkit-text-stroke: 1px rgba(255, 255, 255, 0.5); /* white stroke with 50% opacity */
+        backdrop-filter: blur(10px); /* Apply a blur effect to the area behind the element */
+    }
+
+.text.sentence-0,
+.text.sentence-10,
+.text.sentence-20,
+.text.sentence-30,
+.text.sentence-40,
+.text.sentence-1,
+.text.sentence-11,
+.text.sentence-21,
+.text.sentence-31,
+.text.sentence-41,
+.text.sentence-2,
+.text.sentence-12,
+.text.sentence-22,
+.text.sentence-32,
+.text.sentence-42,
+.text.sentence-3,
+.text.sentence-13,
+.text.sentence-23,
+.text.sentence-33,
+.text.sentence-43,
+.text.sentence-4,
+.text.sentence-14,
+.text.sentence-24,
+.text.sentence-34,
+.text.sentence-44,
+.text.sentence-5,
+.text.sentence-15,
+.text.sentence-25,
+.text.sentence-35,
+.text.sentence-45,
+.text.sentence-6,
+.text.sentence-16,
+.text.sentence-26,
+.text.sentence-36,
+.text.sentence-46,
+.text.sentence-7,
+.text.sentence-17,
+.text.sentence-27,
+.text.sentence-37,
+.text.sentence-47,
+.text.sentence-8,
+.text.sentence-18,
+.text.sentence-28,
+.text.sentence-38,
+.text.sentence-48,
+.text.sentence-9,
+.text.sentence-19,
+.text.sentence-29,
+.text.sentence-39,
+.text.sentence-49,
+.text.sentence-5 {
+        transform: rotate(0deg) !important;
+        font-size: 5vw;
+        margin-left: 35px;
+
+    }
+
+    #highlighted-words {
+        /* ... */
+        font-size: 10vw; /* Increase the font size for smaller devices */
+        /* ... */
+    }
+
+    #highlighted-words a {
+        display: block; /* This makes each link appear on a new line */
+        margin-bottom: 1vw; /* This adds space below each link */
+    
+  }
+  }

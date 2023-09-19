@@ -1,106 +1,74 @@
 <!DOCTYPE html>
-<!--[if lt IE 7]>      <html class="no-js lt-ie9 lt-ie8 lt-ie7"> <![endif]-->
-<!--[if IE 7]>         <html class="no-js lt-ie9 lt-ie8"> <![endif]-->
-<!--[if IE 8]>         <html class="no-js lt-ie9"> <![endif]-->
-<!--[if gt IE 8]><!--> <html class="no-js"> <!--<![endif]-->
-  <head>
-    <meta charset="utf-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <title>Domen</title>
-    <meta name="author" content="Domen Kastner">
-    <meta name="description" content="Personal site about me, my Gigs and my interests">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link rel="stylesheet" href="/style.css">  
+<html>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8">
+    <html lang="en"></html>
+    <meta name="description" content="A personal website of a millennial who is interested in everything interesting">
+    <meta name="copyright" content="Domen">
+    <meta name="author" content="npub1qqqqqqz7nhdqz3uuwmzlflxt46lyu7zkuqhcapddhgz66c4ddynswreecw">
+    <link rel="icon" href="favicon.ico" type="image/x-icon">
+    <meta name="robots" content="noindex, nofollow">
+    <meta name="description" content="Personal site about me, my thoughts and my interests">
+    <title>domen.si</title>
+    <link rel="stylesheet" href="style.css">
+    <!-- <link rel="stylesheet" href="nostrichat.css"> -->
+
     
-    <!-- third-generation iPad with high-resolution Retina display: -->
-    <link rel="apple-touch-icon-precomposed" sizes="144x144" href="./img/favicon/smejko.png">
-    <!-- iPhone with high-resolution Retina display: -->
-    <link rel="apple-touch-icon-precomposed" sizes="114x114" href="./img/favicon/smejko.png">
-    <!-- first- and second-generation iPad: -->
-    <link rel="apple-touch-icon-precomposed" sizes="72x72" href="./img/favicon/smejko.png">
-    <!-- non-Retina iPhone, iPod Touch, and Android 2.1+ devices: -->
-    <link rel="apple-touch-icon-precomposed" href="./img/favicon/smejko.png">
-    <!-- basic favicon -->
-    <link rel="shortcut icon" type="image/png" href="./img/favicon/smejko.png" sizes="32x32" />
-    
-    
-    <!-- Font Awesome -->
-    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.5.0/css/all.css" integrity="sha384-B4dIYHKNBt8Bc12p+WXckhzcICo0wtJAoU8YZTY5qE0Id1GSseTk6S+L3BlXeVIU" crossorigin="anonymous">
+</head>
+<body>
 
-    <!-- Global site tag (gtag.js) - Google Analytics -->
-    <script async src="https://www.googletagmanager.com/gtag/js?id=UA-130534223-1"></script>
-    <script>
-    window.dataLayer = window.dataLayer || [];
-    function gtag(){dataLayer.push(arguments);}
-    gtag('js', new Date());
-
-    gtag('config', 'UA-130534223-1');
-    </script>
-
-  </head>
-
-  <body>
-    <!--[if lt IE 7]>
-      <p class="browsehappy">You are using an <strong>outdated</strong> browser. Please <a href="#">upgrade your browser</a> to improve your experience.</p>
-    <![endif]-->
-
-    <script src="/scripts/WeDoNotSupportIE.js" async defer></script>
-
-    <!-- navigation -->
-    <ul class="navigation">
-        <li class="nav-item"><a href="index.html">Home</a></li>
-        <li class="nav-item"><a href="/sites/about.html">About me</a></li>
-        <li class="nav-item"><a href="/sites/constructionSite.html">Portfolio</a></li>
-        <!-- <li id="codeDDmenu" class="nav-item"><a href="#">Code +</a>
-          <ul class="codeDropDownMenu">
-            <li><a href="/sites/100_days_of_code.html">Playground</a></li>
-            <li><a href="#">null</a></li>
-            <li><a href="#">null</a></li>
-          </ul>
-        </li>
-        <li class="nav-item"><a href="#">Hike and Fly</a></li>
-        <li id="otherStuffDDMenu" class="nav-item"><a href="#">Other stuff</a>
-          <ul class="otherStuffDropDownMenu">
-            <li><a href="sites/constructionSite.html">Weather</a></li>
-            <li><a href="#">null</a></li>
-            <li><a href="#">null</a></li>
-            <li><a href="#">null</a></li>
-            <li><a href="#">null</a></li>
-          </ul>
-        </li> -->
-        <li class="nav-item"><a href="/sites/auth.html">Contact</a></li>
-      </ul>
-  
-      <input type="checkbox" id="nav-trigger" class="nav-trigger" />
-      <label for="nav-trigger"></label>
-    <!-- END navigation -->
-    
-    <!-- container -->
+    <div id="background-image"></div>
+   
     <div class="container">
-      <!-- header -->
-      <div class="header homepage">
-        <!-- addr -->
-        <div class="addr">
-          <h3 class="line-1 anim-typewriter" id="title">domen.si</h3>
-          <br>
-          <br>Welcome to my website digital cruiser. Please don't be disappointed about all the emptiness you are experiencing here. I hope I'm not making you anxious, but please do understand that there are simply too many interesting things that I'm interested in. </br>
-          My time my rules... And my website!
-          </p>
+        <input title="shift+space &#8596; space " type="range" min="0" max="100" value="0" class="slider" id="myRange">
 
-          <div id="cd">
-            <p>
-              <blockquote cite="https://en.wikipedia.org/wiki/Carpe_diem"><span>"Carpe diem"</span></blockquote>
-            </p>
-          </div>
+        <div id="highlighted-words"></div>
+        <div class="text" id="text">You made it! <br><br> Hit space or use a slider <br> &#8676;</div>
 
-        </div>
-        <!-- END addr -->
-      </div>
-      <!-- END header -->
+
+      <div id="chatWidgetContainer">        
+
+      <!-- https://nostri-chat-hosted.f9ofwt.click/#modes -->
+        <script
+        src="https://nostri-chat-hosted.f9ofwt.click/public/bundle.js"
+        data-chat-type="DM"
+        data-website-owner-pubkey="000000005e9dda01479c76c5f4fccbaebe4e7856e02f8e85adba05ad62ad6927"
+        data-hidenostricon="false"
+        data-simplifynostrnext="true"
+        data-accentcolor="#E6E6E6,#CCCCCC,#999999,#666666,#333333,##000000,#000000,#000000,#000000,#000000"
+        data-relays="wss://relay.f7z.io, wss://nos.lol, wss://relay.damus.io, wss://relay.snort.social, wss://relay.nostr.band, wss://nostr-pub.wellorder.net, wss://relay.current.fyi"
+        data-start-page="chat"
+      ></script>
+      <link rel="stylesheet" href="https://nostri-chat-hosted.f9ofwt.click/public/bundle.css">
+      </div>      
+
+    <!-- The Modal -->
+<!-- The Modal -->
+<div id="myModal" class="modal">
+  <span class="close">&#10008;</span>
+
+  <!-- The Modal Container -->
+  <div id="modal-container">
+      <button id="prevBtn" class="modal-button">&lsaquo;</button>
+      <img id="img01" class="modal-content">
+      <div id="modal-text" class="modal-text-content"></div>
+      <div id="modal-video"></div>
+      <button id="nextBtn" class="modal-button">&rsaquo;</button>
+  </div>
+
+  <div id="caption"></div>
+</div>
+
+  <footer>
+    <div class="footer-content">
+        <p>&copy; <span id="copyright-year"></span> domen.si</p>
+        <!-- <a id="chatLink" title="Be nice!" href="/chat.html">What's this nostr all about?</a> -->
+        <!-- <a href="about.html"></a> -->
+        
     </div>
-    <!-- END container -->
+  </footer>
 
-    
-    <script src="/scripts/script.js" async defer></script>
-  </body>
+    <script src="script.js"></script>
+</body>
 </html>
