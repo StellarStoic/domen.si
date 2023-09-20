@@ -22,9 +22,6 @@ const sentences = [
     'and taking pictures of it',
     'I love the song of birds',
     'They are the music of the wild',
-    'solitude is my companion',
-    'I know it\'s dangerous but...',
-    'I find peace in it',
     'Weather interests me so,',
     'I\'ve created a bot to track it',
     'In Bitcoin I trust',
@@ -36,10 +33,8 @@ const sentences = [
     'but keep failing it in practice',
     'I find joy in simplicity',
     'privacy is something I greatly cherish',
-    'I usually don\'t speak much',
     'Boredom does not exist in my vocabulary',
     'thus, my mind is always occupied',
-    'I\'m a fan of an open-source',
     'Believing in equal access to information',
     'Free speech is a right',
     'not a privilege!',
@@ -68,17 +63,15 @@ const wordToUrl = {
 
 // Only add IDs of the videos NOT the whole URL !!! 
 const wordToVideo = {
-    'system':'wclD0gcURFw',
-    'politics':'DnHOxZgvdWM',
-    'freedom': 'qiLKdyo5QZs',
-    'shenanigans': 'mzoX7zEZ6h4',
-    'solitude': 'YHNw4uOeo9s'
+    'system':'e0plyXEc1Ak',
+    'freedom': 'vROTmMzJnXk',
+    'shenanigans': 'EpMLAQbSYAw'
 }
-
 
 const wordToImage = {
     // 'fly': ['/pics/flying/Fly1_vertical.jpeg'],
     // 'hike': ['/pics/hike/hike_vertical.jpeg' ],
+    'mind': ['/pics/site/thinking.png'],
     'pictures': [
         "/pics/pics/Image00001.jpg",
         "/pics/pics/Image00002.jpg",
@@ -175,8 +168,8 @@ const wordToImage = {
         "/pics/pics/Image00093.jpg",
         "/pics/pics/Image00094.jpg",
         "/pics/pics/Image00095.jpg"
-        ],
-    'mind': ['/pics/site/thinking.png']
+        ]
+    
 };
 
 const wordToWord = {
@@ -224,6 +217,8 @@ let stopIcon = '🔈';
 
 // text in the modal 
 function displayModalText(textContent) {
+    // Hide the ostrich image
+    ostrichImage.style.display = "none";
     // Hide the image and show the text container
     img.style.display = 'none';
     const modalText = document.getElementById('modal-text');
@@ -296,6 +291,8 @@ function updateHighlightedWords() {
                 newElement.textContent = word;
                 newElement.href = '#';
                 newElement.onclick = function() {
+                    //  // Hide the ostrich image
+                    ostrichImage.style.display = "none";
                     resetModal(); // Clear any previous content
                     imageIndex = 0; // Reset the image index
                     currentWord = word; // Set the current word
@@ -341,6 +338,8 @@ function updateHighlightedWords() {
                 newElement.textContent = word;
                 newElement.href = '#';
                 newElement.onclick = function() {
+                    // Hide the ostrich image
+                    ostrichImage.style.display = "none";
                     resetModal(); // Clear any previous content
                     const modalVideo = document.getElementById('modal-video');
                     modalVideo.innerHTML = `<iframe class="centered-video" width="560" height="315" src="https://www.youtube.com/embed/${wordToVideo[word]}?autoplay=1" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>`;
@@ -454,8 +453,6 @@ document.addEventListener('keydown', (event) => {
     }
 }); // This closes the keydown event listener function
 
-
-
 function goToNextSentence() {
     text.style.opacity = '0'; // fade out
     text.style.display = 'none'; // hide the text
@@ -470,7 +467,7 @@ function goToNextSentence() {
     
         setTimeout(() => {
             // Check if the shift key was also pressed
-            if (event.shiftKey) {
+            if (shiftKey) {
                 // The key press was shift+space bar
                 if (index > 0) {
                     index--;
@@ -530,6 +527,7 @@ backwardButton.onclick = function() {
     console.log("btn << Clicked");
 };
 
+// Change Image based on a keyword in sentances
 function changeBackground(imageUrl) {
     // Get the div
     const backgroundImageDiv = document.getElementById('background-image');
@@ -537,7 +535,7 @@ function changeBackground(imageUrl) {
     // Change the background to the new image
     backgroundImageDiv.style.backgroundImage = `url(${imageUrl})`;
 
-    // After 2 seconds, remove the background image
+    // After 2 seconds, remove the hungry Bitcoin background image
     setTimeout(function() {
         backgroundImageDiv.style.backgroundImage = 'none';
     }, 3500);
@@ -562,6 +560,32 @@ window.onclick = function(event) {
     }
 }
 
+// Get the ostrich image element by its ID
+const ostrichImage = document.getElementById('running-ostrich');
+
+// When the user clicks on the close button, close the modal and show the ostrich image
+closeButton.onclick = function() {
+    URL.revokeObjectURL(img.src);
+    modal.style.display = "none";
+    resetModal();  // Clear any previous content
+
+    // Show the ostrich image
+    ostrichImage.style.display = "block";
+}
+
+// When the user clicks anywhere outside of the modal, close it and show the ostrich image
+window.onclick = function(event) {
+    if (event.target == modal) {
+        modal.style.display = "none";
+        resetModal();  // Clear any previous content
+
+        // Show the ostrich image
+        ostrichImage.style.display = "block";
+    }
+}
+
+
+
 // Clear any previous content from modal
 function resetModal() {
     console.log("Resetting modal");
@@ -580,7 +604,6 @@ function resetModal() {
     // Clear the image src
     img.src = '';
 }
-
 
 document.getElementById('content').innerHTML = wordToWord['privacy'][0];
 document.getElementById('copyright-year').textContent = new Date().getFullYear();

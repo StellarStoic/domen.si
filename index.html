@@ -11,64 +11,86 @@
     <meta name="robots" content="noindex, nofollow">
     <meta name="description" content="Personal site about me, my thoughts and my interests">
     <title>domen.si</title>
-    <link rel="stylesheet" href="style.css">
     <!-- <link rel="stylesheet" href="nostrichat.css"> -->
-
-    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
 </head>
+
 <body>
 
-    <div id="background-image"></div>
-   
-    <div class="container">
-        <input title="shift+space &#8596; space " type="range" min="0" max="100" value="0" class="slider" id="myRange">
+<div class="container">
 
-        <div id="highlighted-words"></div>
-        <div class="text" id="text">You made it! <br><br> Hit space or use a slider <br> &#8676;</div>
+  <div id="background-image"></div>
+
+  <div id="ticker-container">
+    <div id="ticker-text"></div>
+  </div>
+  
+
+    <input title="shift+space &#8596; space " type="range" min="0" max="100" value="0" class="slider" id="myRange">
+    <div id="highlighted-words"></div>
+    <div class="text" id="text">You made it! <br><br> Hit space or use a slider <br> &#8676;</div>
 
 
-      <div id="chatWidgetContainer">        
+  <!-- <div id="chatWidgetContainer">         -->
+  <!-- https://nostri-chat-hosted.f9ofwt.click/#modes  (src="https://nostri-chat-hosted.f9ofwt.click/public/bundle.js" ... <link rel="stylesheet" href="https://nostri-chat-hosted.f9ofwt.click/public/bundle.css">  -->
+    <!-- <script
+    
+    src="https://nostri.chat/public/bundle.js"
+    data-chat-type="DM"
+    data-website-owner-pubkey="000000005e9dda01479c76c5f4fccbaebe4e7856e02f8e85adba05ad62ad6927"
+    data-hidenostricon="false"
+    data-simplifynostrnext="true"
+    data-accentcolor="#E6E6E6,#CCCCCC,#999999,#666666,#333333,##000000,#000000,#000000,#000000,#000000"
+    data-relays="wss://relay.f7z.io, wss://nos.lol, wss://relay.damus.io, wss://relay.snort.social, wss://relay.nostr.band, wss://nostr-pub.wellorder.net, wss://relay.current.fyi"
+    data-start-page="chat"
+    ></script>
+    <link rel="stylesheet" href="https://nostri.chat/public/bundle.css">
 
-      <!-- https://nostri-chat-hosted.f9ofwt.click/#modes -->
-        <script
-        src="https://nostri-chat-hosted.f9ofwt.click/public/bundle.js"
-        data-chat-type="DM"
-        data-website-owner-pubkey="000000005e9dda01479c76c5f4fccbaebe4e7856e02f8e85adba05ad62ad6927"
-        data-hidenostricon="false"
-        data-simplifynostrnext="true"
-        data-accentcolor="#E6E6E6,#CCCCCC,#999999,#666666,#333333,##000000,#000000,#000000,#000000,#000000"
-        data-relays="wss://relay.f7z.io, wss://nos.lol, wss://relay.damus.io, wss://relay.snort.social, wss://relay.nostr.band, wss://nostr-pub.wellorder.net, wss://relay.current.fyi"
-        data-start-page="chat"
-      ></script>
-      <link rel="stylesheet" href="https://nostri-chat-hosted.f9ofwt.click/public/bundle.css">
-      </div>      
+    </div>       -->
 
-    <!-- The Modal -->
 <!-- The Modal -->
-<div id="myModal" class="modal">
-  <span class="close">&#10008;</span>
+  <div id="myModal" class="modal">
 
-  <!-- The Modal Container -->
-  <div id="modal-container">
-      <button id="prevBtn" class="modal-button">&lsaquo;</button>
-      <img id="img01" class="modal-content">
-      <div id="modal-text" class="modal-text-content"></div>
-      <div id="modal-video"></div>
-      <button id="nextBtn" class="modal-button">&rsaquo;</button>
+    <span class="close">&#10008;</span>
+
+    <!-- The Modal Container -->
+    <div id="modal-container">
+        <button id="prevBtn" class="modal-button">&lsaquo;</button>
+        <img id="img01" class="modal-content">
+        <div id="modal-text" class="modal-text-content"></div>
+        <div id="modal-video"></div>
+        <button id="nextBtn" class="modal-button">&rsaquo;</button>
+    </div>
+
+    <div id="caption"></div>
   </div>
 
-  <div id="caption"></div>
-</div>
-
   <footer>
-    <div class="footer-content">
-        <p>&copy; <span id="copyright-year"></span> domen.si</p>
-        <!-- <a id="chatLink" title="Be nice!" href="/chat.html">What's this nostr all about?</a> -->
-        <!-- <a href="about.html"></a> -->
-        
-    </div>
-  </footer>
 
-    <script src="script.js"></script>
+    <div id="ostrich-container">
+      <img id="running-ostrich" src="/pics/site/runningOstrichBlack.gif" alt="Running Ostrich">
+    </div>
+    <!-- Container to keep social-icons and footer-content in the same row -->
+    <div class="footer-container">
+
+    <div class="footer-content">
+      <p>&copy; <span id="copyright-year"></span> domen.si  </p>
+      <!-- <a id="chatLink" title="Be nice!" href="/chat.html">What's this nostr all about?</a> -->
+      <!-- <a href="about.html"></a> -->
+    </div>
+
+    <div class="social-icons">
+      <a href="https://t.me/StellarStoic" target="_blank" class="customIcon" alt="Telegram"><img src="/pics/site/telegram.png" alt="telegram"></a>
+      <a href="https://www.github.com/stellarstoic" target="_blank" class="customIcon" alt="Github"><img src="/pics/site/github.png" alt="GitHub"></a>
+      <a href="https://www.instagram.com/that_domen/" target="_blank" class="customIcon " alt="not using Instagram anymore"><img src="/pics/site/instagram.png" alt="instagram"></i></a>
+      <a href="https://primal.net/p/npub1qqqqqqz7nhdqz3uuwmzlflxt46lyu7zkuqhcapddhgz66c4ddynswreecw" target="_blank" class="customIcon"><img src="/pics/site/ostrichRoundBlackOnWhite.png" alt="nostr"></a>
+    </div>
+  </div>
+</footer>
+
+<script src="script.js"></script>
+<script src="ticker.js"></script>
+
 </body>
 </html>
