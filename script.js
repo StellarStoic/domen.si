@@ -290,7 +290,9 @@ function updateHighlightedWords() {
                 newElement.textContent = word;
                 newElement.href = '#';
                 newElement.onclick = function() {
+                    toggleTickerContainer('none');  // Hide the tickerContainer
                     //  // Hide the ostrich image
+                    toggleFooter('none');  // Hide the footer
                     ostrichImage.style.display = "none";
                     resetModal(); // Clear any previous content
                     imageIndex = 0; // Reset the image index
@@ -320,6 +322,8 @@ function updateHighlightedWords() {
                 newElement.textContent = word;
                 newElement.href = '#';
                 newElement.onclick = function() {
+                    toggleTickerContainer('none');  // Hide the tickerContainer
+                    toggleFooter('none');  // Hide the footer
                     displayModalText(wordToWord[word]);
                 };
                 highlightedWords.appendChild(newElement);
@@ -337,7 +341,9 @@ function updateHighlightedWords() {
                 newElement.textContent = word;
                 newElement.href = '#';
                 newElement.onclick = function() {
+                    toggleTickerContainer('none');  // Hide the tickerContainer
                     // Hide the ostrich image
+                    toggleFooter('none');  // Hide the footer
                     ostrichImage.style.display = "none";
                     resetModal(); // Clear any previous content
                     const modalVideo = document.getElementById('modal-video');
@@ -543,47 +549,46 @@ function changeBackground(imageUrl) {
 // Get the close button
 const closeButton = document.getElementsByClassName("close")[0];
 
+// Get the ostrich image element by its ID
+const ostrichImage = document.getElementById('running-ostrich');
+
 // When the user clicks on the close button, close the modal
 closeButton.onclick = function() {
     URL.revokeObjectURL(img.src);
+    toggleTickerContainer('block');  // Show the tickerContainer again
+    toggleFooter('block');  // Show the footer again
     modal.style.display = "none";
     resetModal();  // Clear any previous content
+    // Show the ostrich image
+    ostrichImage.style.display = "block";
 }
 
 // When the user clicks anywhere outside of the modal, close it
 window.onclick = function(event) {
     if (event.target == modal) {
+        toggleTickerContainer('block');  // Show the tickerContainer again
+        toggleFooter('block');  // Show the footer again
         modal.style.display = "none";
         resetModal();  // Clear any previous content
-        
-    }
-}
-
-// Get the ostrich image element by its ID
-const ostrichImage = document.getElementById('running-ostrich');
-
-// When the user clicks on the close button, close the modal and show the ostrich image
-closeButton.onclick = function() {
-    URL.revokeObjectURL(img.src);
-    modal.style.display = "none";
-    resetModal();  // Clear any previous content
-
-    // Show the ostrich image
-    ostrichImage.style.display = "block";
-}
-
-// When the user clicks anywhere outside of the modal, close it and show the ostrich image
-window.onclick = function(event) {
-    if (event.target == modal) {
-        modal.style.display = "none";
-        resetModal();  // Clear any previous content
-
         // Show the ostrich image
         ostrichImage.style.display = "block";
     }
 }
 
 
+// hide footer when the modal is open
+function toggleFooter(visibility) {
+    const footer = document.getElementById('footer');
+    footer.style.display = visibility;
+  }
+
+// hide ticker-container when the modal is open
+function toggleTickerContainer(visibility) {
+    const tickerContainer = document.getElementById('ticker-container');
+    tickerContainer.style.display = visibility;
+  }
+//   toggleTickerContainer('block');  // Show the tickerContainer again
+//   toggleTickerContainer('none');  // Hide the tickerContainer
 
 // Clear any previous content from modal
 function resetModal() {
