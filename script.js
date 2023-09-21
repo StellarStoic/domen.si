@@ -29,8 +29,8 @@ const sentences = [
     'and because of their shenanigans',
     'I\'m not shy about my ordinals collection either',
     'I named them wordinals',
-    'I\'m a minimalist at heart',
-    'but keep failing it in practice',
+    // 'I\'m a minimalist at heart',
+    // 'but keep failing it in practice',
     'I find joy in simplicity',
     'privacy is something I greatly cherish',
     'Boredom does not exist in my vocabulary',
@@ -57,13 +57,13 @@ const wordToUrl = {
     'wordinals': 'https://wordinals.art',
     // 'facts':'', 
     // 'system':'https://bitcoinmagazine.com/culture/imf-world-bank-repress-poor-countries',
-    'minimalist':'https://www.oprahdaily.com/life/a30530266/what-is-a-minimalist-lifestyle/'
+    // 'minimalist':'https://www.oprahdaily.com/life/a30530266/what-is-a-minimalist-lifestyle/'
 };
 
 // Only add IDs of the videos NOT the whole URL !!! 
 const wordToVideo = {
     'system':'e0plyXEc1Ak',
-    'freedom': 'vROTmMzJnXk',
+    'freedom': 'qiLKdyo5QZs',
     'shenanigans': 'EpMLAQbSYAw'
 }
 
