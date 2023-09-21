@@ -9,7 +9,7 @@
 
   body {
     /* background Image by Alexa https://pixabay.com/users/alexas_fotos-686414/?utm_source=link-attribution&utm_medium=referral&utm_campaign=image&utm_content=700381" from https://pixabay.com//?utm_source=link-attribution&utm_medium=referral&utm_campaign=image&utm_content=700381 */
-    background-image: url(/pics/site/planinaNV.jpg);
+    background-image: url(/pics/site/ImagePlaninaNV00001.jpg);
     background-size: cover;
     z-index: -3;
     
@@ -229,16 +229,17 @@ body::before {
     position: absolute;
     top: 50%;
     left: 50%;
-    margin-top: -60px;
     margin-top: 0px;
     transform: translate(-50%, -50%);
     padding-top: 40px;
+    padding-bottom: 60px;
     padding-left: 40px;
+    padding-right: 40px;
     color: rgb(255, 255, 255);
-    font-size: 5vw;
+    font-size: 4rem;
     text-align: center;
     max-width: 80%;
-    height: 80vh; /* Set a fixed height */
+    height: 75vh; /* Set a fixed height */
     overflow-y: auto; /* Make it vertically scrollable */
     scrollbar-width: none;
     -ms-overflow-style: none;
@@ -652,18 +653,20 @@ footer:hover {
 
     #highlighted-words {
         position: relative;
-        top: 50%;
+        top: 44%;
         left: 50%;
-        margin-top: -35px;
+        margin-top: -40px;
+        margin-bottom: 10px;
         transform: translate(-50%, -50%);
-        padding-top: 30px;
+        padding-top: -30px;
+        padding-bottom: 50px;
         padding-left: 40px;
-        padding-right: 40px;
+        padding-right: 60px;
         color: rgb(255, 255, 255);
-        font-size: 6vw;
+        font-size: 3.5rem;
         text-align: center;
         max-width: 80%;
-        height: 70vh; /* Set a fixed height */
+        height: 77vh; /* Set a fixed height */
   }
 
   #highlighted-words a {
@@ -688,6 +691,28 @@ footer:hover {
   }
 }
 
+.slider {
+    position: absolute;
+    left: 20px;
+    bottom: 90%;
+    width: 75vh;
+    -webkit-appearance: none;
+    height: 1vh;
+}
+
+.slider:hover {
+    opacity: 1;
+}
+
+.slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    background-color: #000000;
+    height: 24px;
+    width: 24px;
+    border-radius: 25px;
+    cursor: pointer;
+    outline: none;
+}
 
 .modal-text-content {
     position: absolute;
@@ -829,7 +854,7 @@ footer:hover {
 
     #highlighted-words {
         /* ... */
-        font-size: 10vw; /* Increase the font size for smaller devices */
+        font-size: 2.2rem; /* Increase the font size for smaller devices */
         /* ... */
     }
 

@@ -14,8 +14,8 @@ const sentences = [
     'I like building stuff', 
     'Stuff like this 4 example',
     'Lets\'s say, I know my ways around tech',
-    'A list of podcasts I\'m subscribed to;',
-    'goes to infinity',
+    // 'A list of podcasts I\'m subscribed to;',
+    // 'goes to infinity',
     'I also fly sometimes,',
     'or hike around',
     'I really enjoy being in nature,',
@@ -44,7 +44,6 @@ const sentences = [
     '#mementoMori'
 ];
 let index = -1;
-
 
 const wordToUrl = {    
     'millennial': 'https://highline.huffingtonpost.com/articles/en/poor-millennials/',
