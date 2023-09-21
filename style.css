@@ -11,7 +11,7 @@
     /* background Image by Alexa https://pixabay.com/users/alexas_fotos-686414/?utm_source=link-attribution&utm_medium=referral&utm_campaign=image&utm_content=700381" from https://pixabay.com//?utm_source=link-attribution&utm_medium=referral&utm_campaign=image&utm_content=700381 */
     background-image: url(/pics/site/ImagePlaninaNV00001.jpg);
     background-size: cover;
-    z-index: -3;
+    
     
     /* background-color: #607965c6; */
     color: rgb(0, 0, 0);
@@ -84,7 +84,7 @@ body::before {
     position: absolute;
     text-align: center;
     padding: 25px;
-    z-index: 1; /* This makes the text appear in front of the highlighted words */
+    z-index: 1; /* This value should be higher than the z-index of #highlighted-words */
     color: rgba(34, 34, 34, 0.887);
     border: 0.5rem  rgba(106, 106, 106, 0.786);
     transform: rotate(6deg);
@@ -244,7 +244,7 @@ body::before {
     scrollbar-width: none;
     -ms-overflow-style: none;
     -webkit-text-stroke: 1px rgba(255, 255, 255, 0.5); /* white stroke with 50% opacity */
-    z-index: 1; /* This makes the highlighted words appear behind the text */
+    z-index: 0; /* This makes the highlighted words appear behind the text */
 }
 
 #highlighted-words::before {
@@ -634,21 +634,16 @@ footer:hover {
   */
   
   @media (min-width: 481px) and (max-width: 767px) {
-    
+
+
     .text {
         /* ... */
         font-size: 2rem !important; /* Increase the font size for smaller devices */
         position: absolute;
         text-align: center;
         margin: 20px;
+        z-index: 1;
         border-radius: 7px;
-        z-index: 1; /* This makes the text appear in front of the highlighted words */
-        color: rgba(34, 34, 34, 0.887);
-        border: 0.5rem rgba(106, 106, 106, 0.786);
-        background: rgba(0, 0, 0, 0.129); /* Semi-transparent background */
-        -webkit-text-stroke: 1px rgba(255, 255, 255, 0.5); /* white stroke with 50% opacity */
-        backdrop-filter: blur(10px); /* Apply a blur effect to the area behind the element */
-        
     }
 
     #highlighted-words {
@@ -661,13 +656,15 @@ footer:hover {
         padding-top: -30px;
         padding-bottom: 50px;
         padding-left: 40px;
-        padding-right: 60px;
+        padding-right: 40px;
         color: rgb(255, 255, 255);
         font-size: 3.5rem;
         text-align: center;
         max-width: 80%;
         height: 77vh; /* Set a fixed height */
   }
+
+
 
   #highlighted-words a {
     display: block; /* This makes each link appear on a new line */
@@ -853,9 +850,9 @@ footer:hover {
     }
 
     #highlighted-words {
-        /* ... */
+        
         font-size: 2.2rem; /* Increase the font size for smaller devices */
-        /* ... */
+
     }
 
     #highlighted-words a {

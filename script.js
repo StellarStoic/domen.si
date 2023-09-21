@@ -458,57 +458,149 @@ document.addEventListener('keydown', (event) => {
     }
 }); // This closes the keydown event listener function
 
-function goToNextSentence() {
-    text.style.opacity = '0'; // fade out
-    text.style.display = 'none'; // hide the text
+// function goToNextSentence() {
+//     text.style.opacity = '0'; // fade out
+//     text.style.display = 'none'; // hide the text
+//     setTimeout(() => {
+//         if (index < sentences.length - 1) {
+//         index++;
+//         }
+//         text.textContent = sentences[index];
+//         text.style.opacity = '1'; // fade in
+//         text.style.display = ''; // show the text
+//         updateHighlightedWords(); // Update the highlighted words
+    
+//         setTimeout(() => {
+//             // Check if the shift key was also pressed
+//             if (shiftKey) {
+//                 // The key press was shift+space bar
+//                 if (index > 0) {
+//                     index--;
+//                 }
+//             } else {
+//                 // The key press was space bar
+//                 if (index < sentences.length - 1) {
+//                     index++;
+//                 }
+//             }
+//             text.textContent = sentences[index];
+//             text.style.opacity = '1'; // fade in
+//             text.style.display = ''; // show the text
+//             updateHighlightedWords(); // Update the highlighted words
+            
+//             // Clear the previous timeout
+//             if (hideTimeoutId !== null) {
+//                 clearTimeout(hideTimeoutId);
+//             }
+
+//             // After 4 seconds, set the opacity of the text to 0
+//             hideTimeoutId = setTimeout(function() {
+//                 text.style.opacity = '0';
+//                 text.style.display = 'none'; // hide the text
+//             }, 2500);
+
+//             // Update the slider's value
+//             slider.value = (index / (sentences.length - 1)) * slider.max;
+    
+//         }, 500); // change the text after 0.2 seconds
+//     })
+// }
+
+document.addEventListener('DOMContentLoaded', function() {
+    const textElement = document.querySelector('.text');
+    textElement.addEventListener('touchend', function(event) {
+        event.stopPropagation();
+    }, false);
+}, false);
+
+let lastTap = 0;  // To hold the time of the last tap
+let isFirstLoad = true; // To indicate if it's the first load of the sentences
+
+// Function to check if the device is mobile
+function isMobile() {
+    return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+}
+
+function goToNextSentence(event) {
+
+    const currentTime = new Date().getTime();
+    const timeDifference = currentTime - lastTap;
+    lastTap = currentTime;
+
+    if (timeDifference < 500) {
+        return;
+    }
+
+    text.style.opacity = '0'; 
+    text.style.display = 'none'; 
+
     setTimeout(() => {
         if (index < sentences.length - 1) {
-        index++;
+            index++;
         }
+
+        // Update the slider's value here
+        slider.value = (index / (sentences.length - 1)) * slider.max;
+
         text.textContent = sentences[index];
-        text.style.opacity = '1'; // fade in
-        text.style.display = ''; // show the text
-        updateHighlightedWords(); // Update the highlighted words
-    
-        setTimeout(() => {
-            // Check if the shift key was also pressed
-            if (shiftKey) {
-                // The key press was shift+space bar
-                if (index > 0) {
-                    index--;
-                }
-            } else {
-                // The key press was space bar
-                if (index < sentences.length - 1) {
-                    index++;
-                }
-            }
-            text.textContent = sentences[index];
-            text.style.opacity = '1'; // fade in
-            text.style.display = ''; // show the text
-            updateHighlightedWords(); // Update the highlighted words
-            
-            // Clear the previous timeout
-            if (hideTimeoutId !== null) {
-                clearTimeout(hideTimeoutId);
+        text.style.opacity = '1'; 
+        text.style.display = ''; 
+        updateHighlightedWords();
+
+        // Additional code for mobile behavior
+        if (isMobile()) {
+
+            // Only proceed if the clicked element has the class 'text'
+            if (!event.target.classList.contains('text')) {
+                return;
             }
 
-            // After 4 seconds, set the opacity of the text to 0
-            hideTimeoutId = setTimeout(function() {
-                text.style.opacity = '0';
-                text.style.display = 'none'; // hide the text
-            }, 2500);
 
-            // Update the slider's value
-            slider.value = (index / (sentences.length - 1)) * slider.max;
-    
-        }, 500); // change the text after 0.2 seconds
-    })
+            // If it's the first load, don't set any timeout to hide the text
+            if (isFirstLoad) {
+                isFirstLoad = false;
+                return;
+            }
+
+            // If it's the last sentence, hide it after 3000 milliseconds
+            if (index === sentences.length - 1) {
+                setTimeout(() => {
+                    text.style.opacity = '0';
+                    text.style.display = 'none'; 
+                }, 3000);
+            }
+        } else {
+            // Existing code for non-mobile behavior
+            setTimeout(() => {
+                if (event.shiftKey) {
+                    if (index > 0) {
+                        index--;
+                    }
+                }
+
+                text.textContent = sentences[index];
+                text.style.opacity = '1';
+                text.style.display = ''; 
+                updateHighlightedWords();
+                
+                if (hideTimeoutId !== null) {
+                    clearTimeout(hideTimeoutId);
+                }
+
+                hideTimeoutId = setTimeout(function() {
+                    text.style.opacity = '0';
+                    text.style.display = 'none'; 
+                }, 2500);
+
+                slider.value = (index / (sentences.length - 1)) * slider.max;
+            }, 500);
+        }
+    }, 500);
 }
-    
-    // Attach the function to click and touch events
-    text.addEventListener('click', goToNextSentence);
-    text.addEventListener('touchstart', goToNextSentence);
+
+// Attach the function to click and touch events
+text.addEventListener('click', goToNextSentence);
+// text.addEventListener('touchstart', goToNextSentence);
 
 
 // Get the forward and backward buttons
@@ -609,6 +701,9 @@ function resetModal() {
     img.src = '';
 }
 
-document.getElementById('content').innerHTML = wordToWord['privacy'][0];
-document.getElementById('copyright-year').textContent = new Date().getFullYear();
+// Listen for window resize
+// window.addEventListener('resize', toggleScrollerAndButton);
+
+// document.getElementById('content').innerHTML = wordToWord['privacy'][0];
+// document.getElementById('copyright-year').textContent = new Date().getFullYear();
 
