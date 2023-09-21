@@ -600,7 +600,10 @@ function goToNextSentence(event) {
 
 // Attach the function to click and touch events
 text.addEventListener('click', goToNextSentence);
-// text.addEventListener('touchstart', goToNextSentence);
+
+// Commenting out touch event because if enabled, we can click on highlighted...
+// words even if sentences are above them on mobile devices!
+// text.addEventListener('touchstart', goToNextSentence); 
 
 
 // Get the forward and backward buttons
