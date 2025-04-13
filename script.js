@@ -48,7 +48,7 @@ let index = -1;
 const wordToUrl = {    
     'millennial': 'https://highline.huffingtonpost.com/articles/en/poor-millennials/',
     '"coder"': 'https://github.com/StellarStoic',
-    'nostr': 'https://nostr.org/',
+    'nostr': 'https://njump.me/',
     'podcasts':'/constructionSite.html',
     'example': 'https://notam.today',
     'music': new Audio('/audio/Song-bird-sounds.mp3'),
