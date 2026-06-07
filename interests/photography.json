@@ -1,0 +1,71 @@
+﻿{
+    "id":  "photography",
+    "name":  "PHOTOGRAPHY",
+    "description":  "Images, equipment, and editing",
+    "subInterests":  [
+                         {
+                             "id":  "gear",
+                             "name":  "GEAR",
+                             "description":  "Photography equipment",
+                             "subInterests":  [
+                                                  {
+                                                      "id":  "cameras",
+                                                      "name":  "CAMERAS",
+                                                      "description":  "Camera I used an using are Gopro hero 5 (retired-black screen and I\u0027ll never buy GoPro ever again), Google pixel 4a (Awesome smartphone), and a Nikon P1000 (the crazy spy camera)"
+                                                  },
+                                                  {
+                                                      "id":  "tripod",
+                                                      "name":  "TRIPOD",
+                                                      "description":  "Monfrotto tripod 190XPROB with 804RC2 head"
+                                                  }
+                                              ]
+                         },
+                         {
+                             "id":  "gallery",
+                             "name":  "GALLERY",
+                             "description":  "Gallery of photos I couldn\u0027t delete",
+                             "visible":  true,
+                             "subInterests":  [
+                                                  {
+                                                      "id":  "nature",
+                                                      "name":  "NATURE",
+                                                      "description":  "Lost in nature",
+                                                      "visible":  true,
+                                                      "gallery":  {
+                                                                      "path":  "assets/img/nature",
+                                                                      "alt":  "Nature photo"
+                                                                  }
+                                                  },
+                                                  {
+                                                      "id":  "paragliding",
+                                                      "name":  "PARAGLIDING",
+                                                      "description":  "Paragliding moments",
+                                                      "visible":  true,
+                                                      "gallery":  {
+                                                                      "path":  "assets/img/paragliding",
+                                                                      "alt":  "Paragliding photo"
+                                                                  }
+                                                  }
+                                              ]
+                         },
+                         {
+                             "id":  "software",
+                             "name":  "SOFTWARE",
+                             "description":  "Photo editing and processing",
+                             "subInterests":  [
+                                                  {
+                                                      "id":  "rapidRAW",
+                                                      "name":  "rapidRAW",
+                                                      "description":  "rapidRAW photo editor",
+                                                      "url":  "https://github.com/CyberTimon/RapidRAW"
+                                                  },
+                                                  {
+                                                      "id":  "snapseed",
+                                                      "name":  "SNAPSEED",
+                                                      "description":  "Android/iOS photo editor",
+                                                      "url":  "https://en.wikipedia.org/wiki/Snapseed"
+                                                  }
+                                              ]
+                         }
+                     ]
+}

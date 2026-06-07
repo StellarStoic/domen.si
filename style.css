@@ -1,0 +1,513 @@
+/* Reset and base styles */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Courier New', monospace;
+    background-color: #000;
+    color: #fff;
+    line-height: 1.4;
+    overflow-x: hidden;
+}
+
+/* Header styles */
+.header {
+    text-align: center;
+    padding: 2rem;
+    border-bottom: 3px solid #fff;
+    margin-bottom: 2rem;
+}
+
+.title {
+    font-size: 3rem;
+    font-weight: bold;
+    letter-spacing: 0.2rem;
+    text-transform: uppercase;
+}
+
+.subtitle {
+    font-size: 1rem;
+    margin-top: 0.5rem;
+    opacity: 0.8;
+}
+
+#explainer-title {
+    margin-top: 1rem;
+    font-size: 0.8rem;
+    color: #ff6600;
+    font-weight: normal;
+    opacity: 0.7;
+}
+
+#one-rule {
+    font-weight: bold;
+    text-decoration: underline dotted #ff6600;
+    color: #fff;
+}
+/* Main layout */
+.main {
+    display: flex;
+    min-height: 70vh;
+    padding: 0 2rem;
+}
+
+/* Brain container for the cubes */
+.brain-container {
+    flex: 1;
+    position: relative;
+    min-height: 600px;
+    border: 2px solid #fff;
+    background-color: #000;
+    overflow: hidden;
+}
+
+
+/* Individual cube styling */
+.cube {
+    position: absolute;
+    background-color: #fff;
+    border: 2px solid #000;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #000;
+    font-size: 0.7rem;
+    text-align: center;
+    padding: 0.2rem;
+    text-transform: uppercase;
+    font-weight: bold;
+    box-sizing: border-box;
+    z-index: 10;
+    word-wrap: break-word;
+    overflow: hidden;
+}
+
+/* Link cube styling */
+.cube[data-has-url="true"] {
+    border: 2px solid #ff6600;
+    cursor: pointer;
+}
+
+.cube[data-has-url="true"]:hover {
+    background-color: #ff6600;
+    color: #000;
+}
+
+/* Add link indicator to cubes with URLs */
+.cube[data-has-url="true"]::after {
+    content: "🔗";
+    position: absolute;
+    bottom: 2px;
+    right: 2px;
+    font-size: 0.6rem;
+}
+
+/* Vertical text cubes */
+.cube[data-orientation="vertical"] {
+    writing-mode: vertical-rl;
+    text-orientation: mixed;
+    line-height: 1.2;
+}
+
+/* Horizontal text cubes */
+.cube[data-orientation="horizontal"] {
+    writing-mode: horizontal-tb;
+    line-height: 1;
+}
+
+/* Hover effect for cubes */
+.cube:hover {
+    transform: scale(1.1);
+    z-index: 100;
+}
+
+/* Orange accent for special cubes - only one main interest will be orange */
+.cube.orange {
+    background-color: #ff6600 !important;
+    color: #000 !important;
+    writing-mode: horizontal-tb !important;
+    z-index: 50;
+}
+
+/* Make back cube slightly transparent when not hovered */
+.cube.orange:not(:hover) {
+    opacity: 0.9;
+}
+
+/* Info panel for expanded content */
+.info-panel {
+    width: 300px;
+    margin-left: 2rem;
+    border: 2px solid #fff;
+    padding: 1rem;
+    background-color: #000;
+    display: none;
+}
+
+.info-panel.active {
+    display: block;
+}
+
+.info-content h3 {
+    font-size: 1.5rem;
+    margin-bottom: 1rem;
+    text-transform: uppercase;
+}
+
+.info-content p {
+    margin-bottom: 1rem;
+    line-height: 1.6;
+}
+
+/* Back button styling */
+.back-button {
+    background-color: #fff;
+    color: #000;
+    border: 2px solid #000;
+    padding: 0.5rem 1rem;
+    font-family: 'Courier New', monospace;
+    font-weight: bold;
+    cursor: pointer;
+    text-transform: uppercase;
+    margin-top: 1rem;
+    transition: all 0.3s ease;
+}
+
+.back-button:hover {
+    background-color: #ff6600;
+    color: #000;
+}
+
+/* Sub-cubes container */
+.sub-cubes {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+    .main {
+        flex-direction: column;
+    }
+    
+    .info-panel {
+        width: 100%;
+        margin-left: 0;
+        margin-top: 2rem;
+    }
+    
+    .title {
+        font-size: 2rem;
+    }
+}
+
+/* Breadcrumb styling */
+
+/* Clickable breadcrumb styling */
+.breadcrumb-item {
+    cursor: pointer;
+    transition: all 0.3s ease;
+    padding: 2px 4px;
+    border-radius: 2px;
+}
+
+.breadcrumb-item:hover {
+    background-color: #ff6600;
+    color: #000;
+}
+
+.breadcrumb {
+    font-size: 0.8rem;
+    opacity: 0.7;
+    margin-bottom: 1rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid #333;
+    cursor: default;
+}
+
+/* Depth indicator */
+.depth-indicator {
+    background-color: #333;
+    color: #fff;
+    padding: 0.3rem 0.6rem;
+    border-radius: 2px;
+    font-size: 0.8rem;
+    display: inline-block;
+    margin-bottom: 1rem;
+}
+
+/* Sub-interests list */
+.sub-interests {
+    margin-top: 1rem;
+    padding: 1rem;
+    background-color: #111;
+    border: 1px solid #333;
+}
+
+.sub-interests ul {
+    margin-top: 0.5rem;
+    padding-left: 1rem;
+}
+
+.sub-interests li {
+    margin-bottom: 0.3rem;
+    font-size: 0.9rem;
+}
+
+/* Leaf node styling */
+.leaf-node {
+    font-style: italic;
+    opacity: 0.8;
+    margin-top: 1rem;
+    padding: 0.5rem;
+    background-color: #111;
+    border-left: 3px solid #ff6600;
+}
+
+/* Cube depth-based styling */
+.cube[data-depth="0"] {
+    border: 3px solid #fff;
+}
+
+.cube[data-depth="1"] {
+    border: 2px solid #ccc;
+}
+
+.cube[data-depth="2"] {
+    border: 2px solid #999;
+}
+
+.cube[data-depth="3"] {
+    border: 1px solid #666;
+}
+
+.cube[data-depth="4"] {
+    border: 1px solid #444;
+}
+
+.cube[data-depth="5"] {
+    border: 1px solid #222;
+}
+
+/* Animation for smooth transitions */
+.cube {
+    transition: all 0.3s ease;
+}
+
+.brain-container {
+    transition: all 0.3s ease;
+}
+
+/* Responsive adjustments for deep navigation */
+@media (max-width: 768px) {
+    .cube {
+        min-width: 35px;
+        min-height: 35px;
+        font-size: 0.6rem;
+    }
+    
+    .cube[data-depth="4"],
+    .cube[data-depth="5"],
+    .cube[data-depth="6"],
+    .cube[data-depth="7"] {
+        min-width: 30px;
+        min-height: 30px;
+        font-size: 0.5rem;
+    }
+}
+
+/* Focus states for accessibility */
+.cube:focus {
+    outline: 2px solid #ff6600;
+    outline-offset: 2px;
+}
+
+/* Loading state */
+.loading {
+    opacity: 0.5;
+    pointer-events: none;
+}
+
+.article-link {
+    display: inline-block;
+    background-color: #ff6600;
+    color: #000;
+    padding: 0.5rem 1rem;
+    text-decoration: none;
+    font-weight: bold;
+    margin: 0.5rem 0;
+    border: 2px solid #000;
+    transition: all 0.3s ease;
+}
+
+.article-link:hover {
+    background-color: #fff;
+    color: #000;
+}
+
+/* Gallery grid keeps photo thumbnails dense and raw inside the side panel. */
+.gallery {
+    margin-top: 1rem;
+    border-top: 2px solid #fff;
+    padding-top: 1rem;
+}
+
+.gallery__title {
+    font-size: 0.8rem;
+    margin-bottom: 0.75rem;
+    text-transform: uppercase;
+    color: #ff6600;
+}
+
+.gallery__grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.35rem;
+    max-height: 420px;
+    overflow-y: auto;
+    padding-right: 0.2rem;
+}
+
+.gallery__thumb {
+    aspect-ratio: 1;
+    border: 2px solid #fff;
+    background: #000;
+    cursor: pointer;
+    overflow: hidden;
+    padding: 0;
+}
+
+.gallery__thumb:hover,
+.gallery__thumb:focus {
+    border-color: #ff6600;
+    outline: none;
+}
+
+.gallery__thumb img {
+    width: 100%;
+    height: 100%;
+    display: block;
+    object-fit: cover;
+    filter: grayscale(1) contrast(1.2);
+}
+
+.gallery__thumb:hover img,
+.gallery__thumb:focus img {
+    filter: none;
+}
+
+/* Lightbox uses hard edges and simple controls to stay aligned with the brutalist UI. */
+.gallery-lightbox {
+    position: fixed;
+    inset: 0;
+    z-index: 1000;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+    background: rgba(0, 0, 0, 0.92);
+    border: 3px solid #fff;
+    padding: 2rem;
+}
+
+.gallery-lightbox.is-active {
+    display: flex;
+}
+
+.gallery-lightbox__figure {
+    width: min(82vw, 1100px);
+    margin: 0;
+}
+
+.gallery-lightbox__image {
+    width: 100%;
+    max-height: 82vh;
+    display: block;
+    object-fit: contain;
+    border: 3px solid #fff;
+    background: #000;
+}
+
+.gallery-lightbox__caption {
+    margin-top: 0.5rem;
+    color: #ff6600;
+    font-size: 0.8rem;
+    text-align: center;
+    text-transform: uppercase;
+}
+
+.gallery-lightbox__close,
+.gallery-lightbox__nav {
+    background: #fff;
+    color: #000;
+    border: 2px solid #000;
+    font-family: 'Courier New', monospace;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.gallery-lightbox__close {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    width: 2.5rem;
+    height: 2.5rem;
+    font-size: 2rem;
+    line-height: 1;
+}
+
+.gallery-lightbox__nav {
+    width: 3rem;
+    height: 3rem;
+    font-size: 1.5rem;
+}
+
+.gallery-lightbox__close:hover,
+.gallery-lightbox__nav:hover,
+.gallery-lightbox__close:focus,
+.gallery-lightbox__nav:focus {
+    background: #ff6600;
+    outline: none;
+}
+
+/* Display parenthetical asides at a smaller size inside interest descriptions. */
+.description .small-text {
+    font-size: 0.7em;
+}
+
+@media (max-width: 768px) {
+    .gallery__grid {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        max-height: 320px;
+    }
+
+    .gallery-lightbox {
+        gap: 0.5rem;
+        padding: 4rem 0.75rem 1rem;
+    }
+
+    .gallery-lightbox__figure {
+        width: 100%;
+    }
+
+    .gallery-lightbox__nav {
+        position: absolute;
+        bottom: 1rem;
+    }
+
+    .gallery-lightbox__nav--prev {
+        left: 1rem;
+    }
+
+    .gallery-lightbox__nav--next {
+        right: 1rem;
+    }
+}
