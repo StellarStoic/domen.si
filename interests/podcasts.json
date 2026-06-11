@@ -1,0 +1,6 @@
+{
+  "id": "podcasts",
+  "name": "PODCASTS",
+  "description": "Podcast subscriptions are loading from the latest Podcast Addict OPML export.",
+  "opmlSource": "assets/img/data/PodcastAddict_OPML_export_20260611_232241.opml"
+}

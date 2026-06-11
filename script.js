@@ -172,6 +172,87 @@ function setupBitcoinCurrencyControls(root) {
     });
 }
 
+// Convert feed-provided HTML descriptions into safe readable plain text.
+function getPlainTextFromHtml(html) {
+    const documentFragment = new DOMParser().parseFromString(html || '', 'text/html');
+    return documentFragment.body.textContent.replace(/\s+/g, ' ').trim();
+}
+
+// Extract a podcast-level description from common RSS and Atom feed elements.
+function getPodcastDescriptionFromFeed(feedText) {
+    const feedDocument = new DOMParser().parseFromString(feedText, 'application/xml');
+    if (feedDocument.querySelector('parsererror')) {
+        throw new Error('The podcast feed is not valid XML');
+    }
+
+    const channel = feedDocument.querySelector('channel');
+    const rawDescription = channel?.querySelector(':scope > description')?.textContent
+        || channel?.getElementsByTagName('itunes:summary')[0]?.textContent
+        || feedDocument.querySelector('feed > subtitle')?.textContent
+        || feedDocument.querySelector('feed > description')?.textContent;
+
+    return getPlainTextFromHtml(rawDescription);
+}
+
+// Load and cache a podcast's feed description only when its information panel is opened.
+async function loadPodcastDescription(interest, root) {
+    if (!interest.feedUrl) {
+        return;
+    }
+
+    const descriptionElement = root.querySelector('.description');
+    if (interest.podcastDescriptionLoaded) {
+        descriptionElement.textContent = interest.description;
+        return;
+    }
+
+    try {
+        let podcastDescription = '';
+
+        try {
+            // Parse xmlUrl directly when the podcast host allows browser cross-origin requests.
+            const feedResponse = await fetch(interest.feedUrl);
+            if (!feedResponse.ok) {
+                throw new Error(`Podcast feed returned HTTP ${feedResponse.status}`);
+            }
+
+            podcastDescription = getPodcastDescriptionFromFeed(await feedResponse.text());
+        } catch (directFeedError) {
+            // Many podcast hosts block browser CORS, so use a CORS-enabled parser as fallback.
+            const endpoint = `https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(interest.feedUrl)}`;
+            const metadataResponse = await fetch(endpoint);
+            if (!metadataResponse.ok) {
+                throw new Error(`Podcast metadata API returned HTTP ${metadataResponse.status}`);
+            }
+
+            const data = await metadataResponse.json();
+            podcastDescription = getPlainTextFromHtml(data.feed?.description);
+            console.info(`Direct podcast feed access was unavailable for "${interest.name}".`, directFeedError);
+        }
+
+        if (!podcastDescription) {
+            throw new Error('The podcast feed does not contain a description');
+        }
+
+        // Cache the description on the interest so reopening it does not repeat the request.
+        interest.description = podcastDescription;
+        interest.podcastDescriptionLoaded = true;
+
+        // Avoid replacing another interest's description if the visitor navigated away mid-request.
+        if (root.dataset.interestId === interest.id) {
+            descriptionElement.textContent = podcastDescription;
+        }
+    } catch (error) {
+        interest.description = 'Podcast description is unavailable. Use the source or RSS link for more information.';
+        interest.podcastDescriptionLoaded = true;
+
+        if (root.dataset.interestId === interest.id) {
+            descriptionElement.textContent = interest.description;
+        }
+        console.error(`Error loading podcast description for "${interest.name}":`, error);
+    }
+}
+
 // Connect to Sintra's static-site-friendly WebSocket for live Bitcoin prices.
 function connectSintraPriceStream() {
     if (sintraPriceSocket && sintraPriceSocket.readyState < WebSocket.CLOSING) {
@@ -848,10 +929,19 @@ function showInfoPanel(interest, depth) {
     infoContent.innerHTML = `
         <div class="breadcrumb">${breadcrumb}</div>
         <h3>${interest.name}</h3>
+        ${interest.imageUrl ?
+            `<img class="podcast-artwork" src="${interest.imageUrl}" alt="${interest.name} podcast artwork" loading="lazy">` :
+            ''
+        }
         <p class="description">${interest.description}</p>
+        ${interest.metadata ? `<p class="interest-metadata">${interest.metadata}</p>` : ''}
         <div class="depth-indicator">Depth: ${depth + 1}</div>
         ${interest.url ? 
             `<a href="${interest.url}" target="_blank" rel="noopener noreferrer" class="article-link">Visit Source</a>` :
+            ''
+        }
+        ${interest.feedUrl ?
+            `<a href="${interest.feedUrl}" target="_blank" rel="noopener noreferrer" class="article-link article-link--secondary">RSS Feed</a>` :
             ''
         }
         ${interest.id === 'bitcoin-price' ? renderBitcoinCurrencyControls() : ''}
@@ -915,6 +1005,15 @@ function showInfoPanel(interest, depth) {
 
     // Allow the Bitcoin price panel to switch the live cube between Sintra currencies.
     setupBitcoinCurrencyControls(infoContent);
+
+    // Hide stale or blocked artwork URLs instead of leaving a broken image indicator.
+    const podcastArtwork = infoContent.querySelector('.podcast-artwork');
+    podcastArtwork?.addEventListener('error', () => {
+        podcastArtwork.remove();
+    });
+
+    // Enrich podcast details on demand without delaying the initial OPML import.
+    loadPodcastDescription(interest, infoContent);
 
     // Attach thumbnail events after the gallery HTML is added to the panel.
     setupGalleryThumbnails(infoContent, interest.gallery);

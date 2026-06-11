@@ -119,6 +119,74 @@ async function getInterestFiles() {
     return await manifestResponse.json();
 }
 
+// Convert OPML podcast subscriptions into grouped interests that remain manageable as cubes.
+async function loadPodcastInterests(interest) {
+    if (!interest.opmlSource) {
+        return interest;
+    }
+
+    const response = await fetch(interest.opmlSource);
+    if (!response.ok) {
+        throw new Error(`Could not load podcast OPML (${response.status})`);
+    }
+
+    const opmlText = await response.text();
+    const opmlDocument = new DOMParser().parseFromString(opmlText, 'application/xml');
+    const parserError = opmlDocument.querySelector('parsererror');
+
+    if (parserError) {
+        throw new Error('The podcast OPML file is not valid XML');
+    }
+
+    const updatedAt = opmlDocument.querySelector('head > dateModified')?.textContent
+        || opmlDocument.querySelector('head > dateCreated')?.textContent
+        || 'unknown';
+    const podcastOutlines = Array.from(opmlDocument.querySelectorAll('body outline[xmlUrl]'));
+
+    // Use broad alphabetical groups so a large subscription list does not create 100 cubes at once.
+    const groups = [
+        { id: 'a-f', name: 'A-F', test: firstLetter => firstLetter >= 'A' && firstLetter <= 'F' },
+        { id: 'g-l', name: 'G-L', test: firstLetter => firstLetter >= 'G' && firstLetter <= 'L' },
+        { id: 'm-r', name: 'M-R', test: firstLetter => firstLetter >= 'M' && firstLetter <= 'R' },
+        { id: 's-z', name: 'S-Z', test: firstLetter => firstLetter >= 'S' && firstLetter <= 'Z' },
+        { id: 'other', name: 'OTHER', test: firstLetter => firstLetter < 'A' || firstLetter > 'Z' }
+    ];
+
+    const podcasts = podcastOutlines.map((outline, index) => {
+        const name = outline.getAttribute('text') || outline.getAttribute('title') || `Podcast ${index + 1}`;
+        const normalizedName = name.replace(/^the\s+/i, '').trim();
+
+        return {
+            id: `podcast-${index}-${normalizedName.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')}`,
+            name,
+            sortName: normalizedName,
+            description: 'Loading podcast description...',
+            metadata: `Imported from Podcast Addict. OPML last updated: ${updatedAt}.`,
+            url: outline.getAttribute('htmlUrl') || outline.getAttribute('xmlUrl'),
+            feedUrl: outline.getAttribute('xmlUrl'),
+            imageUrl: outline.getAttribute('imageUrl')
+        };
+    });
+
+    interest.description = `${podcasts.length} podcast subscriptions imported from Podcast Addict. Last updated: ${updatedAt}.`;
+    interest.subInterests = groups
+        .map(group => {
+            const groupPodcasts = podcasts
+                .filter(podcast => group.test(podcast.sortName.charAt(0).toUpperCase()))
+                .sort((first, second) => first.sortName.localeCompare(second.sortName));
+
+            return {
+                id: `podcasts-${group.id}`,
+                name: group.name,
+                description: `${groupPodcasts.length} podcasts sorted alphabetically. OPML last updated: ${updatedAt}.`,
+                subInterests: groupPodcasts
+            };
+        })
+        .filter(group => group.subInterests.length > 0);
+
+    return interest;
+}
+
 // Load every discovered root-interest JSON file.
 async function loadInterestsData() {
     try {
@@ -133,7 +201,10 @@ async function loadInterestsData() {
                     throw new Error(`HTTP ${response.status}`);
                 }
 
-                return await response.json();
+                const interest = await response.json();
+
+                // Enrich configured podcast roots from their OPML source before rendering.
+                return await loadPodcastInterests(interest);
             } catch (error) {
                 console.error(`Error loading interest file "${fileName}":`, error);
                 return null;

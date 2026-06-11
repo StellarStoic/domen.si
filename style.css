@@ -194,6 +194,24 @@ body {
     color: #fff;
 }
 
+/* Show OPML podcast artwork without overwhelming the narrow information panel. */
+.podcast-artwork {
+    display: block;
+    width: min(100%, 220px);
+    aspect-ratio: 1;
+    margin: 0 auto 1rem;
+    border: 2px solid #ff6600;
+    object-fit: cover;
+}
+
+/* Keep import details secondary to the podcast's real feed description. */
+.info-content .interest-metadata {
+    margin-top: -0.4rem;
+    color: #999;
+    font-size: 0.68rem;
+    line-height: 1.4;
+}
+
 /* Present Sintra currency choices as compact controls in the Bitcoin price panel. */
 .currency-selector {
     margin: 0.5rem 0 1rem;
@@ -439,6 +457,14 @@ body {
 .article-link:hover {
     background-color: #fff;
     color: #000;
+}
+
+/* Separate raw podcast feeds from the primary podcast website action. */
+.article-link--secondary {
+    margin-left: 0.4rem;
+    background-color: #000;
+    color: #ff6600;
+    border-color: #ff6600;
 }
 
 /* Gallery grid keeps photo thumbnails dense and raw inside the side panel. */
