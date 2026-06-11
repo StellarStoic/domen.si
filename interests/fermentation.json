@@ -1,0 +1,25 @@
+{
+  "id": "fermentation",
+  "name": "FERMENTATION",
+  "description": "My newest obsession is fermentation. I love the process of fermentation and the delicious results it produces. I started fermenting in 2025 and I've been hooked ever since. I love the science behind it and the endless possibilities it offers.",
+  "subInterests": [
+    {
+      "id": "fermentimer.com",
+      "name": "FERMENTIMER.COM",
+      "description": "I-ve built a <a href=\"https://fermentimer.com\">Fermentimer.com</a> web app to keep track of my ferments and keeping fermentation topics in one place ",
+      "url": "https://fermentimer.com"
+    },
+    {
+      "id": "kefir",
+      "name": "KEFIR",
+      "description": "One of the first ferments I got into was milk kefir. I love the taste and the health benefits of it. Here is a link to the only place related to Kefir you'll ever need  <a href=\"https://myfermentedlife.com/\">myfermentedlife.com/</a>",
+      "url": "https://myfermentedlife.com/"
+    },
+    {
+      "id": "kombucha",
+      "name": "KOMBUCHA",
+      "description": "Kombucha camp is the place to be for all things kombucha. I started brewing kombucha in 2026 and I love it. It's a great way to get into fermentation and it's also a great way to get into brewing. Here is a link to the only place online related to Kombucha you'll ever need <a href=\"https://www.kombuchakamp.com/what-is-kombucha\">kombuchakamp.com/</a>",
+      "url": "https://www.kombuchakamp.com/what-is-kombucha"
+    }
+  ]
+}

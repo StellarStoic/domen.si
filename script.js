@@ -3,12 +3,265 @@ let navigationStack = []; // Stack to track navigation history
 let currentInterests = []; // Current level being displayed
 let activeGalleryImages = []; // Images currently shown in the lightbox
 let activeGalleryIndex = 0; // Selected lightbox image index
+let sintraPriceSocket = null; // Active Sintra WebSocket used for live Bitcoin prices.
+let latestBitcoinPrices = {}; // Latest Sintra prices keyed by lowercase currency code.
+let selectedBitcoinCurrency = 'eur'; // Currency currently displayed in the Bitcoin price cube.
+
+// Define the currencies supplied by Sintra and the symbols shown in the price panel.
+const bitcoinCurrencies = {
+    usd: { code: 'USD', symbol: '$', locale: 'en-US' },
+    eur: { code: 'EUR', symbol: '€', locale: 'de-DE' },
+    gbp: { code: 'GBP', symbol: '£', locale: 'en-GB' },
+    cad: { code: 'CAD', symbol: 'C$', locale: 'en-CA' },
+    aud: { code: 'AUD', symbol: 'A$', locale: 'en-AU' }
+};
 
 // Initialize the portfolio
 async function initPortfolio() {
     await loadInterestsData();
+    await refreshBitcoinMetrics();
     renderBrain();
     setupEventListeners();
+    connectSintraPriceStream();
+
+    // Refresh slower-changing network data without rebuilding the current cube layout.
+    window.setInterval(refreshBitcoinMetrics, 60000);
+}
+
+// Find an interest anywhere in the loaded tree by its stable id.
+function findInterestById(interests, targetId) {
+    for (const interest of interests || []) {
+        if (interest.id === targetId) {
+            return interest;
+        }
+
+        const nestedInterest = findInterestById(interest.subInterests, targetId);
+        if (nestedInterest) {
+            return nestedInterest;
+        }
+    }
+
+    return null;
+}
+
+// Format large network hashrates using the most readable SI unit.
+function formatHashrate(hashesPerSecond) {
+    const units = [
+        { value: 1e18, label: 'EH/s' },
+        { value: 1e15, label: 'PH/s' },
+        { value: 1e12, label: 'TH/s' }
+    ];
+    const unit = units.find(candidate => hashesPerSecond >= candidate.value) || units[units.length - 1];
+
+    return `${(hashesPerSecond / unit.value).toFixed(0)} ${unit.label}`;
+}
+
+// Resize a live metric cube after its text changes without changing its saved position.
+function resizeMetricCube(cube) {
+    const isVertical = cube.dataset.orientation === 'vertical';
+    const currentPosition = {
+        x: parseFloat(cube.style.left),
+        y: parseFloat(cube.style.top)
+    };
+
+    // Measure the updated label horizontally, then apply that length to the active orientation.
+    cube.dataset.orientation = 'horizontal';
+    cube.style.width = 'max-content';
+    cube.style.height = '50px';
+    const measuredTextWidth = Math.ceil(cube.getBoundingClientRect().width);
+    cube.dataset.orientation = isVertical ? 'vertical' : 'horizontal';
+    cube.style.width = `${isVertical ? 50 : measuredTextWidth}px`;
+    cube.style.height = `${isVertical ? measuredTextWidth : 50}px`;
+
+    const container = document.getElementById('brain-container');
+    const boundedPosition = clampPositionToContainer(
+        currentPosition,
+        cube.offsetWidth,
+        cube.offsetHeight,
+        { width: container.clientWidth, height: container.clientHeight }
+    );
+    cube.style.left = `${boundedPosition.x}px`;
+    cube.style.top = `${boundedPosition.y}px`;
+}
+
+// Update one metric in memory and on its visible cube without recreating the layout.
+function updateBitcoinMetric(metricId, name, description) {
+    const interest = findInterestById(interestsData.mainInterests, metricId);
+    if (!interest) {
+        return;
+    }
+
+    interest.name = name;
+    interest.description = description;
+
+    const visibleCube = document.querySelector(`.cube[data-id="${metricId}"]`);
+    if (visibleCube) {
+        visibleCube.textContent = name;
+        resizeMetricCube(visibleCube);
+
+        // Save any boundary adjustment so returning to this level restores the same position.
+        interest.cubeLayout = {
+            orientation: visibleCube.dataset.orientation,
+            x: parseFloat(visibleCube.style.left),
+            y: parseFloat(visibleCube.style.top)
+        };
+    }
+}
+
+// Format and display the currently selected Sintra currency in the cube and open panel.
+function updateBitcoinPriceDisplay() {
+    const currency = bitcoinCurrencies[selectedBitcoinCurrency];
+    const price = latestBitcoinPrices[selectedBitcoinCurrency];
+
+    if (!currency || !Number.isFinite(price)) {
+        return;
+    }
+
+    const formattedPrice = new Intl.NumberFormat(currency.locale, {
+        style: 'currency',
+        currency: currency.code,
+        maximumFractionDigits: 0
+    }).format(price);
+
+    updateBitcoinMetric(
+        'bitcoin-price',
+        `PRICE ${formattedPrice}`,
+        `One Bitcoin currently costs approximately ${formattedPrice}. Live price data is provided by Sintra.`
+    );
+
+    // Refresh the visible price text without rebuilding the rest of the information panel.
+    const infoContent = document.getElementById('info-content');
+    if (infoContent.dataset.interestId === 'bitcoin-price') {
+        infoContent.querySelector('h3').textContent = `PRICE ${formattedPrice}`;
+        infoContent.querySelector('.description').textContent =
+            `One Bitcoin currently costs approximately ${formattedPrice}. Live price data is provided by Sintra.`;
+
+        infoContent.querySelectorAll('.currency-button').forEach(button => {
+            button.classList.toggle('is-active', button.dataset.currency === selectedBitcoinCurrency);
+        });
+    }
+}
+
+// Render controls for every currency available in Sintra's live price event.
+function renderBitcoinCurrencyControls() {
+    return `
+        <section class="currency-selector" aria-label="Select Bitcoin price currency">
+            <span class="currency-selector__label">Currency:</span>
+            <div class="currency-selector__buttons">
+                ${Object.entries(bitcoinCurrencies).map(([key, currency]) => `
+                    <button
+                        class="currency-button${key === selectedBitcoinCurrency ? ' is-active' : ''}"
+                        type="button"
+                        data-currency="${key}"
+                        aria-label="Show Bitcoin price in ${currency.code}"
+                        title="${currency.code}"
+                    >${currency.symbol}</button>
+                `).join('')}
+            </div>
+        </section>
+    `;
+}
+
+// Connect price-panel currency buttons to the live Bitcoin cube.
+function setupBitcoinCurrencyControls(root) {
+    root.querySelectorAll('.currency-button').forEach(button => {
+        button.addEventListener('click', () => {
+            selectedBitcoinCurrency = button.dataset.currency;
+            updateBitcoinPriceDisplay();
+        });
+    });
+}
+
+// Connect to Sintra's static-site-friendly WebSocket for live Bitcoin prices.
+function connectSintraPriceStream() {
+    if (sintraPriceSocket && sintraPriceSocket.readyState < WebSocket.CLOSING) {
+        return;
+    }
+
+    sintraPriceSocket = new WebSocket('wss://api.sintra.fi/ws');
+
+    sintraPriceSocket.addEventListener('message', event => {
+        try {
+            const message = JSON.parse(event.data);
+            const prices = message?.data?.prices;
+
+            if (message.event !== 'data' || !prices) {
+                return;
+            }
+
+            // Keep only supported numeric prices before updating the selected display.
+            latestBitcoinPrices = Object.fromEntries(
+                Object.keys(bitcoinCurrencies)
+                    .filter(currency => Number.isFinite(prices[currency]))
+                    .map(currency => [currency, prices[currency]])
+            );
+            updateBitcoinPriceDisplay();
+        } catch (error) {
+            console.error('Error reading the Sintra price stream:', error);
+        }
+    });
+
+    sintraPriceSocket.addEventListener('close', () => {
+        // Reconnect after temporary network interruptions without reloading the page.
+        window.setTimeout(connectSintraPriceStream, 5000);
+    });
+
+    sintraPriceSocket.addEventListener('error', () => {
+        sintraPriceSocket.close();
+    });
+}
+
+// Load block height and hashrate from mempool.space independently.
+async function refreshBitcoinMetrics() {
+    const metricRequests = [
+        fetch('https://mempool.space/api/blocks/tip/height')
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`Block-height API returned HTTP ${response.status}`);
+                }
+                return response.text();
+            })
+            .then(height => {
+                const parsedHeight = Number.parseInt(height, 10);
+                if (!Number.isInteger(parsedHeight)) {
+                    throw new Error('Block-height API returned an invalid value');
+                }
+
+                const formattedHeight = new Intl.NumberFormat('en-US').format(parsedHeight);
+                updateBitcoinMetric(
+                    'bitcoin-block-height',
+                    `BLOCK ${formattedHeight}`,
+                    `The latest confirmed Bitcoin block is ${formattedHeight}. Block data is provided by mempool.space and refreshed every minute.`
+                );
+            }),
+        fetch('https://mempool.space/api/v1/mining/hashrate/3d')
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`Hashrate API returned HTTP ${response.status}`);
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (!Number.isFinite(data.currentHashrate)) {
+                    throw new Error('Hashrate API returned an invalid value');
+                }
+
+                const formattedHashrate = formatHashrate(data.currentHashrate);
+                updateBitcoinMetric(
+                    'bitcoin-hashrate',
+                    `HASHRATE ${formattedHashrate}`,
+                    `The estimated Bitcoin network hashrate is ${formattedHashrate}. Hashrate data is provided by mempool.space and refreshed every minute.`
+                );
+            })
+    ];
+
+    // Keep successful metrics visible even if one network endpoint is temporarily unavailable.
+    const results = await Promise.allSettled(metricRequests);
+    results.forEach(result => {
+        if (result.status === 'rejected') {
+            console.error('Error loading a Bitcoin metric:', result.reason);
+        }
+    });
 }
 
 // Treat missing visible values as public, while accepting boolean or string false.
@@ -51,35 +304,96 @@ function renderBrain() {
     });
 }
 
-// Generate a random non-overlapping position inside the container (desktop only)
-function getRandomNonOverlappingPosition(cubeWidth, cubeHeight, containerRect) {
-    const maxAttempts = 300;  // try many times to avoid collisions
-    const existingPositions = getExistingCubePositionsPixels();
+// Keep a position fully inside the brain container, including a visible edge margin.
+function clampPositionToContainer(position, cubeWidth, cubeHeight, containerRect) {
+    const margin = 10;
+    const maxX = Math.max(margin, containerRect.width - cubeWidth - margin);
+    const maxY = Math.max(margin, containerRect.height - cubeHeight - margin);
+
+    return {
+        x: Math.max(margin, Math.min(maxX, position.x)),
+        y: Math.max(margin, Math.min(maxY, position.y))
+    };
+}
+
+// Find a bounded non-overlapping position, using a grid scan if random placement fails.
+function getRandomNonOverlappingPosition(cubeWidth, cubeHeight, containerRect, existingPositions = null) {
+    const margin = 10;
+    const maxAttempts = 300;
+    const occupiedPositions = existingPositions || getExistingCubePositionsPixels();
+    const maxX = Math.max(margin, containerRect.width - cubeWidth - margin);
+    const maxY = Math.max(margin, containerRect.height - cubeHeight - margin);
 
     for (let attempt = 0; attempt < maxAttempts; attempt++) {
-
-        // choose a fully random coordinate inside the container
+        // Choose a fully bounded random coordinate inside the container.
         const pos = {
-            x: Math.random() * (containerRect.width - cubeWidth - 10),
-            y: Math.random() * (containerRect.height - cubeHeight - 10)
+            x: margin + Math.random() * Math.max(0, maxX - margin),
+            y: margin + Math.random() * Math.max(0, maxY - margin)
         };
 
-        // check if random position collides with any existing cube
+        // Check whether the random position collides with an already placed cube.
         const collision = checkRectangleCollisionPixels(
             pos,
             cubeWidth,
             cubeHeight,
-            existingPositions
+            occupiedPositions
         );
 
-        // found a clean spot → return immediately
+        // Return immediately when a clean random position is available.
         if (!collision) {
             return pos;
         }
     }
 
-    // fallback: at least place it somewhere safe near (0,0)
-    return { x: 10, y: 10 };
+    // Scan the full container so failed random attempts never stack cubes at one fallback point.
+    const scanStep = 5;
+    for (let y = margin; y <= maxY; y += scanStep) {
+        for (let x = margin; x <= maxX; x += scanStep) {
+            const pos = { x, y };
+
+            if (!checkRectangleCollisionPixels(pos, cubeWidth, cubeHeight, occupiedPositions)) {
+                return pos;
+            }
+        }
+    }
+
+    // When the container is genuinely full, distribute the cube within bounds instead of hiding it.
+    const fallbackIndex = occupiedPositions.length;
+    return clampPositionToContainer({
+        x: margin + (fallbackIndex * (cubeWidth + margin)),
+        y: margin + (fallbackIndex * (cubeHeight + margin))
+    }, cubeWidth, cubeHeight, containerRect);
+}
+
+// Reposition rendered cubes after the brain container changes width or height.
+function repositionVisibleCubes() {
+    const container = document.getElementById('brain-container');
+    const cubes = Array.from(container.querySelectorAll('.cube'));
+    const containerRect = {
+        width: container.clientWidth,
+        height: container.clientHeight
+    };
+    const placedPositions = [];
+
+    // Place each existing cube against only the cubes already repositioned in this pass.
+    cubes.forEach(cube => {
+        const cubeWidth = cube.offsetWidth;
+        const cubeHeight = cube.offsetHeight;
+        const position = getRandomNonOverlappingPosition(
+            cubeWidth,
+            cubeHeight,
+            containerRect,
+            placedPositions
+        );
+
+        cube.style.left = `${position.x}px`;
+        cube.style.top = `${position.y}px`;
+        placedPositions.push({
+            ...position,
+            width: cubeWidth,
+            height: cubeHeight
+        });
+    });
 }
 
 
@@ -96,46 +410,59 @@ function createCube(interest, index, isSubCube = false, parentPosition = null, d
     cube.textContent = interest.name;
     cube.dataset.id = interest.id;
     cube.dataset.depth = depth;
+    cube.dataset.interestIndex = index;
 
-    // Calculate dynamic size based on text length
-    const textLength = interest.name.length;
-    const baseSize = 40; // Base cube size in px
-    const charWidth = 8; // Approximate width per character (px)
-    const padding = 10; // Padding around text (px)
-
-    // Determine text orientation (vertical/horizontal) - unchanged
-    const useVertical = textLength <= 4 || Math.random() > 0.7;
-    cube.dataset.orientation = useVertical ? 'vertical' : 'horizontal';
-
-    if (useVertical) {
-        // Vertical text layout
-        const width = baseSize + padding;
-        const height = baseSize + (textLength * 4) + padding;
-        cube.style.width = `${width}px`;
-        cube.style.height = `${height}px`;
-        cube.style.writingMode = 'vertical-rl';
-        cube.style.textOrientation = 'mixed';
-    } else {
-        // Horizontal text layout
-        const width = Math.max(baseSize, (textLength * charWidth) + padding);
-        const height = baseSize + padding;
-        cube.style.width = `${width}px`;
-        cube.style.height = `${height}px`;
+    // Mark live-data cubes so their changing values are visually identifiable.
+    if (interest.metric) {
+        cube.classList.add('metric-cube');
     }
 
-    // Get container dimensions ONCE
-    const container = document.getElementById('brain-container');
-    const containerRect = container.getBoundingClientRect();
+    // Choose an orientation once and reuse it whenever this interest is rendered again.
+    const savedLayout = interest.cubeLayout;
+    const useVertical = savedLayout
+        ? savedLayout.orientation === 'vertical'
+        : interest.name.length <= 4 || Math.random() > 0.7;
+    cube.dataset.orientation = useVertical ? 'vertical' : 'horizontal';
+    cube.style.width = 'max-content';
+    cube.style.height = '50px';
+    cube.style.visibility = 'hidden';
 
-    // Get cube dimensions in PIXELS (parseInt from style set above)
-    const cubeWidth = parseInt(cube.style.width, 10);
-    const cubeHeight = parseInt(cube.style.height, 10);
+    // Measure horizontally first so vertical cubes can use the text length as their height.
+    cube.dataset.orientation = 'horizontal';
+    const container = document.getElementById('brain-container');
+    container.appendChild(cube);
+    const measuredTextWidth = Math.ceil(cube.getBoundingClientRect().width);
+    cube.remove();
+
+    // Horizontal cubes grow in width; vertical cubes grow in height.
+    const cubeWidth = useVertical ? 50 : measuredTextWidth;
+    const cubeHeight = useVertical ? measuredTextWidth : 50;
+    cube.dataset.orientation = useVertical ? 'vertical' : 'horizontal';
+    cube.style.width = `${cubeWidth}px`;
+    cube.style.height = `${cubeHeight}px`;
+    cube.style.visibility = '';
+
+    // Read the actual inner container dimensions used by the placement algorithm.
+    const containerRect = {
+        width: container.clientWidth,
+        height: container.clientHeight
+    };
 
     // ---------- POSITIONING LOGIC ----------
     // If this is a sub-cube and a parent position is provided, try to place near parent using collision avoidance.
     // Otherwise, place randomly inside container using collision avoidance.
     // MobileRandom forces random placement on small screens too (fixes blank mobile result).
-    if (isSubCube && parentPosition) {
+    if (savedLayout) {
+        // Restore the previous position so navigating away and back does not shuffle cubes.
+        const savedPosition = clampPositionToContainer(
+            { x: savedLayout.x, y: savedLayout.y },
+            cubeWidth,
+            cubeHeight,
+            containerRect
+        );
+        cube.style.left = `${savedPosition.x}px`;
+        cube.style.top = `${savedPosition.y}px`;
+    } else if (isSubCube && parentPosition) {
         // Convert parent position to pixels if it's in percentage or a string
         const parentXPixels = typeof parentPosition.x === 'string' ? 
             (parseFloat(parentPosition.x) / 100) * containerRect.width : parentPosition.x;
@@ -172,17 +499,18 @@ function createCube(interest, index, isSubCube = false, parentPosition = null, d
 
             if (attempts >= maxAttempts) {
                 // spiral fallback: this function already returns a safe pixel position or a random fallback
-                finalPosition = findSpiralPositionPixels(
-                    { x: parentXPixels, y: parentYPixels },
-                    existingPositions,
+                finalPosition = getRandomNonOverlappingPosition(
                     cubeWidth,
                     cubeHeight,
-                    containerRect
+                    containerRect,
+                    existingPositions
                 );
                 break;
             }
         } while (attempts < maxAttempts);
 
+        // Clamp the final result in case the container changed during placement.
+        finalPosition = clampPositionToContainer(finalPosition, cubeWidth, cubeHeight, containerRect);
         cube.style.left = `${finalPosition.x}px`;
         cube.style.top = `${finalPosition.y}px`;
     } else {
@@ -192,6 +520,13 @@ function createCube(interest, index, isSubCube = false, parentPosition = null, d
         cube.style.left = `${pos.x}px`;
         cube.style.top = `${pos.y}px`;
     }
+
+    // Remember the generated layout on the interest object for future visits.
+    interest.cubeLayout = {
+        orientation: useVertical ? 'vertical' : 'horizontal',
+        x: parseFloat(cube.style.left),
+        y: parseFloat(cube.style.top)
+    };
 
     // Scale and depth visual tweaks - unchanged
     if (interest.color === 'orange' && depth === 0) {
@@ -206,13 +541,22 @@ function createCube(interest, index, isSubCube = false, parentPosition = null, d
         cube.dataset.hasUrl = "true";
     }
 
-    // click handler unchanged
+    // Keep the matching sub-interest list item highlighted while hovering the cube.
+    cube.addEventListener('mouseenter', () => {
+        const listItem = document.querySelector(`.sub-interest-item[data-interest-index="${index}"]`);
+        listItem?.classList.add('is-highlighted');
+    });
+
+    cube.addEventListener('mouseleave', () => {
+        const listItem = document.querySelector(`.sub-interest-item[data-interest-index="${index}"]`);
+        listItem?.classList.remove('is-highlighted');
+    });
+
+    // Show information first; visitors can open external sources from the information panel.
     cube.addEventListener('click', (event) => {
         event.stopPropagation();
 
-        if (interest.url) {
-            window.open(interest.url, '_blank');
-        } else if (getVisibleInterests(interest.subInterests).length > 0) {
+        if (getVisibleInterests(interest.subInterests).length > 0) {
             // Get current position in pixels for navigation (if not set this will produce NaN)
             // but we always set left/top now so parseFloat should be valid.
             const currentX = parseFloat(cube.style.left);
@@ -351,11 +695,16 @@ function createBackCube(parentPosition, depth) {
         attempts++;
         
         if (attempts >= maxAttempts) {
-            // Fallback: random position in container
-            backPosition = { 
-                x: Math.random() * (containerRect.width - backWidth - 20) + 10,
-                y: Math.random() * (containerRect.height - backHeight - 20) + 10
-            };
+            // Scan the container for a guaranteed bounded fallback that avoids every visible cube.
+            backPosition = getRandomNonOverlappingPosition(
+                backWidth,
+                backHeight,
+                {
+                    width: container.clientWidth,
+                    height: container.clientHeight
+                },
+                existingPositions
+            );
             break;
         }
     } while (checkRectangleCollisionPixels(backPosition, backWidth, backHeight, existingPositions));
@@ -406,19 +755,25 @@ function navigateToSubInterests(interest, parentPosition, parentDepth) {
     container.innerHTML = '';
     
 
-    // Create back cube
-    const backCube = createBackCube(parentPosition, parentDepth);
-    container.appendChild(backCube);
-    
-    // Create sub-interest cubes
+    // Create sub-interest cubes first so BACK can avoid their final positions.
     currentInterests.forEach((subInterest, index) => {
         const cube = createCube(subInterest, index, true, parentPosition, parentDepth + 1);
         container.appendChild(cube);
     });
+
+    // Place BACK only after all interest cubes participate in its collision check.
+    const backCube = createBackCube(parentPosition, parentDepth);
+    container.appendChild(backCube);
 }
 
 // Go back to previous level
 function goBack() {
+    // At the root level, BACK closes the open information panel.
+    if (navigationStack.length === 0) {
+        hideInfoPanel();
+        return;
+    }
+
     if (navigationStack.length > 0) {
         const previousState = navigationStack.pop();
         const container = document.getElementById('brain-container');
@@ -440,13 +795,7 @@ function goBack() {
             hideInfoPanel();
         } else {
             // We're at a sub-level, recreate previous sub-interests
-            const backCube = createBackCube(
-                previousState.parentPosition, 
-                previousState.depth
-            );
-            container.appendChild(backCube);
-            
-            // Recreate interest cubes for this level
+            // Recreate interest cubes first using their saved positions.
             currentInterests.forEach((interest, index) => {
                 const cube = createCube(
                     interest, 
@@ -457,6 +806,13 @@ function goBack() {
                 );
                 container.appendChild(cube);
             });
+
+            // Recalculate BACK after restored cubes exist, preventing any overlap.
+            const backCube = createBackCube(
+                previousState.parentPosition,
+                previousState.depth
+            );
+            container.appendChild(backCube);
             
             // Update info panel for the parent interest
             if (navigationStack.length > 0) {
@@ -477,6 +833,7 @@ function showInfoPanel(interest, depth) {
     const infoPanel = document.getElementById('info-panel');
     const infoContent = document.getElementById('info-content');
     const visibleSubInterests = getVisibleInterests(interest.subInterests);
+    infoContent.dataset.interestId = interest.id;
     
     // Create clickable breadcrumb navigation
     let breadcrumb = '<span class="breadcrumb-item" data-depth="0">ROOT</span>';
@@ -494,15 +851,20 @@ function showInfoPanel(interest, depth) {
         <p class="description">${interest.description}</p>
         <div class="depth-indicator">Depth: ${depth + 1}</div>
         ${interest.url ? 
-            `<a href="${interest.url}" target="_blank" class="article-link">📖 Read Article</a>` : 
+            `<a href="${interest.url}" target="_blank" rel="noopener noreferrer" class="article-link">Visit Source</a>` :
             ''
         }
+        ${interest.id === 'bitcoin-price' ? renderBitcoinCurrencyControls() : ''}
         ${interest.gallery ? renderGallery(interest.gallery) : ''}
         ${visibleSubInterests.length > 0 ? 
             `<div class="sub-interests">
                 <strong>Contains ${visibleSubInterests.length} visible sub-interests:</strong>
                 <ul>
-                    ${visibleSubInterests.map(si => `<li>${si.name}</li>`).join('')}
+                    ${visibleSubInterests.map((subInterest, index) => `
+                        <li class="sub-interest-item" data-interest-index="${index}" tabindex="0" role="button">
+                            ${subInterest.name}
+                        </li>
+                    `).join('')}
                 </ul>
             </div>` : 
             '<p class="leaf-node">↳ This is a leaf node (no further sub-interests)</p>'
@@ -516,6 +878,43 @@ function showInfoPanel(interest, depth) {
             navigateToDepth(targetDepth);
         });
     });
+
+    // Make each list item highlight and activate the same cube shown in the brain.
+    infoContent.querySelectorAll('.sub-interest-item').forEach(item => {
+        const interestIndex = item.dataset.interestIndex;
+        const getMatchingCube = () => document.querySelector(`.cube[data-interest-index="${interestIndex}"]`);
+
+        item.addEventListener('mouseenter', () => {
+            getMatchingCube()?.classList.add('is-highlighted');
+        });
+
+        item.addEventListener('mouseleave', () => {
+            getMatchingCube()?.classList.remove('is-highlighted');
+        });
+
+        item.addEventListener('focus', () => {
+            getMatchingCube()?.classList.add('is-highlighted');
+        });
+
+        item.addEventListener('blur', () => {
+            getMatchingCube()?.classList.remove('is-highlighted');
+        });
+
+        item.addEventListener('click', () => {
+            getMatchingCube()?.click();
+        });
+
+        item.addEventListener('keydown', (event) => {
+            if (event.key === 'Enter' || event.key === ' ') {
+                // Prevent Space from scrolling while activating the selected sub-interest.
+                event.preventDefault();
+                getMatchingCube()?.click();
+            }
+        });
+    });
+
+    // Allow the Bitcoin price panel to switch the live cube between Sintra currencies.
+    setupBitcoinCurrencyControls(infoContent);
 
     // Attach thumbnail events after the gallery HTML is added to the panel.
     setupGalleryThumbnails(infoContent, interest.gallery);
@@ -731,6 +1130,9 @@ function setupEventListeners() {
     const galleryPrev = document.getElementById('gallery-prev');
     const galleryNext = document.getElementById('gallery-next');
     const galleryLightbox = document.getElementById('gallery-lightbox');
+
+    // Reflow cubes when responsive layout changes alter the brain dimensions.
+    window.addEventListener('resize', repositionVisibleCubes);
 
     // Wire shared gallery controls once because the thumbnails change with the active interest.
     galleryClose.addEventListener('click', closeGalleryLightbox);

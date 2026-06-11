@@ -78,12 +78,13 @@ body {
     color: #000;
     font-size: 0.7rem;
     text-align: center;
-    padding: 0.2rem;
+    padding: 0.2rem 0.65rem;
     text-transform: uppercase;
     font-weight: bold;
+    letter-spacing: 1.5px;
     box-sizing: border-box;
     z-index: 10;
-    word-wrap: break-word;
+    white-space: nowrap;
     overflow: hidden;
 }
 
@@ -93,7 +94,20 @@ body {
     cursor: pointer;
 }
 
-.cube[data-has-url="true"]:hover {
+/* Distinguish live Bitcoin network data from regular navigation cubes. */
+.cube.metric-cube {
+    border-color: #ff6600;
+    color: #ff6600;
+}
+
+.cube.metric-cube:hover,
+.cube.metric-cube.is-highlighted {
+    background-color: #ff6600;
+    color: #000;
+}
+
+.cube[data-has-url="true"]:hover,
+.cube[data-has-url="true"].is-highlighted {
     background-color: #ff6600;
     color: #000;
 }
@@ -121,7 +135,8 @@ body {
 }
 
 /* Hover effect for cubes */
-.cube:hover {
+.cube:hover,
+.cube.is-highlighted {
     transform: scale(1.1);
     z-index: 100;
 }
@@ -146,11 +161,16 @@ body {
     border: 2px solid #fff;
     padding: 1rem;
     background-color: #000;
-    display: none;
+    visibility: hidden;
+    opacity: 0;
+    pointer-events: none;
+    box-sizing: border-box;
 }
 
 .info-panel.active {
-    display: block;
+    visibility: visible;
+    opacity: 1;
+    pointer-events: auto;
 }
 
 .info-content h3 {
@@ -162,6 +182,54 @@ body {
 .info-content p {
     margin-bottom: 1rem;
     line-height: 1.6;
+}
+
+/* Keep inline information links readable against the dark panel background. */
+.info-content a:not(.article-link) {
+    color: #ff6600;
+}
+
+.info-content a:not(.article-link):hover,
+.info-content a:not(.article-link):focus {
+    color: #fff;
+}
+
+/* Present Sintra currency choices as compact controls in the Bitcoin price panel. */
+.currency-selector {
+    margin: 0.5rem 0 1rem;
+}
+
+.currency-selector__label {
+    display: block;
+    margin-bottom: 0.5rem;
+    color: #ff6600;
+    font-size: 0.8rem;
+    text-transform: uppercase;
+}
+
+.currency-selector__buttons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+}
+
+.currency-button {
+    min-width: 2.5rem;
+    border: 1px solid #ff6600;
+    padding: 0.35rem 0.5rem;
+    background: #000;
+    color: #ff6600;
+    font: inherit;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.currency-button:hover,
+.currency-button:focus,
+.currency-button.is-active {
+    background: #ff6600;
+    color: #000;
+    outline: none;
 }
 
 /* Back button styling */
@@ -202,6 +270,11 @@ body {
         width: 100%;
         margin-left: 0;
         margin-top: 2rem;
+        display: none;
+    }
+
+    .info-panel.active {
+        display: block;
     }
     
     .title {
@@ -260,6 +333,21 @@ body {
 .sub-interests li {
     margin-bottom: 0.3rem;
     font-size: 0.9rem;
+}
+
+/* Make sub-interest rows behave like their matching cubes. */
+.sub-interest-item {
+    cursor: pointer;
+    padding: 0.2rem 0.35rem;
+    transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.sub-interest-item:hover,
+.sub-interest-item:focus,
+.sub-interest-item.is-highlighted {
+    background-color: #fff;
+    color: #000;
+    outline: none;
 }
 
 /* Leaf node styling */

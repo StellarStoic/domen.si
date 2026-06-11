@@ -1,0 +1,387 @@
+﻿{
+  "id": "freedom-tech",
+  "name": "FREEDOM TECH",
+  "description": "Tools and protocols that give people more control over their money, identity, communication, data and computing.",
+  "subInterests": [
+    {
+      "id": "bitcoin",
+      "name": "BITCOIN",
+      "description": "Open, permissionless money with a fixed supply of 21 million and no central issuer. It's a freedom money that lets people hold and transfer value without asking a bank, company or government for permission.",
+      "subInterests": [
+        {
+          "id": "bitcoin-price",
+          "name": "PRICE LOADING",
+          "description": "Loading the current Bitcoin price in euros from Sintra.",
+          "metric": "bitcoin-price"
+        },
+        {
+          "id": "bitcoin-block-height",
+          "name": "BLOCK LOADING",
+          "description": "Loading the latest confirmed Bitcoin block height.",
+          "metric": "bitcoin-block-height"
+        },
+        {
+          "id": "bitcoin-hashrate",
+          "name": "HASHRATE LOADING",
+          "description": "Loading the estimated Bitcoin network hashrate.",
+          "metric": "bitcoin-hashrate"
+        },
+        {
+          "id": "bitcoin-basics",
+          "name": "WHY BITCOIN",
+          "description": "Bitcoin lets people hold and transfer value without asking a bank, company or government for permission.",
+          "url": "https://bitcoin.org/en/how-it-works"
+        },
+        {
+          "id": "bitcoin-not-crypto",
+          "name": "NOT CRYPTO",
+          "description": "Bitcoin is separated from \"crypto\" because it had no company, premine, insider allocation or central issuer. Its monetary policy is enforced by independent nodes, while many crypto tokens depend on identifiable teams that can change the rules, issue more tokens or control the network. In simple tearms, Bitcoin is a sound money protocol, while crypto tokens are often more like software projects to enrich the insiders."
+        },
+        {
+          "id": "bitcoin-resources",
+          "name": "RESOURCES",
+          "description": "A collection of educational materials and tools for learning about Bitcoin.",
+          "subInterests": [
+            {
+              "id": "bitcoin-resources-directory",
+              "name": "BTC RESOURCES",
+              "description": "A broad directory of Bitcoin books, podcasts, websites, tools and educational material.",
+              "url": "https://bitcoin-resources.com/"
+            },
+            {
+              "id": "lopp-bitcoin-resources",
+              "name": "LOPP RESOURCES",
+              "description": "Jameson Lopp's extensive collection of Bitcoin information, security guides, statistics, software and technical references.",
+              "url": "https://www.lopp.net/bitcoin-information.html"
+            },
+            {
+              "id": "learn-me-a-bitcoin",
+              "name": "LEARN ME BITCOIN",
+              "description": "A visual and technical explanation of keys, transactions, scripts, blocks, mining and the Bitcoin protocol.",
+              "url": "https://learnmeabitcoin.com/"
+            },
+            {
+              "id": "bitcoin-developer-guide",
+              "name": "DEV GUIDE",
+              "description": "Technical documentation for developers who want to understand or build software using the Bitcoin protocol.",
+              "url": "https://developer.bitcoin.org/devguide/"
+            },
+            {
+              "id": "bitcoin-design-guide",
+              "name": "DESIGN GUIDE",
+              "description": "Open guidance for designing understandable, secure and accessible Bitcoin products.",
+              "url": "https://bitcoin.design/guide/"
+            },
+            {
+              "id": "bitcoin-privacy-guide",
+              "name": "PRIVACY GUIDE",
+              "description": "Practical explanations of Bitcoin privacy risks, transaction history, coin control and privacy-preserving usage.",
+              "url": "https://bitcoinmagazine.com/guides/bitcoin-privacy-in-2026-a-practical-guide"
+            }
+          ]
+        },
+        {
+          "id": "bitcoin-whitepaper",
+          "name": "WHITEPAPER",
+          "description": "Satoshi Nakamoto's original description of a peer-to-peer electronic cash system.",
+          "url": "https://satoshi.si/whitepaper.html"
+        },
+        {
+          "id": "bitcoin-self-custody",
+          "name": "SELF CUSTODY",
+          "description": "Holding your own private keys removes custodial counterparty risk. Backups and key security become your responsibility. 12 or 24 words recovery phrases are common, but make sure to understand how they work and keep them very secure stamped on a metal plate."
+        },
+        {
+          "id": "mempool-explorer",
+          "name": "MEMPOOL",
+          "description": "An open-source Bitcoin block explorer for transactions, blocks, fees, mining and network data.",
+          "url": "https://mempool.space/"
+        },
+        {
+          "id": "hardware-wallets",
+          "name": "HARDWARE WALLET",
+          "description": "A hardware signing device keeps private keys away from an internet-connected computer. Buy directly from the manufacturer or build your own, verify addresses on the device screen and protect the recovery backup offline.",
+          "subInterests": [
+            {
+              "id": "coldcard",
+              "name": "COLDCARD",
+              "description": "A Bitcoin-only signing device aimed at advanced users, with air-gapped workflows and detailed transaction verification.",
+              "url": "https://coldcard.com/"
+            },
+            {
+              "id": "seedsigner",
+              "name": "SEEDSIGNER",
+              "description": "A Bitcoin-only signing device with a large screen for easy address verification and a simple workflow for signing transactions from an offline computer.",
+              "url": "https://seedsigner.com/"
+            }
+          ]
+        },
+        {
+          "id": "bitcoin-node",
+          "name": "RUN A NODE",
+          "description": "A Bitcoin node independently verifies the rules and transactions instead of trusting somebody else's server. These projects offer different ways to run one.",
+          "subInterests": [
+            {
+              "id": "bitcoin-core",
+              "name": "BITCOIN CORE",
+              "description": "The reference Bitcoin implementation. Best for people who want a direct, minimal node setup and are comfortable managing the software themselves.",
+              "url": "https://bitcoincore.org/"
+            },
+            {
+              "id": "start9",
+              "name": "START9",
+              "description": "StartOS is my preferred home server that provides a polished personal-server interface for running Bitcoin, Lightning and other self-hosted services. Available as ready-made hardware or a DIY installation.",
+              "url": "https://start9.com/"
+            },
+            {
+              "id": "umbrel",
+              "name": "UMBREL",
+              "description": "umbrelOS offers an approachable web interface and app store for running Bitcoin, Lightning and general home-server applications.",
+              "url": "https://umbrel.com/umbrelos"
+            },
+            {
+              "id": "raspiblitz",
+              "name": "RASPIBLITZ",
+              "description": "A community-built Bitcoin and Lightning full-node project focused on Raspberry Pi and dedicated DIY hardware.",
+              "url": "https://raspiblitz.org/"
+            },
+            {
+              "id": "mynode",
+              "name": "MYNODE",
+              "description": "A Bitcoin-focused node platform that bundles Bitcoin, Lightning, wallet connectivity and related applications behind a web interface.",
+              "url": "https://mynodebtc.com/"
+            }
+          ]
+        },
+        {
+          "id": "lightning",
+          "name": "LIGHTNING",
+          "description": "A payment network built on Bitcoin for fast, inexpensive and small transactions.",
+          "url": "https://lightning.network/"
+        },
+        {
+          "id": "bitcoin-reading",
+          "name": "BLOGS",
+          "description": "Bitcoin-focused reading for technical developments, monetary history, news and practical education.",
+          "subInterests": [
+            {
+              "id": "bitcoin-optech",
+              "name": "BITCOIN OPTECH",
+              "description": "A technical weekly newsletter covering Bitcoin development, scaling, software releases and important protocol discussions.",
+              "url": "https://bitcoinops.org/"
+            },
+            {
+              "id": "nakamoto-institute",
+              "name": "NAKAMOTO INSTITUTE",
+              "description": "An archive of Satoshi's writings and foundational material about Bitcoin, cryptography, economics and freedom.",
+              "url": "https://nakamotoinstitute.org/"
+            },
+            {
+              "id": "dergigi",
+              "name": "DER GIGI",
+              "description": "Der Gigi is a Bitcoiner and software engineer, writing about privacy, security, free software, and education. He's an author of the book 21 Lessons.",
+              "url": "https://dergigi.com/"
+            }
+          ]
+        },
+        {
+          "id": "bitcoin-exchanges",
+          "name": "EXCHANGES",
+          "description": "An exchange is an on-ramp for converting fiat money into Bitcoin, not a place for permanent storage. Compare availability in your country, total fees, spreads, withdrawal limits and privacy requirements, then withdraw to a wallet you control.",
+          "subInterests": [
+            {
+              "id": "kyc-exchanges",
+              "name": "KYC",
+              "description": "KYC services verify customer identity and may collect personal, banking and transaction information. They are usually easier fiat on-ramps but create a permanent link between your identity and Bitcoin purchases.",
+              "subInterests": [
+                {
+                  "id": "strike",
+                  "name": "STRIKE",
+                  "description": "A custodial Bitcoin and Lightning app available in supported countries. Withdraw purchased Bitcoin to your own wallet instead of treating the app as permanent storage.",
+                  "url": "https://strike.me/"
+                },
+                {
+                  "id": "bittr",
+                  "name": "BITTR",
+                  "description": "A recurring Bitcoin purchase service that sends Bitcoin directly to a wallet address you control.",
+                  "url": "https://getbittr.com/"
+                },
+                {
+                  "id": "pocket-bitcoin",
+                  "name": "POCKET BITCOIN",
+                  "description": "A European Bitcoin on-ramp that sends purchased Bitcoin directly to a wallet address you provide.",
+                  "url": "https://pocketbitcoin.com/"
+                }
+              ]
+            },
+            {
+              "id": "non-kyc-exchanges",
+              "name": "NON-KYC",
+              "description": "These tools generally avoid mandatory account identity verification, but they do not guarantee anonymity. Payment rails, counterparties, network metadata and local regulations can still expose personal information.",
+              "subInterests": [
+                {
+                  "id": "robosats",
+                  "name": "ROBOSATS",
+                  "description": "A Tor-based, peer-to-peer exchange for trading Bitcoin using Lightning escrow and temporary pseudonymous identities.",
+                  "url": "https://robosats.com/"
+                },
+                {
+                  "id": "bisq",
+                  "name": "BISQ",
+                  "description": "Open-source desktop software for peer-to-peer Bitcoin trading without a central exchange account. Trades use security deposits and decentralized dispute resolution.",
+                  "url": "https://bisq.network/"
+                },
+                {
+                  "id": "peach-bitcoin",
+                  "name": "PEACH BITCOIN",
+                  "description": "A mobile peer-to-peer marketplace that connects Bitcoin buyers and sellers while keeping custody with the users.",
+                  "url": "https://peachbitcoin.com/"
+                },
+                {
+                  "id": "boltz",
+                  "name": "BOLTZ",
+                  "description": "A non-custodial swap service for moving Bitcoin between on-chain, Lightning and supported Bitcoin layers. It is a swap tool, not a fiat exchange.",
+                  "url": "https://boltz.exchange/"
+                }
+              ]
+            },
+            {
+              "id": "exchange-warning",
+              "name": "WARNING",
+              "description": "Exchanges can freeze accounts, suffer hacks, fail financially or delay withdrawals. Use them as temporary bridges: verify a small withdrawal first and never share your wallet recovery words with an exchange."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "nostr",
+      "name": "NOSTR",
+      "description": "A simple protocol for censorship-resistant social communication using signed events, portable identities and independent relays.",
+      "subInterests": [
+        {
+          "id": "nostr-get-started",
+          "name": "GET STARTED",
+          "description": "Nstart walks you through creating and protecting a Nostr identity, choosing a client and connecting to the network.",
+          "url": "https://nstart.me/en"
+        },
+        {
+          "id": "nostr-identity",
+          "name": "KEYS",
+          "description": "Your Nostr identity is a cryptographic key pair. The public key (npub...) identifies you; the private key (nsec...) signs events and must remain secret. whoever controls your nsec key controls your identity, so keep it secure in a password manager."
+        },
+        {
+          "id": "nostr-resources",
+          "name": "RESOURCES",
+          "description": "Clients are interchangeable apps for reading and publishing Nostr events. Your identity is not locked to one app.",
+          "url": "https://nostr.net"
+        }
+      ]
+    },
+    {
+      "id": "private-communication",
+      "name": "PRIVATE COMMS",
+      "description": "Communication tools designed to reduce surveillance, metadata collection and platform lock-in.",
+      "subInterests": [
+        {
+          "id": "signal",
+          "name": "SIGNAL",
+          "description": "End-to-end encrypted messaging and calls with a widely reviewed open-source protocol.",
+          "url": "https://signal.org/"
+        },
+        {
+          "id": "bitchat",
+          "name": "BITCHAT",
+          "description": "bitchat is a decentralized peer-to-peer messaging application that operates over bluetooth mesh networks. no internet required, no servers, no phone numbers.",
+          "url": "https://bitchat.free/"
+        }
+      ]
+    },
+    {
+      "id": "privacy-systems",
+      "name": "PRIVACY",
+      "description": "A free and open society is built upon privacy. If people don’t have the right to decide for themselves exactly when and with whom they want to share their thoughts and ideas, then all other rights are at risk.",
+      "subInterests": [
+        {
+          "id": "tor",
+          "name": "TOR",
+          "description": "An anonymity network that routes traffic through multiple volunteer-operated relays.",
+          "url": "https://www.torproject.org/"
+        },
+        {
+          "id": "vpn",
+          "name": "VPN",
+          "description": "Your IP address is used to identify you, track you, and map your online life. Step 1 in taking back your personal privacy online is masking it with a trustworthy VPN",
+          "url": "https://www.mullvad.net/"
+        },
+        {
+          "id": "tails",
+          "name": "TAILS",
+          "description": "A portable operating system that routes internet traffic through Tor and avoids leaving traces on the computer.",
+          "url": "https://tails.net/"
+        },
+        {
+          "id": "grapheneos",
+          "name": "GRAPHENE OS",
+          "description": "A privacy and security hardened mobile operating system based on the Android Open Source Project.",
+          "url": "https://grapheneos.org/"
+        },
+        {
+          "id": "password-manager",
+          "name": "PASSWORDS",
+          "description": "A password manager makes unique, strong credentials practical and reduces damage when one service is breached.",
+          "url": "https://bitwarden.com/"
+        }
+      ]
+    },
+    {
+      "id": "offline-networks",
+      "name": "OFFLINE NETS",
+      "description": "Communication systems that remain useful when normal internet or mobile infrastructure is unavailable.",
+      "subInterests": [
+        {
+          "id": "meshtastic",
+          "name": "MESHTASTIC",
+          "description": "Open-source, low-power mesh communication over LoRa radios without relying on mobile networks.",
+          "url": "https://meshtastic.org/"
+        },
+        {
+          "id": "bitchat",
+          "name": "BITCHAT",
+          "description": "bitchat is a decentralized peer-to-peer messaging application that operates over bluetooth mesh networks. no internet required, no servers, no phone numbers.",
+          "url": "https://bitchat.free/"
+        }
+      ]
+    },
+    {
+      "id": "open-source",
+      "name": "OPEN SOURCE",
+      "description": "Software freedom allows people to inspect, modify, share and independently maintain the tools they depend on.",
+      "subInterests": [
+        {
+          "id": "linux",
+          "name": "LINUX",
+          "description": "An open-source operating system ecosystem that supports user-controlled computing.",
+          "url": "https://www.kernel.org/"
+        },
+        {
+          "id": "fdroid",
+          "name": "F-DROID",
+          "description": "An installable catalogue of free and open-source Android applications.",
+          "url": "https://f-droid.org/"
+        },
+        {
+          "id": "obtainum",
+          "name": "OBTAINUM",
+          "description": "Install software without an app store or package manager by downloading and verifying releases directly from developers.",
+          "url": "https://obtainum.org/"
+        },
+        {
+          "id": "right-to-repair",
+          "name": "REPAIR",
+          "description": "Repairable hardware, available parts and open documentation help owners keep devices useful and independent."
+        }
+      ]
+    }
+  ]
+}
