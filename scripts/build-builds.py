@@ -69,7 +69,8 @@ TELEGRAM = [
     project("vremenkobot", "VREMENKOBOT", "Weather for Slovenia, in a chat: forecast, radar, warnings.",
             "https://t.me/vremenkobot"),
     project("bitcoinlightninglotterybot", "LIGHTNING LOTTERY", "A lottery settled over Lightning: buy a "
-            "ticket in sats, the draw is a transaction.", "https://t.me/bitcoinlightninglotterybot"),
+            "ticket in sats and the winning number is a Bitcoin block hash. A lottery impossible to rig.",
+            "https://t.me/bitcoinlightninglotterybot"),
     project("trackstrbot", "TRACKSTRBOT", "Drops a downloaded track into the right place with the right "
             "name, from a chat.", "https://t.me/trackstrbot"),
     project("notamcheckbot", "NOTAMCHECKBOT", "Checks NOTAMs for a flight and says what matters: "

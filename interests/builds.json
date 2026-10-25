@@ -131,7 +131,7 @@
                 {
                     "id": "bitcoinlightninglotterybot",
                     "name": "LIGHTNING LOTTERY",
-                    "description": "A lottery settled over Lightning: buy a ticket in sats, the draw is a transaction.",
+                    "description": "A lottery settled over Lightning: buy a ticket in sats and the winning number is a Bitcoin block hash. A lottery impossible to rig.",
                     "url": "https://t.me/bitcoinlightninglotterybot"
                 },
                 {
