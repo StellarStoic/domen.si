@@ -42,8 +42,9 @@ WEB = [
     project("bau", "BAUHAUS ORDER MERGER", "Merges several Bauhaus PDF purchase orders into one, so every "
             "article appears once with the total quantity across all of them - built for preparing stock "
             "in the warehouse.", "https://bau.051200229.xyz/"),
-    project("snofl", "SNOFL.COM", "NostrPostr: write a note and publish it to Nostr from a plain web "
-            "page, no client to install.", "https://snofl.com"),
+    project("snofl", "SNOFL.COM", "A website's address is its content, so store it where you can hand it "
+            "over: on an NFC tag, in a QR code, or as a short link. The choice is yours.",
+            "https://snofl.com"),
     project("upsy", "UPSY.SI", "A wire watching superintelligence happen: AI articles and podcast "
             "episodes from eighty sources.", "https://upsy.si"),
     project("shitstr", "SHITSTR.COM", "A poop sound sequencer. It does exactly what the name says.",
