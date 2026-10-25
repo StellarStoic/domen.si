@@ -19,7 +19,7 @@
                 {
                     "id": "birds-name",
                     "name": "BIRDS.NAME",
-                    "description": "A multilingual bird guide: what a bird is called in each language, a description from Wikipedia and its conservation status.",
+                    "description": "A multilingual bird guide: what a bird is called in each language, a description from Wikipedia and its conservation status. Keep a diary of the birds you have spotted, and publish it to your Nostr identity to unlock badges.",
                     "url": "https://birds.name"
                 },
                 {

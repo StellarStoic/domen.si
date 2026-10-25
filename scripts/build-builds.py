@@ -29,7 +29,9 @@ WEB = [
             "price conversion, historical charts, a NIP-05 desk and a Lightning payment service.",
             "https://satoshi.si"),
     project("birds-name", "BIRDS.NAME", "A multilingual bird guide: what a bird is called in each "
-            "language, a description from Wikipedia and its conservation status.", "https://birds.name"),
+            "language, a description from Wikipedia and its conservation status. Keep a diary of the birds "
+            "you have spotted, and publish it to your Nostr identity to unlock badges.",
+            "https://birds.name"),
     project("fermentimer", "FERMENTIMER.COM", "A fermentation timer and tracker for kombucha, sourdough, "
             "kimchi, kefir and yogurt: stage timers, notes, history, a calendar.", "https://fermentimer.com"),
     project("pinstr", "PINSTR.SI", "Sign a temporary Nostr note and pin it to a public geohash board: "
