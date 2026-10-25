@@ -222,7 +222,7 @@ async function loadPodcastDescription(interest, root) {
             // public feed parser used to stand here, which meant every podcast a visitor opened was
             // read by somebody else's server; the service on the VPS reads it instead, through Tor,
             // and caches it for a quarter of an hour.
-            const reader = window.podcastFeedView?.reader?.() || 'https://feeds.domen.si';
+            const reader = window.podcastFeedView?.reader?.() || 'https://feeds.satoshi.si';
             const metadataResponse = await fetch(`${reader}/feed?url=${encodeURIComponent(interest.feedUrl)}`);
             if (!metadataResponse.ok) {
                 throw new Error(`The feed reader returned HTTP ${metadataResponse.status}`);
