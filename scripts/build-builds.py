@@ -71,8 +71,9 @@ TELEGRAM = [
     project("bitcoinlightninglotterybot", "LIGHTNING LOTTERY", "A lottery settled over Lightning: buy a "
             "ticket in sats and the winning number is a Bitcoin block hash. A lottery impossible to rig.",
             "https://t.me/bitcoinlightninglotterybot"),
-    project("trackstrbot", "TRACKSTRBOT", "Drops a downloaded track into the right place with the right "
-            "name, from a chat.", "https://t.me/trackstrbot"),
+    project("trackstrbot", "TRACKSTRBOT", "A Telegram aircraft tracker: give it a plane by its "
+            "registration or its ICAO hex address and it follows that airframe.",
+            "https://t.me/trackstrbot"),
     project("notamcheckbot", "NOTAMCHECKBOT", "Checks NOTAMs for a flight and says what matters: "
             "closures, restrictions, the lines that actually affect the day.", "https://t.me/notamcheckbot"),
 ]

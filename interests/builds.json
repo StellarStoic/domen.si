@@ -137,7 +137,7 @@
                 {
                     "id": "trackstrbot",
                     "name": "TRACKSTRBOT",
-                    "description": "Drops a downloaded track into the right place with the right name, from a chat.",
+                    "description": "A Telegram aircraft tracker: give it a plane by its registration or its ICAO hex address and it follows that airframe.",
                     "url": "https://t.me/trackstrbot"
                 },
                 {
