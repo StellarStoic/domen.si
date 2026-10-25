@@ -1,0 +1,612 @@
+/* The feed view, drawn in the site's own language: black, white, one orange, monospace.
+   It sits inside #brain-container, over the cubes, and everything it does is visible while it
+   happens — reading a feed through Tor is slow enough that silence would read as a broken page. */
+
+/* A rule with display set beats the hidden attribute; this puts it back. */
+.feed-view [hidden] {
+    display: none !important;
+}
+
+.brain-container.has-feed-view {
+    position: relative;
+}
+
+/* The cubes stay where they are, dimmed behind the feed, and stop taking the pointer. */
+.brain-container.is-feed-open .cube {
+    opacity: 0.08;
+    filter: blur(1px);
+    pointer-events: none;
+    transition: opacity 0.25s ease, filter 0.25s ease;
+}
+
+.feed-view {
+    position: absolute;
+    inset: 0;
+    z-index: 20;
+    display: flex;
+    flex-direction: column;
+    gap: 0.9rem;
+    padding: 1rem 1.1rem 0;
+    background: #000;
+    border: 2px solid #fff;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    font-family: 'Courier New', monospace;
+    color: #fff;
+    animation: feed-view-in 0.18s ease-out;
+}
+
+@keyframes feed-view-in {
+    from { opacity: 0; transform: translateY(6px); }
+    to   { opacity: 1; transform: none; }
+}
+
+/* ---------------------------------------------------------------- head */
+
+.feed-view__head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1rem;
+    border-bottom: 3px solid #ff6600;
+    padding-bottom: 0.7rem;
+}
+
+.feed-view__identity {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    min-width: 0;
+}
+
+.feed-view__art {
+    width: 64px;
+    height: 64px;
+    object-fit: cover;
+    border: 2px solid #ff6600;
+    flex: 0 0 auto;
+}
+
+.feed-view__titles {
+    min-width: 0;
+}
+
+.feed-view__title {
+    font-size: 1.15rem;
+    letter-spacing: 0.06rem;
+    text-transform: uppercase;
+    line-height: 1.25;
+    overflow-wrap: anywhere;
+}
+
+.feed-view__subtitle {
+    margin-top: 0.35rem;
+    font-size: 0.76rem;
+    line-height: 1.45;
+    color: #cfcfcf;
+    display: grid;
+    gap: 0.2rem;
+}
+
+.feed-view__description {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.feed-view__counts {
+    color: #ff6600;
+    text-transform: uppercase;
+    letter-spacing: 0.05rem;
+    font-size: 0.7rem;
+}
+
+.feed-view__actions {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex: 0 0 auto;
+}
+
+.feed-view__raw {
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05rem;
+    color: #ff6600;
+    text-decoration: underline dotted #ff6600;
+    padding: 0.4rem 0.45rem;
+    border: 2px solid #ff6600;
+    background: #000;
+    white-space: nowrap;
+}
+
+.feed-view__raw:hover,
+.feed-view__raw:focus-visible {
+    background: #ff6600;
+    color: #000;
+    text-decoration: none;
+}
+
+.feed-view__close {
+    width: 2rem;
+    height: 2rem;
+    display: grid;
+    place-items: center;
+    background: #000;
+    color: #fff;
+    border: 2px solid #fff;
+    cursor: pointer;
+    font-size: 1rem;
+    line-height: 1;
+}
+
+.feed-view__close:hover,
+.feed-view__close:focus-visible {
+    background: #ff6600;
+    border-color: #ff6600;
+    color: #000;
+}
+
+/* ---------------------------------------------------------------- icons, drawn not typed */
+
+.feed-icon {
+    display: block;
+    position: relative;
+}
+
+/* A triangle: a play button that looks the same on every system. */
+.feed-icon--play {
+    width: 0;
+    height: 0;
+    border-top: 0.34rem solid transparent;
+    border-bottom: 0.34rem solid transparent;
+    border-left: 0.55rem solid currentColor;
+    margin-left: 0.12rem;
+}
+
+/* Two bars, and the pause state swaps which icon is on screen. */
+.feed-icon--pause {
+    width: 0.5rem;
+    height: 0.62rem;
+    border-left: 0.18rem solid currentColor;
+    border-right: 0.18rem solid currentColor;
+    display: none;
+}
+
+.feed-episode__play[data-state="pause"] .feed-icon--play { display: none; }
+.feed-episode__play[data-state="pause"] .feed-icon--pause { display: block; }
+
+/* An X out of two bars. */
+.feed-icon--close {
+    width: 0.8rem;
+    height: 0.8rem;
+}
+
+.feed-icon--close::before,
+.feed-icon--close::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 50%;
+    width: 100%;
+    height: 2px;
+    background: currentColor;
+}
+
+.feed-icon--close::before { transform: rotate(45deg); }
+.feed-icon--close::after { transform: rotate(-45deg); }
+
+/* ---------------------------------------------------------------- the "it is working" bar */
+
+.feed-view__progress {
+    display: grid;
+    gap: 0.55rem;
+    padding: 0.85rem 0.9rem;
+    border: 2px dashed #ff6600;
+    background: rgba(255, 102, 0, 0.06);
+}
+
+/* A line that sweeps: the feed is being read, and here is the proof it is moving. */
+.feed-view__progress-bar {
+    position: relative;
+    height: 4px;
+    background: #262626;
+    overflow: hidden;
+}
+
+.feed-view__progress-bar::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    width: 40%;
+    background: linear-gradient(90deg, transparent, #ff6600, transparent);
+    animation: feed-sweep 1.25s ease-in-out infinite;
+}
+
+@keyframes feed-sweep {
+    0%   { transform: translateX(-100%); }
+    100% { transform: translateX(350%); }
+}
+
+.feed-view__dots {
+    display: flex;
+    gap: 0.35rem;
+    align-items: center;
+}
+
+.feed-view__dots i {
+    width: 0.42rem;
+    height: 0.42rem;
+    background: #ff6600;
+    border-radius: 50%;
+    animation: feed-pulse 1.1s ease-in-out infinite;
+}
+
+.feed-view__dots i:nth-child(2) { animation-delay: 0.15s; }
+.feed-view__dots i:nth-child(3) { animation-delay: 0.3s; }
+
+@keyframes feed-pulse {
+    0%, 100% { opacity: 0.25; transform: translateY(0); }
+    50%      { opacity: 1; transform: translateY(-2px); }
+}
+
+.feed-view__progress-text {
+    font-size: 0.74rem;
+    letter-spacing: 0.04rem;
+    text-transform: uppercase;
+    color: #ff6600;
+}
+
+/* ---------------------------------------------------------------- notice */
+
+.feed-view__notice {
+    border: 2px solid #fff;
+    padding: 0.8rem 0.9rem;
+    font-size: 0.8rem;
+    line-height: 1.5;
+    display: grid;
+    gap: 0.6rem;
+    justify-items: start;
+}
+
+.feed-view__retry {
+    font-family: inherit;
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05rem;
+    padding: 0.4rem 0.7rem;
+    background: #ff6600;
+    color: #000;
+    border: 2px solid #ff6600;
+    cursor: pointer;
+}
+
+.feed-view__retry:hover,
+.feed-view__retry:focus-visible {
+    background: #fff;
+    border-color: #fff;
+}
+
+/* ---------------------------------------------------------------- episodes */
+
+.feed-view__episodes {
+    list-style: none;
+    display: grid;
+    gap: 0;
+    margin: 0;
+    padding: 0 0 0.5rem;
+}
+
+.feed-episode {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 0.75rem;
+    padding: 0.85rem 0.2rem;
+    border-bottom: 1px solid #333;
+}
+
+.feed-episode.is-loaded {
+    border-left: 3px solid #ff6600;
+    padding-left: 0.6rem;
+    background: rgba(255, 102, 0, 0.05);
+}
+
+.feed-episode__play {
+    width: 2.1rem;
+    height: 2.1rem;
+    display: grid;
+    place-items: center;
+    background: #000;
+    border: 2px solid #fff;
+    color: #fff;
+    cursor: pointer;
+    padding: 0;
+    flex: 0 0 auto;
+}
+
+.feed-episode__play:hover,
+.feed-episode__play:focus-visible,
+.feed-episode.is-loaded .feed-episode__play {
+    background: #ff6600;
+    border-color: #ff6600;
+    color: #000;
+}
+
+.feed-episode__body {
+    min-width: 0;
+    display: grid;
+    gap: 0.3rem;
+    justify-items: start;
+}
+
+.feed-episode__title {
+    font-size: 0.92rem;
+    font-weight: bold;
+    line-height: 1.35;
+    overflow-wrap: anywhere;
+}
+
+.feed-episode__meta {
+    font-size: 0.68rem;
+    letter-spacing: 0.05rem;
+    text-transform: uppercase;
+    color: #9a9a9a;
+}
+
+/* Two lines until the reader asks; the whole box is the control. */
+.feed-episode__description {
+    font-size: 0.78rem;
+    line-height: 1.5;
+    color: #d6d6d6;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    cursor: pointer;
+    overflow-wrap: anywhere;
+}
+
+.feed-episode__description:hover,
+.feed-episode__description:focus-visible {
+    color: #fff;
+}
+
+.feed-episode.is-open .feed-episode__description {
+    display: block;
+    -webkit-line-clamp: unset;
+    overflow: visible;
+    white-space: pre-wrap;
+    color: #fff;
+    cursor: zoom-out;
+}
+
+.feed-episode__more {
+    font-family: inherit;
+    font-size: 0.68rem;
+    letter-spacing: 0.05rem;
+    text-transform: uppercase;
+    background: none;
+    border: 0;
+    border-bottom: 1px dotted #ff6600;
+    color: #ff6600;
+    padding: 0.1rem 0;
+    cursor: pointer;
+}
+
+.feed-episode__more:hover,
+.feed-episode__more:focus-visible {
+    color: #fff;
+    border-bottom-color: #fff;
+}
+
+.feed-episode__source {
+    font-size: 0.68rem;
+    color: #9a9a9a;
+    text-decoration: underline dotted #9a9a9a;
+}
+
+.feed-episode__source:hover {
+    color: #ff6600;
+}
+
+/* ---------------------------------------------------------------- chapters */
+
+.feed-episode__chapters {
+    display: none;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+    align-items: center;
+    margin-top: 0.35rem;
+}
+
+/* Chapters belong to the full description: hidden while it is clamped, shown when it opens. */
+.feed-episode.is-open .feed-episode__chapters {
+    display: flex;
+}
+
+.feed-episode__chapters-intro {
+    flex: 1 0 100%;
+    font-size: 0.66rem;
+    letter-spacing: 0.05rem;
+    text-transform: uppercase;
+    color: #9a9a9a;
+}
+
+.feed-chapter {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 0.4rem;
+    max-width: 100%;
+    padding: 0.28rem 0.45rem;
+    background: #000;
+    border: 1px solid #555;
+    color: #fff;
+    font-family: inherit;
+    font-size: 0.72rem;
+    cursor: pointer;
+    text-align: left;
+}
+
+.feed-chapter:hover,
+.feed-chapter:focus-visible {
+    border-color: #ff6600;
+    color: #ff6600;
+}
+
+.feed-chapter.is-active {
+    background: #ff6600;
+    border-color: #ff6600;
+    color: #000;
+}
+
+.feed-chapter__time {
+    font-weight: bold;
+    font-variant-numeric: tabular-nums;
+    flex: 0 0 auto;
+}
+
+.feed-chapter__label {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.feed-chapter--inline {
+    font-size: 0.7rem;
+    padding: 0.22rem 0.4rem;
+}
+
+/* ---------------------------------------------------------------- player */
+
+.feed-view__player {
+    position: sticky;
+    bottom: 0;
+    margin-top: auto;
+    display: grid;
+    gap: 0.5rem;
+    padding: 0.7rem 0 0.9rem;
+    background: linear-gradient(180deg, rgba(0, 0, 0, 0.6), #000 28%);
+    border-top: 3px solid #ff6600;
+}
+
+.feed-view__player-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+}
+
+.feed-view__now {
+    font-size: 0.78rem;
+    line-height: 1.35;
+    color: #fff;
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-line-clamp: 1;
+    -webkit-box-orient: vertical;
+}
+
+.feed-view__audio {
+    width: 100%;
+    height: 34px;
+    filter: invert(1) hue-rotate(180deg) contrast(0.9);
+}
+
+/* Five bars that move while the audio is being fetched: the file is coming, not the page. */
+.feed-view__loading {
+    display: flex;
+    align-items: flex-end;
+    gap: 3px;
+    height: 14px;
+    flex: 0 0 auto;
+}
+
+.feed-view__loading i {
+    width: 3px;
+    height: 100%;
+    background: #ff6600;
+    transform-origin: bottom;
+    animation: feed-eq 0.9s ease-in-out infinite;
+}
+
+.feed-view__loading i:nth-child(2) { animation-delay: 0.1s; }
+.feed-view__loading i:nth-child(3) { animation-delay: 0.2s; }
+.feed-view__loading i:nth-child(4) { animation-delay: 0.3s; }
+.feed-view__loading i:nth-child(5) { animation-delay: 0.4s; }
+
+@keyframes feed-eq {
+    0%, 100% { transform: scaleY(0.3); }
+    50%      { transform: scaleY(1); }
+}
+
+.feed-view__chapters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+    max-height: 4.6rem;
+    overflow-y: auto;
+}
+
+/* ---------------------------------------------------------------- phones */
+
+@media (max-width: 768px) {
+    .feed-view {
+        padding: 0.7rem 0.6rem 0;
+        gap: 0.65rem;
+    }
+
+    .feed-view__head {
+        flex-direction: column;
+        gap: 0.55rem;
+    }
+
+    .feed-view__actions {
+        width: 100%;
+        justify-content: space-between;
+    }
+
+    .feed-view__art {
+        width: 44px;
+        height: 44px;
+    }
+
+    .feed-view__title {
+        font-size: 0.98rem;
+    }
+
+    .feed-episode {
+        grid-template-columns: auto 1fr;
+        gap: 0.55rem;
+        padding: 0.7rem 0;
+    }
+
+    .feed-episode__description {
+        -webkit-line-clamp: 3;
+    }
+
+    .feed-chapter__label {
+        white-space: normal;
+    }
+}
+
+/* Anyone who asked for less motion gets the state without the animation. */
+@media (prefers-reduced-motion: reduce) {
+    .feed-view,
+    .feed-view__progress-bar::after,
+    .feed-view__dots i,
+    .feed-view__loading i {
+        animation: none !important;
+    }
+
+    .feed-view__progress-bar::after {
+        width: 100%;
+        opacity: 0.6;
+        transform: none;
+    }
+
+    .feed-view__loading i,
+    .feed-view__dots i {
+        opacity: 0.9;
+    }
+}

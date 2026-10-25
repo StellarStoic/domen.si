@@ -218,11 +218,14 @@ async function loadPodcastDescription(interest, root) {
 
             podcastDescription = getPodcastDescriptionFromFeed(await feedResponse.text());
         } catch (directFeedError) {
-            // Many podcast hosts block browser CORS, so use a CORS-enabled parser as fallback.
-            const endpoint = `https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(interest.feedUrl)}`;
-            const metadataResponse = await fetch(endpoint);
+            // Most podcast hosts block browser CORS, so the panel's own reader does the fetching. A
+            // public feed parser used to stand here, which meant every podcast a visitor opened was
+            // read by somebody else's server; the service on the VPS reads it instead, through Tor,
+            // and caches it for a quarter of an hour.
+            const reader = window.podcastFeedView?.reader?.() || 'https://feeds.domen.si';
+            const metadataResponse = await fetch(`${reader}/feed?url=${encodeURIComponent(interest.feedUrl)}`);
             if (!metadataResponse.ok) {
-                throw new Error(`Podcast metadata API returned HTTP ${metadataResponse.status}`);
+                throw new Error(`The feed reader returned HTTP ${metadataResponse.status}`);
             }
 
             const data = await metadataResponse.json();
@@ -941,7 +944,7 @@ function showInfoPanel(interest, depth) {
             ''
         }
         ${interest.feedUrl ?
-            `<a href="${interest.feedUrl}" target="_blank" rel="noopener noreferrer" class="article-link article-link--secondary">RSS Feed</a>` :
+            `<button type="button" class="article-link article-link--secondary feed-open">RSS Feed</button>` :
             ''
         }
         ${interest.id === 'bitcoin-price' ? renderBitcoinCurrencyControls() : ''}
@@ -1000,6 +1003,17 @@ function showInfoPanel(interest, depth) {
                 event.preventDefault();
                 getMatchingCube()?.click();
             }
+        });
+    });
+
+    // The feed opens where the cubes are, rather than leaving for a wall of XML. The address is handed
+    // over as data, never built into the markup, so a feed's own text cannot end up an attribute here.
+    infoContent.querySelector('.feed-open')?.addEventListener('click', () => {
+        window.podcastFeedView?.open({
+            name: interest.name,
+            feedUrl: interest.feedUrl,
+            imageUrl: interest.imageUrl,
+            url: interest.url
         });
     });
 

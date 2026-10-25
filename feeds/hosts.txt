@@ -1,0 +1,53 @@
+# Hosts the domen.si feed reader may fetch — generated, do not edit.
+#
+# Written by scripts/build-feed-hosts.py from the Podcast Addict OPML export. One host per line,
+# lowercase, no scheme and no port. A comment line is allowed and ignored.
+#
+# Regenerate after the OPML changes, then deploy the file to /opt/domen-feeds/hosts.txt on the box
+# that runs the reader and restart the unit.
+anchor.fm
+api.substack.com
+apparatus.si
+audioboom.com
+castr.me
+culturedfoodlife.libsyn.com
+cybersecuritytoday.libsyn.com
+darth-coin.github.io
+feed.podbean.com
+feeds.acast.com
+feeds.castos.com
+feeds.feedburner.com
+feeds.fountain.fm
+feeds.libsyn.com
+feeds.megaphone.fm
+feeds.mozilla-podcasts.org
+feeds.npr.org
+feeds.podcastmirror.com
+feeds.simplecast.com
+feeds.soundcloud.com
+feeds.yellowball.fm
+freecodecamp.libsyn.com
+hashtagtrending.libsyn.com
+meteo.arso.gov.si
+metinalista.si
+podcast.darknetdiaries.com
+podcast.rtvslo.si
+publicfeeds.net
+risky.biz
+rss.art19.com
+rss.buzzsprout.com
+rss.libsyn.com
+rss.pdrl.fm
+rss.wbur.org
+serve.podhome.fm
+sessions.soapbox.pub
+sovereignengineering.io
+www.bradmills.ca
+www.fermup.com
+www.ivoox.com
+www.meteo.si
+www.omnycontent.com
+www.podcastone.com
+www.spreaker.com
+www.theguardian.com
+www.vodio.fr
