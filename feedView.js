@@ -477,6 +477,9 @@
             const heading = root.querySelector('.feed-view__title');
             heading.textContent = feed.title || state.podcast.name || 'Podcast';
             const counts = `${state.episodes.length} episode${state.episodes.length === 1 ? '' : 's'}`
+                // A feed big enough that the reader only kept its head is worth saying out loud,
+                // because the show has episodes this list does not carry.
+                + (payload.truncated ? ' · the newest ones, from a very large feed' : '')
                 + (payload.cached ? ' · from the reader’s cache' : ` · read in ${Math.round((Date.now() - started) / 100) / 10}s`);
             const subtitle = root.querySelector('.feed-view__subtitle');
             subtitle.replaceChildren();

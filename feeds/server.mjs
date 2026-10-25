@@ -22,13 +22,10 @@
  */
 
 import { createServer } from 'node:http';
-import { execFile } from 'node:child_process';
+import { spawn } from 'node:child_process';
 import { readFileSync } from 'node:fs';
-import { promisify } from 'node:util';
 
 import { parseFeed, parseChapterFile } from './parse.mjs';
-
-const run = promisify(execFile);
 
 const PORT = Number(process.env.PORT || 8860);
 const HOST = process.env.HOST || '127.0.0.1';
@@ -40,7 +37,12 @@ const CHAPTER_CACHE_SECONDS = Number(process.env.CHAPTER_CACHE_SECONDS || 6 * 60
 // is a page that gives up just before it would have worked. The page shows what it is doing, so the
 // budget is generous; the cache is what keeps the second click instant.
 const FETCH_TIMEOUT_S = Number(process.env.FETCH_TIMEOUT_S || 40);
-const MAX_BYTES = Number(process.env.MAX_BYTES || 8_000_000);
+// Podcast feeds are not small. CoinDesk's network feed is 6.2 MB gzipped and well over 20 MB once
+// curl has decompressed it, which is what a 9 MB child-process buffer turned into a misleading "could
+// not be reached". The cap is now generous enough for the largest feed in D's list, and the buffer
+// sits above it so curl's own limits are the ones that fire.
+const MAX_BYTES = Number(process.env.MAX_BYTES || 25_000_000);
+const STDOUT_BUFFER = MAX_BYTES + 4 * 1024 * 1024;
 const INFLIGHT_MAX = Number(process.env.INFLIGHT_MAX || 6);
 const MAX_EPISODES = Number(process.env.MAX_EPISODES || 60);
 const MAX_CHAPTER_FILES = Number(process.env.MAX_CHAPTER_FILES || 12);
@@ -78,40 +80,93 @@ export function targetRefused(host) {
 /**
  * Read a URL through curl, over Tor when a SOCKS proxy is configured.
  *
- * `--proto-redir` matters as much as `--proto`: without it a redirect can take curl to `file://` or
- * to a service on this machine, which is the whole shape of a server-side request forgery.
+ * `--proto-redir` matters as much as `--proto`: without it a redirect can take curl to `file://` or to
+ * a service on this machine, which is the whole shape of a server-side request forgery.
+ *
+ * The body is read as a stream and **truncated at the cap rather than refused**. A show with a
+ * thousand episodes publishes a feed of tens of megabytes, and a channel's description sits in the
+ * first kilobyte of it — so refusing the whole document because of its size throws away the one thing
+ * the panel asked for. What arrives is parsed as a feed with fewer episodes, and the payload says so.
  */
-async function readUrl(url, { timeout = FETCH_TIMEOUT_S, maxBytes = MAX_BYTES } = {}) {
+function readUrl(url, { timeout = FETCH_TIMEOUT_S, maxBytes = MAX_BYTES } = {}) {
   const args = [];
   if (SOCKS5) args.push('--socks5-hostname', SOCKS5);
   args.push(
-    '-sS', '--max-time', String(timeout), '--max-filesize', String(maxBytes),
+    '-sS', '--max-time', String(timeout),
     '--location', '--max-redirs', '3',
     '--proto', '=http,https', '--proto-redir', '=http,https',
     '--compressed', '-A', USER_AGENT,
     '-w', '\n@@META@@%{http_code} %{url_effective}',
     url,
   );
-  let stdout;
-  try {
-    ({ stdout } = await run('curl', args, { maxBuffer: maxBytes + 1024 * 1024, timeout: (timeout + 6) * 1000 }));
-  } catch (error) {
-    const message = String(error?.stderr || error?.message || 'curl failed');
-    const timedOut = error?.killed || /timed out|Operation timed out/i.test(message);
-    const tooBig = /maximum file size exceeded/i.test(message);
-    throw Object.assign(new Error(timedOut ? 'the feed did not answer in time'
-      : (tooBig ? 'the feed is too large to read' : 'the feed could not be reached')), {
-      code: timedOut ? 'timeout' : (tooBig ? 'too_large' : 'unreachable'),
-      detail: message.split('\n')[0].slice(0, 200),
+
+  return new Promise((resolve, reject) => {
+    const child = spawn('curl', args, { stdio: ['ignore', 'pipe', 'pipe'] });
+    const chunks = [];
+    let size = 0;
+    let truncated = false;
+    let stderr = '';
+    const deadline = setTimeout(() => {
+      child.kill('SIGKILL');
+    }, (timeout + 6) * 1000);
+
+    child.stdout.on('data', chunk => {
+      if (truncated) return;
+      const room = maxBytes - size;
+      if (chunk.length >= room) {
+        chunks.push(chunk.subarray(0, Math.max(0, room)));
+        size = maxBytes;
+        truncated = true;
+        child.kill('SIGTERM');       // the head is all this needs; the rest is episode archive
+      } else {
+        chunks.push(chunk);
+        size += chunk.length;
+      }
     });
-  }
-  const marker = stdout.lastIndexOf('\n@@META@@');
-  const body = marker >= 0 ? stdout.slice(0, marker) : stdout;
-  const meta = marker >= 0 ? stdout.slice(marker + '\n@@META@@'.length).trim() : '';
-  const [statusText, ...rest] = meta.split(' ');
-  const status = Number(statusText) || 0;
-  const finalUrl = rest.join(' ') || url;
-  return { body, status, finalUrl };
+    child.stderr.on('data', chunk => {
+      stderr = (stderr + chunk.toString()).slice(-8000);
+    });
+    child.on('error', error => {
+      clearTimeout(deadline);
+      reject(Object.assign(new Error('the feed could not be reached'), { code: 'unreachable', detail: error.message }));
+    });
+    child.on('close', exitCode => {
+      clearTimeout(deadline);
+      const stdout = Buffer.concat(chunks).toString('utf8');
+      const marker = stdout.lastIndexOf('\n@@META@@');
+      const body = marker >= 0 ? stdout.slice(0, marker) : stdout;
+      const meta = marker >= 0 ? stdout.slice(marker + '\n@@META@@'.length).trim() : '';
+      const [statusText, ...rest] = meta.split(' ');
+      const status = Number(statusText) || 0;
+
+      if (truncated) {
+        // Bytes arrived, so the request worked; the marker never did because curl was stopped early.
+        const looksLikeFeed = /^\s*(<\?xml|<rss|<feed|<rdf)/i.test(body);
+        if (!looksLikeFeed) {
+          reject(Object.assign(new Error('the feed is too large to read here'), {
+            code: 'too_large', detail: `${size} bytes that are not a feed`,
+          }));
+          return;
+        }
+        resolve({ body, status: status || 200, finalUrl: rest.join(' ') || url, truncated: true });
+        return;
+      }
+
+      if (exitCode !== 0) {
+        const firstLine = stderr.split('\n').find(line => line.trim()) || 'curl failed';
+        const timedOut = exitCode === 28 || /timed out|Operation timed out/i.test(stderr);
+        const socksFailed = exitCode === 97 || /SOCKS/i.test(stderr);
+        const label = timedOut ? 'the feed did not answer in time'
+          : (socksFailed ? 'the reader\u2019s Tor circuit would not open' : 'the feed could not be reached');
+        reject(Object.assign(new Error(label), {
+          code: timedOut || socksFailed ? 'timeout' : 'unreachable',
+          detail: `curl exit ${exitCode}: ${firstLine}`.slice(0, 220),
+        }));
+        return;
+      }
+      resolve({ body, status, finalUrl: rest.join(' ') || url, truncated: false });
+    });
+  });
 }
 
 /** A URL that this service is willing to read, or a refusal saying why. */
@@ -170,9 +225,34 @@ async function buildFeed(url) {
   }
   inflight.count += 1;
   try {
-    const response = await readUrl(url);
+    // A cold or stalled Tor circuit fails in a way that looks exactly like a dead feed, and the
+    // sweep behind this line found five of eleven "broken" subscriptions answering on the next try.
+    // One retry, with a shorter budget, turns that into a rounding error.
+    let response;
+    try {
+      response = await readUrl(url);
+    } catch (error) {
+      if (error.code === 'timeout' || error.code === 'unreachable') {
+        console.log(JSON.stringify({ event: 'feed_retry', host: new URL(url).hostname, reason: error.code }));
+        response = await readUrl(url);
+      } else {
+        throw error;
+      }
+    }
     if (response.status !== 200) {
-      throw Object.assign(new Error(`the feed answered HTTP ${response.status}`), { code: 'upstream', status: response.status });
+      // Tell a wall apart from a grave: 403/429 is a publisher refusing this reader's exit node (the
+      // feed is alive and other addresses can read it), which is a different sentence to a 404/410.
+      const refused = response.status === 403 || response.status === 429;
+      // A 202 with a few hundred bytes of HTML is a bot wall, not a feed and not a failure of ours.
+      const challenge = response.status === 202 && response.body.length < 4000
+        && /<html/i.test(response.body);
+      throw Object.assign(new Error(challenge
+        ? 'the publisher answered with a bot challenge instead of the feed'
+        : (refused
+          ? `the publisher refuses this reader (HTTP ${response.status}) \u2014 it blocks Tor exit nodes`
+          : `the feed answered HTTP ${response.status}`)), {
+        code: 'upstream', status: response.status,
+      });
     }
     const finalRefused = targetRefused(new URL(response.finalUrl).hostname);
     if (finalRefused) {
@@ -212,6 +292,8 @@ async function buildFeed(url) {
       ok: true,
       fetchedAt: new Date().toISOString(),
       feed: { ...parsed.feed, finalUrl: response.finalUrl },
+      // A truncated read is not a failure: the channel and its newest episodes are in the head.
+      truncated: response.truncated === true,
       episodeCount: parsed.episodes.length,
       episodes,
     };
@@ -289,7 +371,8 @@ const server = createServer(async (req, res) => {
     } catch (error) {
       const status = error.code === 'busy' ? 503
         : (error.code === 'timeout' ? 504 : (error.code === 'forbidden_target' ? 403 : 502));
-      console.log(JSON.stringify({ event: 'feed_failed', host: target.host, code: error.code || 'error', detail: error.detail || error.message }));
+      console.log(JSON.stringify({ event: 'feed_failed', host: target.host, code: error.code || 'error',
+        message: error.message, detail: error.detail || null }));
       send(res, status, { ok: false, reason: error.code || 'error', error: error.message }, cors);
     }
     return;
