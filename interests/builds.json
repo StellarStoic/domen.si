@@ -105,7 +105,7 @@
                 {
                     "id": "barking-news",
                     "name": "BARKING NEWS",
-                    "description": "The news, as a bot that barks it into Nostr.",
+                    "description": "A Nostr bot that posts news aggregated from various Telegram news channels.",
                     "url": "https://ditto.pub/npub1xnewsxw69t74nlxxsehe4earw47s9t5cqnlh8amy7nevwetuf6ass5efrf"
                 },
                 {

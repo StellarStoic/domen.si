@@ -60,7 +60,8 @@ NOSTR = [
     project("ia39bot", "IA39 BOT", "Picks one of the 2048 BIP39 words at random, searches the Internet "
             "Archive for images of that word, and posts what it finds to Nostr. Internet Archive, BIP39.",
             "https://ditto.pub/npub1qqqqq40p2m0uxsuwraplegwph6ceexvnjjacq66j5xy7thpj06msvpc8w3"),
-    project("barking-news", "BARKING NEWS", "The news, as a bot that barks it into Nostr.",
+    project("barking-news", "BARKING NEWS", "A Nostr bot that posts news aggregated from various "
+            "Telegram news channels.",
             "https://ditto.pub/npub1xnewsxw69t74nlxxsehe4earw47s9t5cqnlh8amy7nevwetuf6ass5efrf"),
     project("neo", "NEO", "Near-Earth objects: what is passing close, posted to Nostr.",
             "https://ditto.pub/npub1qqqqqqz5v99cm58jd4gqk9jn7vvm0xdcfr7waucpgsnugg4ezflqcrdp0u"),
