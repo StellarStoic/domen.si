@@ -33,6 +33,30 @@
                                                       "visible":  true,
                                                       "gallery":  {
                                                                       "path":  "assets/img/nature",
+                                                                      "files": [
+                                                                          "Image00001.jpg", "Image00002.jpg", "Image00003.jpg", "Image00004.jpg",
+                                                                          "Image00005.jpg", "Image00006.jpg", "Image00007.jpg", "Image00008.jpg",
+                                                                          "Image00009.jpg", "Image00010.jpg", "Image00011.jpg", "Image00012.jpg",
+                                                                          "Image00013.jpg", "Image00015.jpg", "Image00016.jpg", "Image00017.jpg",
+                                                                          "Image00018.jpg", "Image00019.jpg", "Image00020.jpg", "Image00021.jpg",
+                                                                          "Image00022.jpg", "Image00023.jpg", "Image00024.jpg", "Image00025.jpg",
+                                                                          "Image00027.jpg", "Image00028.jpg", "Image00029.jpg", "Image00031.jpg",
+                                                                          "Image00032.jpg", "Image00033.jpg", "Image00034.jpg", "Image00035.jpg",
+                                                                          "Image00036.jpg", "Image00038.jpg", "Image00039.jpg", "Image00040.jpg",
+                                                                          "Image00041.jpg", "Image00042.jpg", "Image00043.jpg", "Image00045.jpg",
+                                                                          "Image00046.jpg", "Image00048.jpg", "Image00049.jpg", "Image00050.jpg",
+                                                                          "Image00051.jpg", "Image00052.jpg", "Image00053.jpg", "Image00054.jpg",
+                                                                          "Image00055.jpg", "Image00056.jpg", "Image00057.jpg", "Image00058.jpg",
+                                                                          "Image00060.jpg", "Image00061.jpg", "Image00062.jpg", "Image00063.jpg",
+                                                                          "Image00064.jpg", "Image00065.jpg", "Image00066.jpg", "Image00067.jpg",
+                                                                          "Image00068.jpg", "Image00069.jpg", "Image00070.jpg", "Image00072.jpg",
+                                                                          "Image00073.jpg", "Image00074.jpg", "Image00075.jpg", "Image00076.jpg",
+                                                                          "Image00077.jpg", "Image00078.jpg", "Image00079.jpg", "Image00080.jpg",
+                                                                          "Image00081.jpg", "Image00082.jpg", "Image00083.jpg", "Image00084.jpg",
+                                                                          "Image00085.jpg", "Image00086.jpg", "Image00087.jpg", "Image00088.jpg",
+                                                                          "Image00089.jpg", "Image00090.jpg", "Image00093.jpg", "Image00094.jpg",
+                                                                          "Image00095.jpg"
+                                                                      ],
                                                                       "alt":  "Nature photo"
                                                                   }
                                                   },
@@ -43,6 +67,11 @@
                                                       "visible":  true,
                                                       "gallery":  {
                                                                       "path":  "assets/img/paragliding",
+                                                                      "files": [
+                                                                          "Image00014.jpg", "Image00026.jpg", "Image00030.jpg", "Image00037.jpg",
+                                                                          "Image00044.jpg", "Image00047.jpg", "Image00059.jpg", "Image00071.jpg",
+                                                                          "Image00091.jpg", "Image00092.jpg"
+                                                                      ],
                                                                       "alt":  "Paragliding photo"
                                                                   }
                                                   }

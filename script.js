@@ -1067,6 +1067,11 @@ function sortImagesByFilenameCount(images) {
 // Read image links from a directory listing when the server exposes one.
 async function getGalleryImagesFromFolder(gallery) {
     const response = await fetch(`${gallery.path}/`);
+    if (!response.ok) {
+        // GitHub Pages answers 404 here: it serves no directory listing at all. A gallery with no file
+        // list therefore has no images on the live site, whatever the folder holds.
+        throw new Error(`folder listing not available (HTTP ${response.status})`);
+    }
     const directoryHtml = await response.text();
     const directoryDocument = new DOMParser().parseFromString(directoryHtml, 'text/html');
     const imageExtensions = /\.(jpg|jpeg|png|gif|webp|avif)$/i;
@@ -1132,7 +1137,9 @@ async function setupGalleryThumbnails(root, gallery) {
 
         try {
             // Folder-only galleries depend on the web server exposing a directory listing.
-            activeGalleryImages = await getGalleryImagesFromFolder(gallery);
+            activeGalleryImages = gallery.files && gallery.files.length
+                ? getGalleryImages(gallery)
+                : await getGalleryImagesFromFolder(gallery);
             galleryGrid.innerHTML = activeGalleryImages.map((image, index) => `
                 <button class="gallery__thumb" type="button" data-gallery-index="${index}" aria-label="Open ${image.alt}">
                     <img src="${image.src}" alt="${image.alt}" loading="lazy">
