@@ -30,8 +30,8 @@ WEB = [
             "language, a description from Wikipedia and its conservation status. Keep a diary of the birds "
             "you have spotted, and publish it to your Nostr identity to unlock badges.",
             "https://birds.name"),
-    project("fermentimer", "FERMENTIMER.COM", "A fermentation timer and tracker for kombucha, sourdough, "
-            "kimchi, kefir and yogurt: stage timers, notes, history, a calendar.", "https://fermentimer.com"),
+    project("fermentimer", "FERMENTIMER.COM", "A fermentation timer for your ferments: stage timers, "
+            "notes, history, a calendar.", "https://fermentimer.com"),
     project("pinstr", "PINSTR.SI", "Sign a temporary Nostr note and pin it to a public geohash board: "
             "something that happened, where it happened. AI agents can reach it over MCP at "
             "https://pinstr.si/mcp", "https://pinstr.si"),
