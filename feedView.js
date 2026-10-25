@@ -25,7 +25,7 @@
         // A checkout served from a file or a loopback port talks to a local reader; the live site
         // talks to its own.
         const local = /^(localhost|127\.0\.0\.1|\[::1\])$/.test(window.location.hostname);
-        return local ? 'http://127.0.0.1:8860' : 'https://feeds.satoshi.si';
+        return local ? 'http://127.0.0.1:8860' : 'https://feeds.domen.si';
     }
 
     const state = {
