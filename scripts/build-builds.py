@@ -89,7 +89,8 @@ OTHER = [
             "https://github.com/StellarStoic/BIP39_Exotica"),
     project("bip39-slovenian", "BIP39 SLOVENIAN WORDLIST", "2048 unique Slovenian words, picked and sorted "
             "from the Dictionary of the Slovenian Standard Language, so a seed phrase can live in the "
-            "language its owner thinks in.",
+            "language its owner thinks in. No two words share their first three or four letters - the "
+            "uniqueness every BIP-39 wordlist has to keep, so four letters are enough to name a word.",
             "https://github.com/StellarStoic/Slovenian-BIP39-wordlist"),
     project("hermes-tray", "HERMES TRAY", "A tiny PyQt6 tray client for Hermes Agent: streaming replies, a "
             "live tool feed, sessions, and approval prompts as real dialogs.",

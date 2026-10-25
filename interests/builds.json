@@ -169,7 +169,7 @@
                 {
                     "id": "bip39-slovenian",
                     "name": "BIP39 SLOVENIAN WORDLIST",
-                    "description": "2048 unique Slovenian words, picked and sorted from the Dictionary of the Slovenian Standard Language, so a seed phrase can live in the language its owner thinks in.",
+                    "description": "2048 unique Slovenian words, picked and sorted from the Dictionary of the Slovenian Standard Language, so a seed phrase can live in the language its owner thinks in. No two words share their first three or four letters - the uniqueness every BIP-39 wordlist has to keep, so four letters are enough to name a word.",
                     "url": "https://github.com/StellarStoic/Slovenian-BIP39-wordlist"
                 },
                 {
