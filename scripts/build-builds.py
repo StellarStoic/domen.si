@@ -46,8 +46,7 @@ WEB = [
     project("snofl", "SNOFL.COM", "NostrPostr: write a note and publish it to Nostr from a plain web "
             "page, no client to install.", "https://snofl.com"),
     project("upsy", "UPSY.SI", "A wire watching superintelligence happen: AI articles and podcast "
-            "episodes from eighty sources, each with a description you can read before committing an hour.",
-            "https://upsy.si"),
+            "episodes from eighty sources.", "https://upsy.si"),
     project("shitstr", "SHITSTR.COM", "A poop sound sequencer. It does exactly what the name says.",
             "https://shitstr.com"),
 ]
