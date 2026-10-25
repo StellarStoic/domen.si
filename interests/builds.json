@@ -1,0 +1,175 @@
+﻿{
+    "id": "builds",
+    "name": "BUILDS",
+    "description": "Things I made and put on the internet: websites, Nostr accounts that post on their own, Telegram bots, and the odd tool that exists because I wanted it. Everything here is online now.",
+    "visible": true,
+    "subInterests": [
+        {
+            "id": "builds-web",
+            "name": "WEB",
+            "description": "Sites and web apps, each one live.",
+            "visible": true,
+            "subInterests": [
+                {
+                    "id": "satoshi-si",
+                    "name": "SATOSHI.SI",
+                    "description": "Bitcoin tools, wallet education and news: BIP39 resources, price conversion, historical charts, a NIP-05 desk and a Lightning payment service.",
+                    "url": "https://satoshi.si"
+                },
+                {
+                    "id": "birds-name",
+                    "name": "BIRDS.NAME",
+                    "description": "A multilingual bird guide: what a bird is called in each language, a description from Wikipedia and its conservation status.",
+                    "url": "https://birds.name"
+                },
+                {
+                    "id": "fermentimer",
+                    "name": "FERMENTIMER.COM",
+                    "description": "A fermentation timer and tracker for kombucha, sourdough, kimchi, kefir and yogurt: stage timers, notes, history, a calendar.",
+                    "url": "https://fermentimer.com"
+                },
+                {
+                    "id": "pinstr",
+                    "name": "PINSTR.SI",
+                    "description": "Sign a temporary Nostr note and pin it to a public geohash board: something that happened, where it happened, paid for in sats.",
+                    "url": "https://pinstr.si"
+                },
+                {
+                    "id": "labelab",
+                    "name": "LABELAB.NET",
+                    "description": "A private, local label maker: barcodes, QR codes, text labels, warning signs, laid out on your own paper size.",
+                    "url": "https://labelab.net"
+                },
+                {
+                    "id": "rbgp",
+                    "name": "RED BULL GONI PONY",
+                    "description": "Results and history of the Red Bull Goni Pony race up Vršič: every edition, every rider, the times and the stories.",
+                    "url": "https://rbgp.051200229.xyz/"
+                },
+                {
+                    "id": "bau",
+                    "name": "BAUHAUS ORDER MERGER",
+                    "description": "Merges several Bauhaus PDF purchase orders into one, so every article appears once with the total quantity across all of them - built for preparing stock in the warehouse.",
+                    "url": "https://bau.051200229.xyz/"
+                },
+                {
+                    "id": "snofl",
+                    "name": "SNOFL.COM",
+                    "description": "NostrPostr: write a note and publish it to Nostr from a plain web page, no client to install.",
+                    "url": "https://snofl.com"
+                },
+                {
+                    "id": "upsy",
+                    "name": "UPSY.SI",
+                    "description": "A wire watching superintelligence happen: AI articles and podcast episodes from eighty sources, each with a description you can read before committing an hour.",
+                    "url": "https://upsy.si"
+                },
+                {
+                    "id": "shitstr",
+                    "name": "SHITSTR.COM",
+                    "description": "A poop sound sequencer. It does exactly what the name says.",
+                    "url": "https://shitstr.com"
+                }
+            ]
+        },
+        {
+            "id": "builds-nostr",
+            "name": "NOSTR",
+            "description": "Accounts and bots posting to Nostr - open the link to see them on a relay reader.",
+            "visible": true,
+            "subInterests": [
+                {
+                    "id": "apod",
+                    "name": "APOD",
+                    "description": "Astronomy Picture of the Day, posted to Nostr.",
+                    "url": "https://ditto.pub/npub1ap0dw55xedm5w4mkcyq8m7xyluwfc680lywrvfe50vr9ckl5m3uqtf5l75"
+                },
+                {
+                    "id": "scitechdaily",
+                    "name": "SCITECHDAILY",
+                    "description": "Science and technology news, posted to Nostr.",
+                    "url": "https://ditto.pub/npub1learnlfye6a5e7dkwyhjqll4nhvlcdqf422axn30yr2yfxnfj90sxrzm08"
+                },
+                {
+                    "id": "ifeelslovenia",
+                    "name": "I FEEL SLOVENIA",
+                    "description": "Slovenian things worth seeing, posted to Nostr.",
+                    "url": "https://ditto.pub/npub1qqqqqqyq8z4j2wpu7dm3hdwu8tsgsmrc2hqvhdufdfhjy6x2yths82mulr"
+                },
+                {
+                    "id": "ia39bot",
+                    "name": "IA39 BOT",
+                    "description": "A bot posting IPA39 library records to Nostr.",
+                    "url": "https://ditto.pub/npub1qqqqq40p2m0uxsuwraplegwph6ceexvnjjacq66j5xy7thpj06msvpc8w3"
+                },
+                {
+                    "id": "barking-news",
+                    "name": "BARKING NEWS",
+                    "description": "The news, as a bot that barks it into Nostr.",
+                    "url": "https://ditto.pub/npub1xnewsxw69t74nlxxsehe4earw47s9t5cqnlh8amy7nevwetuf6ass5efrf"
+                },
+                {
+                    "id": "neo",
+                    "name": "NEO",
+                    "description": "Near-Earth objects: what is passing close, posted to Nostr.",
+                    "url": "https://ditto.pub/npub1qqqqqqz5v99cm58jd4gqk9jn7vvm0xdcfr7waucpgsnugg4ezflqcrdp0u"
+                }
+            ]
+        },
+        {
+            "id": "builds-telegram",
+            "name": "TELEGRAM",
+            "description": "Bots you talk to in Telegram.",
+            "visible": true,
+            "subInterests": [
+                {
+                    "id": "vremenkobot",
+                    "name": "VREMENKOBOT",
+                    "description": "Weather for Slovenia, in a chat: forecast, radar, warnings.",
+                    "url": "https://t.me/vremenkobot"
+                },
+                {
+                    "id": "bitcoinlightninglotterybot",
+                    "name": "LIGHTNING LOTTERY",
+                    "description": "A lottery settled over Lightning: buy a ticket in sats, the draw is a transaction.",
+                    "url": "https://t.me/bitcoinlightninglotterybot"
+                },
+                {
+                    "id": "trackstrbot",
+                    "name": "TRACKSTRBOT",
+                    "description": "Drops a downloaded track into the right place with the right name, from a chat.",
+                    "url": "https://t.me/trackstrbot"
+                },
+                {
+                    "id": "notamcheckbot",
+                    "name": "NOTAMCHECKBOT",
+                    "description": "Checks NOTAMs for a flight and says what matters: closures, restrictions, the lines that actually affect the day.",
+                    "url": "https://t.me/notamcheckbot"
+                }
+            ]
+        },
+        {
+            "id": "builds-other",
+            "name": "OTHER",
+            "description": "Tools and data that do not need a server of their own.",
+            "visible": true,
+            "subInterests": [
+                {
+                    "id": "swatcher",
+                    "name": "SWATCHER",
+                    "description": "A Bitcoin watcher for StartOS: watch an address or a fee target and get told when it moves."
+                },
+                {
+                    "id": "bip39-exotica",
+                    "name": "BIP_39 EXOTICA",
+                    "description": "Seed phrases in the shapes nobody uses: BIP-39 taken apart and put back together for the joy of it."
+                },
+                {
+                    "id": "bip39-slovenian",
+                    "name": "BIP39 SLOVENIAN WORDLIST",
+                    "description": "The BIP-39 wordlist in Slovenian, so a seed phrase can live in a language its owner thinks in."
+                }
+            ]
+        }
+    ]
+}
