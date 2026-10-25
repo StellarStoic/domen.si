@@ -77,12 +77,19 @@ TELEGRAM = [
 ]
 
 OTHER = [
-    project("swatcher", "SWATCHER", "A Bitcoin watcher for StartOS: watch an address or a fee target and "
-            "get told when it moves."),
-    project("bip39-exotica", "BIP_39 EXOTICA", "Seed phrases in the shapes nobody uses: BIP-39 taken "
-            "apart and put back together for the joy of it."),
-    project("bip39-slovenian", "BIP39 SLOVENIAN WORDLIST", "The BIP-39 wordlist in Slovenian, so a seed "
-            "phrase can live in a language its owner thinks in."),
+    project("swatcher", "SWATCHER", "Private, watch-only Bitcoin monitoring on StartOS, with a local "
+            "Electrs and alerts over NIP-17 or Telegram.", "https://github.com/StellarStoic/swatcher"),
+    project("bip39-exotica", "BIP39 EXOTICA", "Generates Bitcoin and Nostr keys from standard and exotic "
+            "wordlists: import into apps, build Nostr keys from a mnemonic, recover a key from colours, or "
+            "make one out of \"rock, paper, scissors, lizard, spock\".",
+            "https://github.com/StellarStoic/BIP39_Exotica"),
+    project("bip39-slovenian", "BIP39 SLOVENIAN WORDLIST", "2048 unique Slovenian words, picked and sorted "
+            "from the Dictionary of the Slovenian Standard Language, so a seed phrase can live in the "
+            "language its owner thinks in.",
+            "https://github.com/StellarStoic/Slovenian-BIP39-wordlist"),
+    project("hermes-tray", "HERMES TRAY", "A tiny PyQt6 tray client for Hermes Agent: streaming replies, a "
+            "live tool feed, sessions, and approval prompts as real dialogs.",
+            "https://github.com/StellarStoic/hermes-tray"),
 ]
 
 BUILDS = {

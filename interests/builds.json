@@ -157,17 +157,26 @@
                 {
                     "id": "swatcher",
                     "name": "SWATCHER",
-                    "description": "A Bitcoin watcher for StartOS: watch an address or a fee target and get told when it moves."
+                    "description": "Private, watch-only Bitcoin monitoring on StartOS, with a local Electrs and alerts over NIP-17 or Telegram.",
+                    "url": "https://github.com/StellarStoic/swatcher"
                 },
                 {
                     "id": "bip39-exotica",
-                    "name": "BIP_39 EXOTICA",
-                    "description": "Seed phrases in the shapes nobody uses: BIP-39 taken apart and put back together for the joy of it."
+                    "name": "BIP39 EXOTICA",
+                    "description": "Generates Bitcoin and Nostr keys from standard and exotic wordlists: import into apps, build Nostr keys from a mnemonic, recover a key from colours, or make one out of \"rock, paper, scissors, lizard, spock\".",
+                    "url": "https://github.com/StellarStoic/BIP39_Exotica"
                 },
                 {
                     "id": "bip39-slovenian",
                     "name": "BIP39 SLOVENIAN WORDLIST",
-                    "description": "The BIP-39 wordlist in Slovenian, so a seed phrase can live in a language its owner thinks in."
+                    "description": "2048 unique Slovenian words, picked and sorted from the Dictionary of the Slovenian Standard Language, so a seed phrase can live in the language its owner thinks in.",
+                    "url": "https://github.com/StellarStoic/Slovenian-BIP39-wordlist"
+                },
+                {
+                    "id": "hermes-tray",
+                    "name": "HERMES TRAY",
+                    "description": "A tiny PyQt6 tray client for Hermes Agent: streaming replies, a live tool feed, sessions, and approval prompts as real dialogs.",
+                    "url": "https://github.com/StellarStoic/hermes-tray"
                 }
             ]
         }
