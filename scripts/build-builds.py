@@ -35,7 +35,8 @@ WEB = [
     project("fermentimer", "FERMENTIMER.COM", "A fermentation timer and tracker for kombucha, sourdough, "
             "kimchi, kefir and yogurt: stage timers, notes, history, a calendar.", "https://fermentimer.com"),
     project("pinstr", "PINSTR.SI", "Sign a temporary Nostr note and pin it to a public geohash board: "
-            "something that happened, where it happened, paid for in sats.", "https://pinstr.si"),
+            "something that happened, where it happened. AI agents can reach it over MCP at "
+            "https://pinstr.si/mcp", "https://pinstr.si"),
     project("labelab", "LABELAB.NET", "A private, local label maker: barcodes, QR codes, text labels, "
             "warning signs, laid out on your own paper size.", "https://labelab.net"),
     project("rbgp", "RED BULL GONI PONY", "Results and history of the Red Bull Goni Pony race up Vršič: "

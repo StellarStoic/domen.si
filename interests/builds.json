@@ -31,7 +31,7 @@
                 {
                     "id": "pinstr",
                     "name": "PINSTR.SI",
-                    "description": "Sign a temporary Nostr note and pin it to a public geohash board: something that happened, where it happened, paid for in sats.",
+                    "description": "Sign a temporary Nostr note and pin it to a public geohash board: something that happened, where it happened. AI agents can reach it over MCP at https://pinstr.si/mcp",
                     "url": "https://pinstr.si"
                 },
                 {
