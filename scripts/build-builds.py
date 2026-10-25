@@ -57,7 +57,8 @@ NOSTR = [
             "https://ditto.pub/npub1learnlfye6a5e7dkwyhjqll4nhvlcdqf422axn30yr2yfxnfj90sxrzm08"),
     project("ifeelslovenia", "I FEEL SLOVENIA", "Slovenian things worth seeing, posted to Nostr.",
             "https://ditto.pub/npub1qqqqqqyq8z4j2wpu7dm3hdwu8tsgsmrc2hqvhdufdfhjy6x2yths82mulr"),
-    project("ia39bot", "IA39 BOT", "A bot posting IPA39 library records to Nostr.",
+    project("ia39bot", "IA39 BOT", "Picks one of the 2048 BIP39 words at random, searches the Internet "
+            "Archive for images of that word, and posts what it finds to Nostr. Internet Archive, BIP39.",
             "https://ditto.pub/npub1qqqqq40p2m0uxsuwraplegwph6ceexvnjjacq66j5xy7thpj06msvpc8w3"),
     project("barking-news", "BARKING NEWS", "The news, as a bot that barks it into Nostr.",
             "https://ditto.pub/npub1xnewsxw69t74nlxxsehe4earw47s9t5cqnlh8amy7nevwetuf6ass5efrf"),

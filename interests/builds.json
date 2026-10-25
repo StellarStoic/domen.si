@@ -99,7 +99,7 @@
                 {
                     "id": "ia39bot",
                     "name": "IA39 BOT",
-                    "description": "A bot posting IPA39 library records to Nostr.",
+                    "description": "Picks one of the 2048 BIP39 words at random, searches the Internet Archive for images of that word, and posts what it finds to Nostr. Internet Archive, BIP39.",
                     "url": "https://ditto.pub/npub1qqqqq40p2m0uxsuwraplegwph6ceexvnjjacq66j5xy7thpj06msvpc8w3"
                 },
                 {
