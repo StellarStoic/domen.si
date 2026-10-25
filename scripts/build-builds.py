@@ -25,9 +25,7 @@ def project(pid: str, name: str, description: str, url: str = "") -> dict:
 
 
 WEB = [
-    project("satoshi-si", "SATOSHI.SI", "Bitcoin tools, wallet education and news: BIP39 resources, "
-            "price conversion, historical charts, a NIP-05 desk and a Lightning payment service.",
-            "https://satoshi.si"),
+    project("satoshi-si", "SATOSHI.SI", "Bitcoin tools and resources.", "https://satoshi.si"),
     project("birds-name", "BIRDS.NAME", "A multilingual bird guide: what a bird is called in each "
             "language, a description from Wikipedia and its conservation status. Keep a diary of the birds "
             "you have spotted, and publish it to your Nostr identity to unlock badges.",
