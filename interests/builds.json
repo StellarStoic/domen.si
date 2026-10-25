@@ -157,7 +157,7 @@
                 {
                     "id": "swatcher",
                     "name": "SWATCHER",
-                    "description": "Private, watch-only Bitcoin monitoring on StartOS, with a local Electrs and alerts over NIP-17 or Telegram.",
+                    "description": "Private, watch-only Bitcoin wallet monitoring on StartOS, with a local Electrs and alerts about every transaction over NIP-17 or Telegram.",
                     "url": "https://github.com/StellarStoic/swatcher"
                 },
                 {

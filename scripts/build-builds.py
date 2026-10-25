@@ -81,8 +81,9 @@ TELEGRAM = [
 ]
 
 OTHER = [
-    project("swatcher", "SWATCHER", "Private, watch-only Bitcoin monitoring on StartOS, with a local "
-            "Electrs and alerts over NIP-17 or Telegram.", "https://github.com/StellarStoic/swatcher"),
+    project("swatcher", "SWATCHER", "Private, watch-only Bitcoin wallet monitoring on StartOS, with a "
+            "local Electrs and alerts about every transaction over NIP-17 or Telegram.",
+            "https://github.com/StellarStoic/swatcher"),
     project("bip39-exotica", "BIP39 EXOTICA", "Generates Bitcoin and Nostr keys from standard and exotic "
             "wordlists: import into apps, build Nostr keys from a mnemonic, recover a key from colours, or "
             "make one out of \"rock, paper, scissors, lizard, spock\".",
