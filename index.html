@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Domen's Page</title>
     <link rel="stylesheet" href="style.css">
-    <link rel="stylesheet" href="feedView.css">
+    <link rel="stylesheet" href="feedView.css?v=2">
     <!-- Where the podcast feeds are read: a small service on the VPS, because GitHub Pages cannot
          fetch a feed from another host and half of these publishers do not allow it.
          feeds.domen.si and feeds.satoshi.si are the same service; both are in the certificate. -->
@@ -44,7 +44,9 @@
     </div>
     
     <script src="data.js"></script>
-    <script src="feedView.js"></script>
-    <script src="script.js"></script>
+    <!-- Versioned query strings: GitHub Pages caches assets for ten minutes, so a reader who came back
+         after a deploy could be handed the previous script and see the previous behaviour. -->
+    <script src="feedView.js?v=2"></script>
+    <script src="script.js?v=2"></script>
 </body>
 </html>

@@ -485,6 +485,28 @@ test('closing puts the board back the way it was', async () => {
   assert.equal(audio.src, '', 'and the audio is released rather than left holding a file');
 });
 
+test('the panel keeps the raw feed as a link and adds Episodes as its own door', async () => {
+  const site = readFileSync(fileURLToPath(new URL('../script.js', import.meta.url)), 'utf8');
+  const page = readFileSync(fileURLToPath(new URL('../index.html', import.meta.url)), 'utf8');
+
+  // RSS Feed stays exactly what it always was: the XML in a new tab.
+  assert.match(site, /<a href="\$\{interest\.feedUrl\}" target="_blank" rel="noopener noreferrer" class="article-link article-link--secondary">RSS Feed<\/a>/,
+    'the raw feed is still a plain link, so the button does what it always did');
+  // Episodes is the new control, and it opens the view.
+  assert.match(site, /<button type="button" class="article-link feed-episodes">Episodes<\/button>/,
+    'and Episodes sits beside it as a button of its own');
+  assert.match(site, /querySelector\('\.feed-episodes'\)\?\.addEventListener\('click'/,
+    'pressing Episodes is what opens the feed view');
+  // A view that failed to load must say so rather than doing nothing when pressed.
+  assert.match(site, /if \(!window\.podcastFeedView\?\.open\)/, 'a missing module is reported, not swallowed');
+
+  // GitHub Pages caches assets for ten minutes; a version query is what stops a returning reader from
+  // being served the previous script and seeing the previous behaviour.
+  assert.match(page, /<script src="feedView\.js\?v=\d+"><\/script>/, 'the view is requested by version');
+  assert.match(page, /<script src="script\.js\?v=\d+"><\/script>/, 'and so is the page script');
+  assert.match(page, /<link rel="stylesheet" href="feedView\.css\?v=\d+">/, 'and its stylesheet');
+});
+
 test('no third-party feed parser is left on the site', () => {
   const site = readFileSync(fileURLToPath(new URL('../script.js', import.meta.url)), 'utf8');
   assert.ok(!site.includes('rss2json'), 'the podcast panel must not hand a visitor feed to a stranger');

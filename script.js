@@ -965,7 +965,10 @@ function showInfoPanel(interest, depth) {
             ''
         }
         ${interest.feedUrl ?
-            `<button type="button" class="article-link article-link--secondary feed-open">RSS Feed</button>` :
+            // The raw feed stays exactly what it always was: a link to the XML in a new tab. Episodes is
+            // the new door — the feed read and drawn here, where the cubes are.
+            `<a href="${interest.feedUrl}" target="_blank" rel="noopener noreferrer" class="article-link article-link--secondary">RSS Feed</a>` +
+            `<button type="button" class="article-link feed-episodes">Episodes</button>` :
             ''
         }
         ${interest.id === 'bitcoin-price' ? renderBitcoinCurrencyControls() : ''}
@@ -1027,10 +1030,20 @@ function showInfoPanel(interest, depth) {
         });
     });
 
-    // The feed opens where the cubes are, rather than leaving for a wall of XML. The address is handed
-    // over as data, never built into the markup, so a feed's own text cannot end up an attribute here.
-    infoContent.querySelector('.feed-open')?.addEventListener('click', () => {
-        window.podcastFeedView?.open({
+    // Episodes opens the feed where the cubes are: the list, each episode's description, its times and
+    // a player that starts where a pressed time says. The address is handed over as data, never built
+    // into the markup, so a feed's own text cannot end up an attribute here.
+    infoContent.querySelector('.feed-episodes')?.addEventListener('click', event => {
+        if (!window.podcastFeedView?.open) {
+            // The view module did not load (an old cached script, a blocked request). Say so rather
+            // than leaving a button that does nothing when pressed.
+            const note = document.createElement('p');
+            note.className = 'leaf-node';
+            note.textContent = 'The episode view did not load on this page. Reload the page, or use the RSS Feed link.';
+            event.currentTarget.replaceWith(note);
+            return;
+        }
+        window.podcastFeedView.open({
             name: interest.name,
             feedUrl: interest.feedUrl,
             imageUrl: interest.imageUrl,
