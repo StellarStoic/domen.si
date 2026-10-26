@@ -1279,10 +1279,52 @@ function hideInfoPanel() {
     infoPanel.classList.remove('active');
 }
 
+/* ── Theme ──────────────────────────────────────────────────────────────────────────────────────
+   style.css carries two palettes: the dark board in :root, and the white one under
+   [data-theme="light"] — a white page with black cubes, white text and the orange edge. index.html
+   applies the stored choice before the first paint; everything here flips it afterwards and keeps
+   the control's own label honest, because a button that says "WHITE THEME" while the board is
+   already white is worse than no button. */
+const THEME_STORAGE_KEY = 'domen:theme';
+
+function currentTheme() {
+    return document.documentElement.getAttribute('data-theme') === 'light' ? 'light' : 'dark';
+}
+
+function renderThemeControl(theme) {
+    const button = document.getElementById('theme-toggle');
+    if (!button) return;
+    const next = theme === 'light' ? 'dark' : 'light';
+    button.textContent = next === 'light' ? 'WHITE THEME' : 'DARK THEME';
+    button.setAttribute('aria-pressed', theme === 'light' ? 'true' : 'false');
+    button.setAttribute('aria-label', 'Switch to the ' + next + ' theme');
+    button.title = 'Switch to the ' + next + ' theme';
+}
+
+function applyTheme(theme) {
+    // Dark is the palette's own :root, so it is the absence of the attribute rather than a second block.
+    if (theme === 'light') {
+        document.documentElement.setAttribute('data-theme', 'light');
+    } else {
+        document.documentElement.removeAttribute('data-theme');
+    }
+    try {
+        localStorage.setItem(THEME_STORAGE_KEY, theme);
+    } catch (error) { /* private mode: the choice lasts the session, which is the honest behaviour */ }
+    renderThemeControl(theme);
+}
+
+function toggleTheme() {
+    applyTheme(currentTheme() === 'light' ? 'dark' : 'light');
+}
+
 // Set up event listeners
 function setupEventListeners() {
     const backButton = document.getElementById('back-button');
     backButton.addEventListener('click', goBack);
+
+    renderThemeControl(currentTheme());
+    document.getElementById('theme-toggle')?.addEventListener('click', toggleTheme);
 
     const galleryClose = document.getElementById('gallery-close');
     const galleryPrev = document.getElementById('gallery-prev');

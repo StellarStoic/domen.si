@@ -4,17 +4,28 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Domen's Page</title>
-    <link rel="stylesheet" href="style.css">
-    <link rel="stylesheet" href="feedView.css?v=3">
+    <link rel="stylesheet" href="style.css?v=4">
+    <link rel="stylesheet" href="feedView.css?v=4">
     <!-- Where the podcast feeds are read: a small service on the VPS, because GitHub Pages cannot
          fetch a feed from another host and half of these publishers do not allow it.
          feeds.domen.si and feeds.satoshi.si are the same service; both are in the certificate. -->
     <meta name="feed-reader" content="https://feeds.domen.si">
+    <!-- The theme has to be on <html> before the first paint, or a reader who chose the white theme
+         gets a black flash on every load. style.css holds both palettes; this only picks one. -->
+    <script>
+        (function () {
+            try {
+                var stored = localStorage.getItem('domen:theme');
+                if (stored === 'light') document.documentElement.setAttribute('data-theme', 'light');
+            } catch (error) { /* private mode: the dark palette is the default and needs no storage */ }
+        })();
+    </script>
 </head>
 <body>
     <header class="header">
         <h1 class="title">DOMEN'S MONKEY BRAIN</h1>
         <h5 class="subtitle">THINK OUTSIDE THE BOX</h5>
+        <button id="theme-toggle" class="theme-toggle" type="button" aria-pressed="false">WHITE THEME</button>
         <p id="explainer-title">This portal is a mix of my past, present and future interests. 
             Some of the stuff I made and things I'm kinda into
             <br><br>
@@ -46,7 +57,7 @@
     <script src="data.js"></script>
     <!-- Versioned query strings: GitHub Pages caches assets for ten minutes, so a reader who came back
          after a deploy could be handed the previous script and see the previous behaviour. -->
-    <script src="feedView.js?v=3"></script>
-    <script src="script.js?v=3"></script>
+    <script src="feedView.js?v=4"></script>
+    <script src="script.js?v=4"></script>
 </body>
 </html>
