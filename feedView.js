@@ -405,8 +405,24 @@
 
     // ---------------------------------------------------------------- opening
 
+    /**
+     * The view lives inside #brain-container, and the board rebuilds that container by clearing it. So
+     * before drawing, make sure the shell is still a child of it: a detached node is drawn into nothing,
+     * and a container that kept the dimming class would leave the cubes faded under an empty board.
+     */
+    function ensureShell() {
+        container = document.getElementById('brain-container');
+        if (!container) return null;
+        if (!root) return buildShell();
+        if (!container.contains(root)) {
+            container.append(root);
+            container.classList.add('has-feed-view');
+        }
+        return root;
+    }
+
     function open(podcast) {
-        if (!root && !buildShell()) return;
+        if (!ensureShell()) return;
         state.podcast = podcast || {};
         state.feedUrl = String(podcast?.feedUrl || '');
         state.expanded.clear();
@@ -511,12 +527,16 @@
     }
 
     function close() {
+        // The class comes off whatever the state says: a board that was rebuilt while the view was open
+        // must not keep the cubes dimmed, and that is what this was doing.
+        container = container || document.getElementById('brain-container');
+        container?.classList.remove('is-feed-open');
+        root?.classList.remove('is-feed-open');
         if (!state.open) return;
         state.open = false;
         state.requestId += 1;
         if (audio) { audio.pause(); audio.removeAttribute('src'); audio.load(); }
         if (root) root.hidden = true;
-        container?.classList.remove('is-feed-open');
         state.lastFocus?.focus?.({ preventScroll: true });
     }
 

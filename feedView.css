@@ -12,11 +12,12 @@
 }
 
 /* The cubes stay where they are, dimmed behind the feed, and stop taking the pointer. */
+/* Dimmed, not erased: the cubes are the board behind the paper, and 8 % with a blur read as a broken
+   render — especially on the way out, when the board is briefly visible again. */
 .brain-container.is-feed-open .cube {
-    opacity: 0.08;
-    filter: blur(1px);
+    opacity: 0.2;
     pointer-events: none;
-    transition: opacity 0.25s ease, filter 0.25s ease;
+    transition: opacity 0.2s ease;
 }
 
 .feed-view {

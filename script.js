@@ -390,6 +390,10 @@ function getVisibleInterests(interests) {
 // Render the main brain shape with cubes
 function renderBrain() {
     const container = document.getElementById('brain-container');
+    // The board rebuilds its cubes by clearing this container, which would take the feed view with it and
+    // leave the dimming class behind — the cubes came back at 8 % opacity with nothing on top of them.
+    // Closing here means the state always matches the board, whichever door the reader left by.
+    window.podcastFeedView?.close?.();
     container.innerHTML = ''; // Clear container
 
     // Start with main interests

@@ -469,6 +469,48 @@ test('a feed that fails says why, offers a retry, and leaves the raw link alone'
     'and the raw feed stays reachable, which is the honest fallback');
 });
 
+test('a board rebuilt under an open view does not leave the cubes dimmed', async () => {
+  // The board redraws its cubes by clearing #brain-container, which takes the view with it. The dimming
+  // class lives on the container, so it survived the wipe and the cubes came back at 8 % opacity with
+  // nothing on top — the reader sees a dead, faded board.
+  const page = makeDocument();
+  const { view } = mountFeedView({ document: page.document, respond: () => FEED });
+  view.open({ name: 'The Test Show', feedUrl: 'https://example.com/rss' });
+  await tick();
+  assert.ok(page.container.classList.contains('is-feed-open'));
+
+  // what renderBrain() does to the board
+  page.container.replaceChildren(page.cube);
+  assert.equal(page.container.querySelector('.feed-view'), null, 'the wipe took the view with it');
+
+  view.close();
+  assert.equal(page.container.classList.contains('is-feed-open'), false,
+    'closing always clears the dimming, whatever the state believed');
+
+  // and asking again puts the view back rather than drawing into a detached node
+  view.open({ name: 'The Test Show', feedUrl: 'https://example.com/rss' });
+  await tick();
+  assert.ok(page.container.querySelector('.feed-view'), 'the view is a child of the board again');
+  assert.equal(page.container.querySelectorAll('.feed-episode').length, 2, 'and it drew the episodes');
+  assert.ok(page.container.classList.contains('is-feed-open'), 'with the cubes dimmed behind it');
+});
+
+test('the board closes the view itself before it clears its cubes', () => {
+  const site = readFileSync(fileURLToPath(new URL('../script.js', import.meta.url)), 'utf8');
+  const board = site.slice(site.indexOf('function renderBrain()'));
+  const clearAt = board.indexOf("container.innerHTML = ''");
+  const closeAt = board.indexOf('podcastFeedView?.close?.()');
+  assert.ok(closeAt > 0 && closeAt < clearAt,
+    'renderBrain closes the feed before it wipes the container, or the dimming outlives the view');
+
+  // and the dimming is a background, not a blackout
+  const css = readFileSync(fileURLToPath(new URL('../feedView.css', import.meta.url)), 'utf8');
+  const rule = css.slice(css.indexOf('.brain-container.is-feed-open .cube'));
+  const slice = rule.slice(0, rule.indexOf('}'));
+  assert.match(slice, /opacity:\s*0\.2/, 'the cubes stay legible behind the view');
+  assert.ok(!slice.includes('blur'), 'and the blur, which read as a broken render, is gone');
+});
+
 test('closing puts the board back the way it was', async () => {
   const page = makeDocument();
   const { view } = mountFeedView({ document: page.document, respond: () => FEED });
