@@ -675,7 +675,10 @@ function createCube(interest, index, isSubCube = false, parentPosition = null, d
     cube.addEventListener('click', (event) => {
         event.stopPropagation();
 
-        if (getVisibleInterests(interest.subInterests).length > 0) {
+        // A podcast root has no sub-cubes but still opens something on the board itself: its list.
+        const opensBoardView = Array.isArray(interest.podcastList) && interest.podcastList.length > 0;
+
+        if (opensBoardView || getVisibleInterests(interest.subInterests).length > 0) {
             // Get current position in pixels for navigation (if not set this will produce NaN)
             // but we always set left/top now so parseFloat should be valid.
             const currentX = parseFloat(cube.style.left);
@@ -849,7 +852,14 @@ function createBackCube(parentPosition, depth) {
 function handleCubeClick(interest, position, depth) {
     // Show info in panel regardless of sub-interests
     showInfoPanel(interest, depth);
-    
+
+    // A podcast root has no cubes to show: the subscriptions take the board over as one list, which is
+    // still a step into the board, so BACK returns to the cubes as it does everywhere else.
+    if (Array.isArray(interest.podcastList) && interest.podcastList.length > 0) {
+        openPodcastList(interest, position, depth);
+        return;
+    }
+
     // If the interest has sub-interests, navigate deeper
     if (getVisibleInterests(interest.subInterests).length > 0) {
         navigateToSubInterests(interest, position, depth);
@@ -949,20 +959,75 @@ function goBack() {
 
 // Show information in the side panel with depth indicator
 // The podcast subscriptions as one list, A to Z. Each row is a button onto that podcast's own panel.
-function renderPodcastList(podcastList) {
-    return `<div class="podcast-list">
-        <strong>${podcastList.length} podcasts, A to Z:</strong>
-        <ol class="podcast-list-items">
-            ${podcastList.map((podcast, index) => `
-                <li class="podcast-list-item" data-podcast-index="${index}" tabindex="0" role="button">
+// The subscriptions as one list inside the cubes container — the board is where a cube leads, so the
+// list takes the board over rather than squeezing into the panel beside it. Built as an element so the
+// rows can carry their own listeners; names and artwork come from the OPML and are escaped.
+function buildPodcastListBoard(interest, depth) {
+    const board = document.createElement('div');
+    board.className = 'podcast-board';
+    board.innerHTML = `
+        <div class="podcast-board__head">
+            <strong>${escapeHtml(interest.name)} — ${interest.podcastList.length} podcasts, A to Z</strong>
+            <span class="podcast-board__hint">A name opens its description, RSS feed and episodes</span>
+        </div>
+        <ol class="podcast-board__items">
+            ${interest.podcastList.map((podcast, index) => `
+                <li class="podcast-board__item" data-podcast-index="${index}" tabindex="0" role="button">
                     ${podcast.imageUrl
-                        ? `<img class="podcast-list-artwork" src="${escapeHtml(podcast.imageUrl)}" alt="" loading="lazy">`
+                        ? `<img class="podcast-board__art" src="${escapeHtml(podcast.imageUrl)}" alt="" loading="lazy">`
                         : ''}
-                    <span class="podcast-list-name">${escapeHtml(podcast.name)}</span>
+                    <span class="podcast-board__name">${escapeHtml(podcast.name)}</span>
                 </li>
             `).join('')}
-        </ol>
-    </div>`;
+        </ol>`;
+
+    board.querySelectorAll('.podcast-board__item').forEach(item => {
+        const podcast = interest.podcastList[Number(item.dataset.podcastIndex)];
+        if (!podcast) {
+            return;
+        }
+        // The panel is where the podcast's own description, RSS Feed link and Episodes button live.
+        const openPodcast = () => showInfoPanel(podcast, depth + 1);
+        item.addEventListener('click', openPodcast);
+        item.addEventListener('keydown', event => {
+            if (event.key === 'Enter' || event.key === ' ') {
+                // Space would scroll the list instead of activating the row.
+                event.preventDefault();
+                openPodcast();
+            }
+        });
+    });
+
+    // Artwork in the OPML can be stale or blocked; drop it rather than leaving a broken icon in every
+    // row, exactly as the podcast panel already does for its own cover.
+    board.querySelectorAll('.podcast-board__art').forEach(image => {
+        image.addEventListener('error', () => image.remove());
+    });
+
+    return board;
+}
+
+// Take the board over with the list. The navigation stack entry is the same shape a sub-interest level
+// pushes, so the BACK cube and goBack() need no special case.
+function openPodcastList(interest, position, depth) {
+    const container = document.getElementById('brain-container');
+    navigationStack.push({
+        interests: currentInterests,
+        parentPosition: position,
+        depth: depth
+    });
+
+    currentInterests = [];
+    container.innerHTML = '';
+    container.appendChild(buildPodcastListBoard(interest, depth));
+
+    // The ring placement the sub-interest levels use lands on the list's own header here, because the
+    // parent cube sits inside the area the list now covers. Pin BACK to the strip under the list instead.
+    const backCube = createBackCube(position, depth);
+    backCube.style.left = `${Math.max(12, container.clientWidth - 50 - 16)}px`;
+    backCube.style.top = `${Math.max(12, container.clientHeight - 30 - 16)}px`;
+    backCube.style.zIndex = '50';
+    container.appendChild(backCube);
 }
 
 function showInfoPanel(interest, depth) {
@@ -1005,7 +1070,7 @@ function showInfoPanel(interest, depth) {
         ${interest.id === 'bitcoin-price' ? renderBitcoinCurrencyControls() : ''}
         ${interest.gallery ? renderGallery(interest.gallery) : ''}
         ${Array.isArray(interest.podcastList) && interest.podcastList.length > 0
-            ? renderPodcastList(interest.podcastList)
+            ? `<p class="leaf-node">↳ ${interest.podcastList.length} subscriptions, listed A to Z on the board.</p>`
             : visibleSubInterests.length > 0
                 ? `<div class="sub-interests">
                     <strong>Contains ${visibleSubInterests.length} visible sub-interests:</strong>
@@ -1063,31 +1128,6 @@ function showInfoPanel(interest, depth) {
         });
     });
 
-
-    // A podcast row opens that subscription's own panel — the same panel a podcast cube opened before,
-    // so its artwork, description, RSS Feed link and Episodes button are unchanged. The board itself
-    // stays at the root, because there is nothing left to navigate into.
-    infoContent.querySelectorAll('.podcast-list-item').forEach(item => {
-        const podcast = (interest.podcastList || [])[Number(item.dataset.podcastIndex)];
-        if (!podcast) {
-            return;
-        }
-        const openPodcast = () => showInfoPanel(podcast, depth);
-        item.addEventListener('click', openPodcast);
-        item.addEventListener('keydown', event => {
-            if (event.key === 'Enter' || event.key === ' ') {
-                // Space would scroll the list instead of activating the row.
-                event.preventDefault();
-                openPodcast();
-            }
-        });
-    });
-
-    // Artwork in the OPML can be stale or blocked; drop it rather than leaving a broken icon in
-    // every row, exactly as the podcast panel already does for its own cover.
-    infoContent.querySelectorAll('.podcast-list-artwork').forEach(image => {
-        image.addEventListener('error', () => image.remove());
-    });
 
     // Episodes opens the feed where the cubes are: the list, each episode's description, its times and
     // a player that starts where a pressed time says. The address is handed over as data, never built

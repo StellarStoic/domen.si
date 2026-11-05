@@ -1,9 +1,9 @@
-// The podcast subscriptions used to arrive as five letter-range cubes (A-F, G-L, M-R, S-Z, OTHER),
-// each holding podcast cubes: a hundred cubes for a directory. D asked for one alphabetical list
-// instead. What has to hold is that (a) no letter-range cubes come back, (b) the list is sorted on the
-// name without a leading "The", (c) a row still reaches the podcast's own panel, so the RSS Feed link
-// and the Episodes button are not lost with the cubes, and (d) the row markup cannot be broken by a
-// show whose title contains an ampersand.
+// The podcast subscriptions arrive as one alphabetical list laid over the cubes container itself — not
+// as cubes (a hundred range cubes was a directory with extra steps) and not in the side panel. What has
+// to hold: (a) clicking the PODCASTS cube takes the board over with the list, (b) BACK brings the cubes
+// back, (c) a row still reaches the podcast's own panel, so the RSS Feed link and Episodes button are
+// not lost, (d) the row markup cannot be broken by a show whose title contains an ampersand, and (e) the
+// list styles invert with the theme.
 
 import test from 'node:test';
 import assert from 'node:assert/strict';
@@ -15,35 +15,50 @@ const read = name => readFileSync(fileURLToPath(new URL(`../${name}`, import.met
 const DATA = read('data.js');
 const SCRIPT = read('script.js');
 const STYLE = read('style.css');
+const HTML = read('index.html');
 const OPML = read('assets/img/data/PodcastAddict_OPML_export_20260611_232241.opml');
 
-test('the letter-range cubes are gone and a sorted list takes their place', () => {
+test('the subscriptions are one sorted list, and no cubes', () => {
   assert.match(DATA, /interest\.podcastList = podcasts/);
   assert.match(DATA, /\.sort\(\(first, second\) => first\.sortName\.localeCompare\(second\.sortName\)\)/,
-    'the list is sorted on the name, ignoring a leading "The"');
+    'sorted on the name, ignoring a leading "The"');
   assert.match(DATA, /interest\.subInterests = \[\];/,
-    'nothing navigates deeper, so the board holds no podcast cubes');
-  assert.doesNotMatch(DATA, /id: 'a-f'/, 'the A-F range cube is gone');
-  assert.doesNotMatch(DATA, /id: 'g-l'/, 'the G-L range cube is gone');
-  assert.doesNotMatch(DATA, /id: 'm-r'/, 'the M-R range cube is gone');
-  assert.doesNotMatch(DATA, /id: 's-z'/, 'the S-Z range cube is gone');
+    'no podcast cubes exist, so nothing navigates deeper');
+  for (const range of ['a-f', 'g-l', 'm-r', 's-z']) {
+    assert.doesNotMatch(DATA, new RegExp(`id: '${range}'`), `the ${range} range cube is gone`);
+  }
 });
 
-test('the list is rendered from the sorted subscriptions', () => {
-  assert.match(SCRIPT, /function renderPodcastList\(podcastList\)/);
-  assert.match(SCRIPT, /Array\.isArray\(interest\.podcastList\) && interest\.podcastList\.length > 0/,
-    'the panel asks for the list before it looks for cubes');
-  assert.match(SCRIPT, /class="podcast-list-item" data-podcast-index="\$\{index\}" tabindex="0" role="button"/,
-    'a row is reachable by keyboard, not only by mouse');
+test('the list is drawn in the cubes container, not the panel', () => {
+  assert.match(SCRIPT, /function buildPodcastListBoard\(interest, depth\)/);
+  assert.match(SCRIPT, /container\.appendChild\(buildPodcastListBoard\(interest, depth\)\)/,
+    'the list is appended to #brain-container');
+  assert.match(SCRIPT, /container\.appendChild\(backCube\)/,
+    'BACK comes with it, as it does at any other level');
+  // the panel says where the list is rather than repeating it
+  assert.match(SCRIPT, /listed A to Z on the board/);
+  assert.doesNotMatch(SCRIPT, /renderPodcastList/, 'the panel list is gone');
 });
 
-test('a row opens the podcast panel, so its controls survive', () => {
-  assert.match(SCRIPT, /const openPodcast = \(\) => showInfoPanel\(podcast, depth\);/);
-  assert.match(SCRIPT, /if \(event\.key === 'Enter' \|\| event\.key === ' '\)/,
-    'Enter and Space activate a row');
-  // the two doors D asked for separately, still on the podcast's own panel
-  assert.match(SCRIPT, /class="article-link article-link--secondary">RSS Feed<\/a>/);
-  assert.match(SCRIPT, /class="article-link feed-episodes">Episodes<\/button>/);
+test('clicking the cube opens the list even though it has no sub-cubes', () => {
+  assert.match(SCRIPT, /const opensBoardView = Array\.isArray\(interest\.podcastList\) && interest\.podcastList\.length > 0;/);
+  assert.match(SCRIPT, /if \(opensBoardView \|\| getVisibleInterests\(interest\.subInterests\)\.length > 0\)/,
+    'the cube has to reach handleCubeClick, or the board never changes');
+  assert.match(SCRIPT, /openPodcastList\(interest, position, depth\);/);
+});
+
+test('the list is a navigation level, so BACK works unchanged', () => {
+  assert.match(SCRIPT, /navigationStack\.push\(\{[\s\S]{0,220}parentPosition: position,[\s\S]{0,60}depth: depth/,
+    'the same stack entry the sub-interest levels push');
+  assert.match(SCRIPT, /const openPodcast = \(\) => showInfoPanel\(podcast, depth \+ 1\);/,
+    'a row opens the podcast panel one level in');
+});
+
+test('a row is reachable and activatable by keyboard', () => {
+  assert.match(SCRIPT, /class="podcast-board__item" data-podcast-index="\$\{index\}" tabindex="0" role="button"/);
+  assert.match(SCRIPT, /if \(event\.key === 'Enter' \|\| event\.key === ' '\)/);
+  assert.match(SCRIPT, /class="article-link article-link--secondary">RSS Feed<\/a>/, 'RSS Feed survives');
+  assert.match(SCRIPT, /class="article-link feed-episodes">Episodes<\/button>/, 'Episodes survives');
 });
 
 test('a title from the OPML cannot break the row it sits in', () => {
@@ -53,18 +68,27 @@ test('a title from the OPML cannot break the row it sits in', () => {
 });
 
 test('broken artwork is dropped rather than left as an icon in every row', () => {
-  assert.match(SCRIPT, /querySelectorAll\('\.podcast-list-artwork'\)\.forEach\(image => \{/);
+  assert.match(SCRIPT, /querySelectorAll\('\.podcast-board__art'\)\.forEach\(image => \{/);
   assert.match(SCRIPT, /image\.addEventListener\('error', \(\) => image\.remove\(\)\)/);
 });
 
-test('the list styles read the palette, so the white theme inverts with it', () => {
-  for (const selector of ['.podcast-list {', '.podcast-list-items {', '.podcast-list-item {']) {
+test('the list styles read the palette, and go single-column on a narrow board', () => {
+  for (const selector of ['.podcast-board {', '.podcast-board__items {', '.podcast-board__item {']) {
     assert.ok(STYLE.includes(selector), `no rule for ${selector}`);
   }
-  const block = STYLE.slice(STYLE.indexOf('.podcast-list {'), STYLE.indexOf('/* Leaf node styling */'));
-  assert.doesNotMatch(block, /#[0-9a-fA-F]{3,6}/, 'no literal colour in the list rules');
+  const block = STYLE.slice(STYLE.indexOf('.podcast-board {'), STYLE.indexOf('/* Leaf node styling */'));
+  assert.doesNotMatch(block, /#[0-9a-fA-F]{3,6}/, 'no literal colour in the board-list rules');
   assert.match(block, /background-color: var\(--surface\)/);
   assert.match(block, /color: var\(--cube-ink\)/);
+  assert.match(block, /max-width: 768px/, 'one column when the board is narrow');
+  assert.match(block, /inset: 12px 12px 56px 12px/, 'a strip stays free for the BACK cube');
+});
+
+test('the changed assets are versioned past the previous release', () => {
+  for (const asset of ['style.css', 'script.js']) {
+    const found = HTML.match(new RegExp(`${asset.replace('.', '\\.')}\\?v=(\\d+)`));
+    assert.ok(found && Number(found[1]) >= 6, `${asset} must be bumped past 5`);
+  }
 });
 
 test('every subscription in the OPML can produce a named row', () => {
