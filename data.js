@@ -143,17 +143,9 @@ async function loadPodcastInterests(interest) {
         || 'unknown';
     const podcastOutlines = Array.from(opmlDocument.querySelectorAll('body outline[xmlUrl]'));
 
-    // Use broad alphabetical groups so a large subscription list does not create 100 cubes at once.
-    const groups = [
-        { id: 'a-f', name: 'A-F', test: firstLetter => firstLetter >= 'A' && firstLetter <= 'F' },
-        { id: 'g-l', name: 'G-L', test: firstLetter => firstLetter >= 'G' && firstLetter <= 'L' },
-        { id: 'm-r', name: 'M-R', test: firstLetter => firstLetter >= 'M' && firstLetter <= 'R' },
-        { id: 's-z', name: 'S-Z', test: firstLetter => firstLetter >= 'S' && firstLetter <= 'Z' },
-        { id: 'other', name: 'OTHER', test: firstLetter => firstLetter < 'A' || firstLetter > 'Z' }
-    ];
-
     const podcasts = podcastOutlines.map((outline, index) => {
         const name = outline.getAttribute('text') || outline.getAttribute('title') || `Podcast ${index + 1}`;
+        // Sorting ignores a leading "The", so a show is filed under its own name.
         const normalizedName = name.replace(/^the\s+/i, '').trim();
 
         return {
@@ -168,21 +160,15 @@ async function loadPodcastInterests(interest) {
         };
     });
 
-    interest.description = `${podcasts.length} podcast subscriptions imported from Podcast Addict. Last updated: ${updatedAt}.`;
-    interest.subInterests = groups
-        .map(group => {
-            const groupPodcasts = podcasts
-                .filter(podcast => group.test(podcast.sortName.charAt(0).toUpperCase()))
-                .sort((first, second) => first.sortName.localeCompare(second.sortName));
+    interest.description = `${podcasts.length} podcast subscriptions imported from Podcast Addict. `
+        + `Last updated: ${updatedAt}.`;
 
-            return {
-                id: `podcasts-${group.id}`,
-                name: group.name,
-                description: `${groupPodcasts.length} podcasts sorted alphabetically. OPML last updated: ${updatedAt}.`,
-                subInterests: groupPodcasts
-            };
-        })
-        .filter(group => group.subInterests.length > 0);
+    // One alphabetical list rather than letter-range cubes: a hundred podcast cubes were a directory
+    // with extra steps, and the board is meant to be a map of interests, not of subscriptions. The
+    // list keeps each subscription's own feed, artwork and link, so nothing is lost by flattening it.
+    interest.podcastList = podcasts
+        .sort((first, second) => first.sortName.localeCompare(second.sortName));
+    interest.subInterests = [];
 
     return interest;
 }

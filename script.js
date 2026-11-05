@@ -173,6 +173,16 @@ function setupBitcoinCurrencyControls(root) {
 }
 
 // Convert feed-provided HTML descriptions into safe readable plain text.
+// Podcast names and artwork URLs come from the OPML export, so they are escaped before they reach
+// markup — an ampersand in a show's title must not break the row it sits in.
+function escapeHtml(value) {
+    return String(value ?? '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+}
+
 function getPlainTextFromHtml(html) {
     const documentFragment = new DOMParser().parseFromString(html || '', 'text/html');
     return documentFragment.body.textContent.replace(/\s+/g, ' ').trim();
@@ -938,6 +948,23 @@ function goBack() {
 }
 
 // Show information in the side panel with depth indicator
+// The podcast subscriptions as one list, A to Z. Each row is a button onto that podcast's own panel.
+function renderPodcastList(podcastList) {
+    return `<div class="podcast-list">
+        <strong>${podcastList.length} podcasts, A to Z:</strong>
+        <ol class="podcast-list-items">
+            ${podcastList.map((podcast, index) => `
+                <li class="podcast-list-item" data-podcast-index="${index}" tabindex="0" role="button">
+                    ${podcast.imageUrl
+                        ? `<img class="podcast-list-artwork" src="${escapeHtml(podcast.imageUrl)}" alt="" loading="lazy">`
+                        : ''}
+                    <span class="podcast-list-name">${escapeHtml(podcast.name)}</span>
+                </li>
+            `).join('')}
+        </ol>
+    </div>`;
+}
+
 function showInfoPanel(interest, depth) {
     const infoPanel = document.getElementById('info-panel');
     const infoContent = document.getElementById('info-content');
@@ -977,18 +1004,20 @@ function showInfoPanel(interest, depth) {
         }
         ${interest.id === 'bitcoin-price' ? renderBitcoinCurrencyControls() : ''}
         ${interest.gallery ? renderGallery(interest.gallery) : ''}
-        ${visibleSubInterests.length > 0 ? 
-            `<div class="sub-interests">
-                <strong>Contains ${visibleSubInterests.length} visible sub-interests:</strong>
-                <ul>
-                    ${visibleSubInterests.map((subInterest, index) => `
-                        <li class="sub-interest-item" data-interest-index="${index}" tabindex="0" role="button">
-                            ${subInterest.name}
-                        </li>
-                    `).join('')}
-                </ul>
-            </div>` : 
-            '<p class="leaf-node">↳ This is a leaf node (no further sub-interests)</p>'
+        ${Array.isArray(interest.podcastList) && interest.podcastList.length > 0
+            ? renderPodcastList(interest.podcastList)
+            : visibleSubInterests.length > 0
+                ? `<div class="sub-interests">
+                    <strong>Contains ${visibleSubInterests.length} visible sub-interests:</strong>
+                    <ul>
+                        ${visibleSubInterests.map((subInterest, index) => `
+                            <li class="sub-interest-item" data-interest-index="${index}" tabindex="0" role="button">
+                                ${subInterest.name}
+                            </li>
+                        `).join('')}
+                    </ul>
+                </div>`
+                : '<p class="leaf-node">↳ This is a leaf node (no further sub-interests)</p>'
         }
     `;
     // Add click event listeners to breadcrumb items
@@ -1032,6 +1061,32 @@ function showInfoPanel(interest, depth) {
                 getMatchingCube()?.click();
             }
         });
+    });
+
+
+    // A podcast row opens that subscription's own panel — the same panel a podcast cube opened before,
+    // so its artwork, description, RSS Feed link and Episodes button are unchanged. The board itself
+    // stays at the root, because there is nothing left to navigate into.
+    infoContent.querySelectorAll('.podcast-list-item').forEach(item => {
+        const podcast = (interest.podcastList || [])[Number(item.dataset.podcastIndex)];
+        if (!podcast) {
+            return;
+        }
+        const openPodcast = () => showInfoPanel(podcast, depth);
+        item.addEventListener('click', openPodcast);
+        item.addEventListener('keydown', event => {
+            if (event.key === 'Enter' || event.key === ' ') {
+                // Space would scroll the list instead of activating the row.
+                event.preventDefault();
+                openPodcast();
+            }
+        });
+    });
+
+    // Artwork in the OPML can be stale or blocked; drop it rather than leaving a broken icon in
+    // every row, exactly as the podcast panel already does for its own cover.
+    infoContent.querySelectorAll('.podcast-list-artwork').forEach(image => {
+        image.addEventListener('error', () => image.remove());
     });
 
     // Episodes opens the feed where the cubes are: the list, each episode's description, its times and

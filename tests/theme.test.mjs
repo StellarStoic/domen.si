@@ -161,7 +161,13 @@ test('the control names the theme it switches to, not the one you are in', () =>
 
 test('every asset that changed carries a new version', () => {
   // GitHub Pages caches for ten minutes; an unbumped asset hands a returning reader the old behaviour.
+  // feedView.* did not change with the podcast list, so they stay where they were; the two that did
+  // have to have moved past 4.
   for (const asset of ['style.css', 'script.js', 'feedView.js', 'feedView.css']) {
-    assert.match(HTML, new RegExp(`${asset.replace('.', '\\.')}\\?v=4`), `${asset} is versioned`);
+    assert.match(HTML, new RegExp(`${asset.replace('.', '\\.')}\\?v=\\d+`), `${asset} is versioned`);
+  }
+  for (const asset of ['style.css', 'script.js']) {
+    const found = HTML.match(new RegExp(`${asset.replace('.', '\\.')}\\?v=(\\d+)`));
+    assert.ok(found && Number(found[1]) >= 5, `${asset} must be bumped past 4 for the podcast list`);
   }
 });

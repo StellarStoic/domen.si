@@ -454,6 +454,47 @@ font-weight: bold;
     outline: none;
 }
 
+/* The podcast subscriptions as one list: a row stands in for the cube it replaced, in the same
+   palette roles, so it inverts with the theme like everything else. */
+.podcast-list {
+    margin-top: 1rem;
+    padding: 1rem;
+    background-color: var(--surface);
+    border: 1px solid var(--surface-edge);
+}
+
+.podcast-list-items {
+    margin: 0.5rem 0 0;
+    padding-left: 1.2rem;
+    max-height: 50vh;
+    overflow-y: auto;
+}
+
+.podcast-list-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    cursor: pointer;
+    padding: 0.25rem 0.35rem;
+    font-size: 0.9rem;
+    border-bottom: 1px solid var(--surface-edge);
+    transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.podcast-list-item:hover,
+.podcast-list-item:focus {
+    background-color: var(--cube);
+    color: var(--cube-ink);
+    outline: none;
+}
+
+.podcast-list-artwork {
+    width: 24px;
+    height: 24px;
+    object-fit: cover;
+    flex: 0 0 auto;
+}
+
 /* Leaf node styling */
 .leaf-node {
     font-style: italic;
