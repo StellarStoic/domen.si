@@ -1,6 +1,8 @@
 // Global variables to track current state
 let navigationStack = []; // Stack to track navigation history
 let currentInterests = []; // Current level being displayed
+// The podcast list currently on the board, if any: a podcast opened from it steps back to it.
+let podcastBoardContext = null;
 let activeGalleryImages = []; // Images currently shown in the lightbox
 let activeGalleryIndex = 0; // Selected lightbox image index
 let sintraPriceSocket = null; // Active Sintra WebSocket used for live Bitcoin prices.
@@ -404,6 +406,7 @@ function renderBrain() {
     // leave the dimming class behind — the cubes came back at 8 % opacity with nothing on top of them.
     // Closing here means the state always matches the board, whichever door the reader left by.
     window.podcastFeedView?.close?.();
+    podcastBoardContext = null;
     container.innerHTML = ''; // Clear container
 
     // Start with main interests
@@ -897,8 +900,26 @@ function navigateToSubInterests(interest, parentPosition, parentDepth) {
 
 // Go back to previous level
 function goBack() {
+    // The episode view is the topmost thing on the board. Stepping back closes it and leaves the list,
+    // the panel and the scroll position where the reader left them — it used to pop the navigation
+    // stack instead, which threw the reader onto the homepage cubes *and* left the board dimmed with
+    // the cubes refusing the pointer, because nothing had closed the view.
+    if (window.podcastFeedView?.isOpen?.()) {
+        window.podcastFeedView.close();
+        return;
+    }
+
+    // A podcast opened from the list steps back to that list, not over it to the root board.
+    const shownInterestId = document.getElementById('info-content')?.dataset.interestId || '';
+    const listIsOnTheBoard = !!document.querySelector('#brain-container .podcast-board');
+    if (podcastBoardContext && listIsOnTheBoard && shownInterestId.startsWith('podcast-')) {
+        showInfoPanel(podcastBoardContext.interest, podcastBoardContext.depth);
+        return;
+    }
+
     // At the root level, BACK closes the open information panel.
     if (navigationStack.length === 0) {
+        podcastBoardContext = null;
         hideInfoPanel();
         return;
     }
@@ -915,6 +936,7 @@ function goBack() {
         
         // Check if we're at the root level
         if (navigationStack.length === 0) {
+            podcastBoardContext = null;
             // Recreate main brain
             currentInterests.forEach((interest, index) => {
                 const cube = createCube(interest, index, false, null, 0);
@@ -1022,6 +1044,7 @@ function openPodcastList(interest, position, depth) {
         depth: depth
     });
 
+    podcastBoardContext = { interest, depth };
     currentInterests = [];
     container.innerHTML = '';
     // No BACK cube here: the list carries its own BACK in the header. The cube version floats over the

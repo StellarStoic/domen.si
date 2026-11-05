@@ -98,13 +98,35 @@ test('the list styles read the palette, and go single-column on a narrow board',
   assert.match(block, /inset: 12px;/, 'the list fills the board, since BACK left it');
 });
 
-test('the changed assets are versioned past the previous release', () => {
-  for (const asset of ['style.css', 'script.js']) {
-    const found = HTML.match(new RegExp(`${asset.replace('.', '\\.')}\\?v=(\\d+)`));
-    assert.ok(found && Number(found[1]) >= 7, `${asset} must be bumped past 6`);
+test('BACK steps out of one thing at a time, top first', () => {
+  const goBack = SCRIPT.slice(SCRIPT.indexOf('function goBack()'), SCRIPT.indexOf('function navigateToDepth'));
+  // the episode view is closed before the stack is touched, or the board is left dimmed and unclickable
+  assert.match(goBack, /if \(window\.podcastFeedView\?\.isOpen\?\.\(\)\) \{\s*\n\s*window\.podcastFeedView\.close\(\);\s*\n\s*return;/,
+    'the episode view closes first and BACK stops there');
+  assert.ok(goBack.indexOf('podcastFeedView') < goBack.indexOf('navigationStack.pop()'),
+    'nothing may pop the stack before the view is closed');
+  // a podcast opened from the list steps back to the list, not over it to the root board
+  assert.match(goBack, /podcastBoardContext && listIsOnTheBoard && shownInterestId\.startsWith\('podcast-'\)/);
+  assert.match(goBack, /showInfoPanel\(podcastBoardContext\.interest, podcastBoardContext\.depth\)/);
+  assert.match(SCRIPT, /podcastBoardContext = \{ interest, depth \};/, 'the list records itself when it opens');
+  assert.match(SCRIPT, /podcastBoardContext = null;/, 'the root board forgets it');
+});
+
+test('every control that leaves the board closes the episode view', () => {
+  const feed = read('feedView.js');
+  assert.match(feed, /event\.target\.closest\('\.cube, \.back-button, \.podcast-board__back'\)/, 
+    'a BACK button used to re-render the board under an open view');
+});
+
+test('every asset carries a version at least as new as the change it holds', () => {
+  // Per asset, because only some of them change in any one release: an unversioned asset is served from
+  // a ten-minute cache, which reads as "the fix did not work".
+  const floors = { 'style.css': 7, 'script.js': 8, 'feedView.css': 5, 'feedView.js': 5, 'data.js': 1 };
+  for (const [asset, floor] of Object.entries(floors)) {
+    const found = HTML.match(new RegExp(`${asset.replace(/\./g, '\\.')}\\?v=(\\d+)`));
+    assert.ok(found, `${asset} carries no version`);
+    assert.ok(Number(found[1]) >= floor, `${asset} is v${found[1]}, below the required v${floor}`);
   }
-  const feed = HTML.match(/feedView\.css\?v=(\d+)/);
-  assert.ok(feed && Number(feed[1]) >= 5, 'feedView.css must be bumped past 4');
 });
 
 test('the hidden subscriptions are matched exactly, and every one really exists', () => {

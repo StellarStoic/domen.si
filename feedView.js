@@ -544,7 +544,9 @@
     document.addEventListener('click', event => {
         if (!state.open) return;
         if (root?.contains(event.target)) return;
-        if (event.target.closest('.cube')) close();
+        // Any control that leaves the board closes the view: a BACK button used to re-render the board
+        // underneath while this view stayed "open", which left the new cubes dimmed and unclickable.
+        if (event.target.closest('.cube, .back-button, .podcast-board__back')) close();
     }, true);
 
     // `reader` is published as well: the podcast panel's own description loader asks the same service,
