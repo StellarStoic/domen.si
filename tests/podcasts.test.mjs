@@ -101,21 +101,42 @@ test('the list styles read the palette, and go single-column on a narrow board',
 test('BACK steps out of one thing at a time, top first', () => {
   const goBack = SCRIPT.slice(SCRIPT.indexOf('function goBack()'), SCRIPT.indexOf('function navigateToDepth'));
   // the episode view is closed before the stack is touched, or the board is left dimmed and unclickable
-  assert.match(goBack, /if \(window\.podcastFeedView\?\.isOpen\?\.\(\)\) \{\s*\n\s*window\.podcastFeedView\.close\(\);\s*\n\s*return;/,
-    'the episode view closes first and BACK stops there');
+  assert.match(goBack, /if \(window\.podcastFeedView\?\.isOpen\?\.\(\)\) \{[\s\S]{0,900}?window\.podcastFeedView\.close\(\);/,
+    'the episode view closes first');
   assert.ok(goBack.indexOf('podcastFeedView') < goBack.indexOf('navigationStack.pop()'),
     'nothing may pop the stack before the view is closed');
   // a podcast opened from the list steps back to the list, not over it to the root board
-  assert.match(goBack, /podcastBoardContext && listIsOnTheBoard && shownInterestId\.startsWith\('podcast-'\)/);
+  assert.match(goBack, /if \(podcastBoardContext && shownInterestId\.startsWith\('podcast-'\)\) \{/);
   assert.match(goBack, /showInfoPanel\(podcastBoardContext\.interest, podcastBoardContext\.depth\)/);
   assert.match(SCRIPT, /podcastBoardContext = \{ interest, depth \};/, 'the list records itself when it opens');
   assert.match(SCRIPT, /podcastBoardContext = null;/, 'the root board forgets it');
 });
 
-test('every control that leaves the board closes the episode view', () => {
+test('BACK is one action: the view closes first, and only cubes pre-empt it', () => {
   const feed = read('feedView.js');
-  assert.match(feed, /event\.target\.closest\('\.cube, \.back-button, \.podcast-board__back'\)/, 
-    'a BACK button used to re-render the board under an open view');
+  // Closing on the BACK controls as well made one press do two steps, which is how BACK from the
+  // episode list jumped straight past the podcast list.
+  assert.match(feed, /if \(event\.target\.closest\('\.cube'\)\) close\(\);/);
+  assert.doesNotMatch(feed, /closest\('\.cube, \.back-button/);
+});
+
+test('stepping back onto the list draws it on the board, not just in the panel', () => {
+  assert.match(SCRIPT, /function ensurePodcastListOnBoard\(\)/);
+  assert.match(SCRIPT, /if \(container\.querySelector\('\.podcast-board'\)\) \{\s*\n\s*return true;/,
+    'already drawn is drawn');
+  assert.match(SCRIPT, /container\.appendChild\(buildPodcastListBoard\(podcastBoardContext\.interest, podcastBoardContext\.depth\)\)/,
+    'a list level rebuilt after the container was cleared comes back');
+  // the branch that turns the panel onto a podcast must call it, or the two halves disagree
+  const branch = SCRIPT.slice(SCRIPT.indexOf('if (podcastBoardContext && shownInterestId.startsWith'), SCRIPT.indexOf('// At the root level, BACK closes'));
+  assert.match(branch, /ensurePodcastListOnBoard\(\)/);
+  assert.match(branch, /showInfoPanel\(podcastBoardContext\.interest/);
+});
+
+test('a view detached by a rebuild does not swallow the BACK press', () => {
+  const goBack = SCRIPT.slice(SCRIPT.indexOf('function goBack()'), SCRIPT.indexOf('function navigateToDepth'));
+  assert.match(goBack, /const shell = document\.querySelector\('#brain-container \.feed-view'\);/);
+  assert.match(goBack, /const wasOnScreen = !!shell && !shell\.hidden;/);
+  assert.match(goBack, /if \(wasOnScreen\) \{\s*\n\s*return;/, 'one press, one step — but only when there was a view on screen');
 });
 
 test('every asset carries a version at least as new as the change it holds', () => {

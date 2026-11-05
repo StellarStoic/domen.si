@@ -899,20 +899,47 @@ function navigateToSubInterests(interest, parentPosition, parentDepth) {
 }
 
 // Go back to previous level
+// The list is a level of the board, so anything that steps back onto it must find it drawn. The episode
+// view lives inside the container and a rebuild clears the container, which is how the panel could show
+// the list while the board showed cubes.
+function ensurePodcastListOnBoard() {
+    if (!podcastBoardContext) {
+        return false;
+    }
+    const container = document.getElementById('brain-container');
+    if (container.querySelector('.podcast-board')) {
+        return true;
+    }
+    if (currentInterests.length > 0) {
+        return false;
+    }
+    container.appendChild(buildPodcastListBoard(podcastBoardContext.interest, podcastBoardContext.depth));
+    return true;
+}
+
 function goBack() {
     // The episode view is the topmost thing on the board. Stepping back closes it and leaves the list,
     // the panel and the scroll position where the reader left them — it used to pop the navigation
     // stack instead, which threw the reader onto the homepage cubes *and* left the board dimmed with
     // the cubes refusing the pointer, because nothing had closed the view.
     if (window.podcastFeedView?.isOpen?.()) {
+        // A board rebuild can take the episode view's shell out of the document while the view still
+        // believes it is open. Closing it then changes nothing on screen, so this press has to step back
+        // for real instead of being spent on a view that is not there.
+        const shell = document.querySelector('#brain-container .feed-view');
+        const wasOnScreen = !!shell && !shell.hidden;
         window.podcastFeedView.close();
-        return;
+        if (wasOnScreen) {
+            return;
+        }
     }
 
-    // A podcast opened from the list steps back to that list, not over it to the root board.
+    // A podcast opened from the list steps back to that list: the panel names it AND the board draws it,
+    // because a panel showing the list over a board of cubes is not a step back — it is two disagreeing
+    // halves of one screen.
     const shownInterestId = document.getElementById('info-content')?.dataset.interestId || '';
-    const listIsOnTheBoard = !!document.querySelector('#brain-container .podcast-board');
-    if (podcastBoardContext && listIsOnTheBoard && shownInterestId.startsWith('podcast-')) {
+    if (podcastBoardContext && shownInterestId.startsWith('podcast-')) {
+        ensurePodcastListOnBoard();
         showInfoPanel(podcastBoardContext.interest, podcastBoardContext.depth);
         return;
     }

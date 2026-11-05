@@ -116,7 +116,7 @@ test('the expand control changes the height it claims to', () => {
 });
 
 test('the episode view scripts are versioned past the previous release', () => {
-  for (const [asset, floor] of [['feedView.css', 6], ['feedView.js', 6]]) {
+  for (const [asset, floor] of [['feedView.css', 6], ['feedView.js', 7]]) {
     const found = HTML.match(new RegExp(`${asset.replace('.', '\\.')}\\?v=(\\d+)`));
     assert.ok(found && Number(found[1]) >= floor, `${asset} must be at least v${floor}`);
   }
