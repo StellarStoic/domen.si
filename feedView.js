@@ -288,6 +288,72 @@
 
     // ---------------------------------------------------------------- the list
 
+    // A description is often a chapter list poured into one line ("00:00 Intro 01:20 Foo", or the same
+    // inside brackets). Split it so every time starts its own line and the label travels with it.
+    function descriptionLines(text) {
+        const out = [];
+        String(text || '').split(/\r?\n/).forEach(rawLine => {
+            const line = rawLine.trim();
+            if (!line) return;
+            const stamps = [...line.matchAll(/(\[?\d{1,2}:\d{2}(?::\d{2})?\]?)/g)];
+            if (!stamps.length) {
+                out.push({ time: '', text: line });
+                return;
+            }
+            const lead = line.slice(0, stamps[0].index).trim();
+            if (lead) out.push({ time: '', text: lead });
+            stamps.forEach((stamp, i) => {
+                const from = stamp.index + stamp[0].length;
+                const to = i + 1 < stamps.length ? stamps[i + 1].index : line.length;
+                out.push({
+                    time: stamp[1].replace(/^\[|\]$/g, ''),
+                    text: line.slice(from, to).replace(/^[\s\-–—:.·|)\]]+/, '').trim(),
+                });
+            });
+        });
+        return out;
+    }
+
+    // Paint those lines, and turn a bare address into a link. The text comes from someone else's
+    // feed, so it is built as nodes and never as HTML.
+    function paintDescription(container, text) {
+        container.replaceChildren();
+        const lines = descriptionLines(text);
+        if (!lines.length) {
+            container.append(element('span', 'feed-episode__line-text', 'This episode carries no description.'));
+            return lines;
+        }
+        lines.forEach(line => {
+            const row = element('div', 'feed-episode__line');
+            if (line.time) row.append(element('span', 'feed-episode__time', line.time));
+            const holder = element('span', 'feed-episode__line-text');
+            let cursor = 0;
+            let painted = 0;
+            for (const match of line.text.matchAll(/https?:\/\/[^\s<>"')]+/g)) {
+                if (match.index > cursor) {
+                    holder.append(line.text.slice(cursor, match.index));
+                    painted += 1;
+                }
+                const link = element('a', 'feed-episode__link', match[0]);
+                link.href = match[0];
+                link.target = '_blank';
+                link.rel = 'noopener noreferrer';
+                holder.append(link);
+                painted += 1;
+                cursor = match.index + match[0].length;
+            }
+            if (cursor < line.text.length) {
+                holder.append(line.text.slice(cursor));
+                painted += 1;
+            }
+            // Nothing painted means a line that is only a time and no words.
+            if (!painted) holder.textContent = line.text;
+            row.append(holder);
+            container.append(row);
+        });
+        return lines;
+    }
+
     function paintEpisodes(episodes) {
         const list = root.querySelector('.feed-view__episodes');
         list.replaceChildren();
@@ -318,8 +384,10 @@
             if (episode.chapters?.length) facts.push(`${episode.chapters.length} chapters`);
             const meta = element('p', 'feed-episode__meta', facts.join(' · '));
 
-            const description = element('p', 'feed-episode__description', episode.description || 'This episode carries no description.');
+            const descriptionText = episode.description || '';
+            const description = element('div', 'feed-episode__description');
             description.dataset.episodeIndex = String(index);
+            const descriptionLineCount = paintDescription(description, descriptionText).length;
 
             // The whole description is a control: a click opens it, and the same click closes it.
             const isOpen = state.expanded.has(row.dataset.episodeId);
@@ -328,6 +396,9 @@
                 isOpen ? 'Show less' : 'Read the full description');
             more.type = 'button';
             more.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+            // Nothing to expand when the text already fits the three clamped lines: a control that
+            // changes nothing is why this button read as broken.
+            more.hidden = descriptionLineCount <= 3 && descriptionText.length <= 240;
 
             const toggle = () => {
                 const open = !row.classList.contains('is-open');
