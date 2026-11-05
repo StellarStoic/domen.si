@@ -57,8 +57,10 @@ const descriptionLines = loadDescriptionLines();
 
 test('the stylesheet parses: braces balance and no value is left hanging', () => {
   assert.equal(CSS.split('{').length, CSS.split('}').length, 'braces do not balance');
-  const hanging = CSS.split('\n').filter(line => /:\s*(var\([^)]*|[^;{}]*[a-z0-9])$/i.test(line.trim())
-    && !line.trim().endsWith('{') && !line.trim().endsWith(',') && !line.trim().startsWith('/*'));
+  // Comments come out first: a block comment's own lines look like half-written declarations.
+  const code = CSS.replace(/\/\*[\s\S]*?\*\//g, '');
+  const hanging = code.split('\n').filter(line => /:\s*(var\([^)]*|[^;{}]*[a-z0-9])$/i.test(line.trim())
+    && !line.trim().endsWith('{') && !line.trim().endsWith(','));
   assert.deepEqual(hanging, [], 'a declaration is cut in half');
   // the keyframes that used to swallow the file must stand on their own
   const pulse = block(CSS, '@keyframes feed-pulse');
@@ -115,8 +117,20 @@ test('the expand control changes the height it claims to', () => {
     'a description that already fits gets no pointless control');
 });
 
+test('closing the view actually hides it, not just marks it hidden', () => {
+  // .feed-view sets display: flex, and an author display rule beats the browser's [hidden] rule — so
+  // with only a descendant selector the closed view stayed painted over the board at z-index 60 and BACK
+  // appeared to do nothing.
+  const hide = CSS.slice(CSS.indexOf('/* A rule with display set beats'));
+  assert.match(hide, /\.feed-view\[hidden\]/, 'the shell needs its own [hidden] rule');
+  assert.match(hide, /\.feed-view \[hidden\]/, 'descendants keep theirs');
+  assert.match(hide, /display: none !important/);
+  assert.match(rulesFor(CSS, '.feed-view').join('\n'), /display: flex/,
+    'and this is why the attribute alone is not enough');
+});
+
 test('the episode view scripts are versioned past the previous release', () => {
-  for (const [asset, floor] of [['feedView.css', 6], ['feedView.js', 7]]) {
+  for (const [asset, floor] of [['feedView.css', 7], ['feedView.js', 7]]) {
     const found = HTML.match(new RegExp(`${asset.replace('.', '\\.')}\\?v=(\\d+)`));
     assert.ok(found && Number(found[1]) >= floor, `${asset} must be at least v${floor}`);
   }

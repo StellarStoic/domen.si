@@ -2,7 +2,10 @@
    It sits inside #brain-container, over the cubes, and everything it does is visible while it
    happens — reading a feed through Tor is slow enough that silence would read as a broken page. */
 
-/* A rule with display set beats the hidden attribute; this puts it back. */
+/* A rule with display set beats the hidden attribute; this puts it back — for the shell itself as well,
+   because .feed-view sets display: flex. Covering only the descendants left the closed view painted over
+   the board at z-index 60, so BACK looked like it did nothing at all. */
+.feed-view[hidden],
 .feed-view [hidden] {
     display: none !important;
 }

@@ -142,7 +142,7 @@ test('a view detached by a rebuild does not swallow the BACK press', () => {
 test('every asset carries a version at least as new as the change it holds', () => {
   // Per asset, because only some of them change in any one release: an unversioned asset is served from
   // a ten-minute cache, which reads as "the fix did not work".
-  const floors = { 'style.css': 7, 'script.js': 8, 'feedView.css': 5, 'feedView.js': 5, 'data.js': 1 };
+  const floors = { 'style.css': 7, 'script.js': 8, 'feedView.css': 7, 'feedView.js': 5, 'data.js': 1 };
   for (const [asset, floor] of Object.entries(floors)) {
     const found = HTML.match(new RegExp(`${asset.replace(/\./g, '\\.')}\\?v=(\\d+)`));
     assert.ok(found, `${asset} carries no version`);
