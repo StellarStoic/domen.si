@@ -1,4 +1,4 @@
-{
+﻿{
   "id": "fermentation",
   "name": "FERMENTATION",
   "description": "My newest obsession is fermentation. I love the process of fermentation and the delicious results it produces. I started fermenting in 2025 and I've been hooked ever since. I love the science behind it and the endless possibilities it offers.",
@@ -12,7 +12,7 @@
     {
       "id": "kefir",
       "name": "KEFIR",
-      "description": "One of the first ferments I got into was milk kefir. I love the taste and the health benefits of it. Here is a link to the only place related to Kefir you'll ever need  <a href=\"https://myfermentedlife.com/\">myfermentedlife.com/</a>",
+      "description": "One of the first ferments I got into was milk kefir. I love the taste and the health benefits of it. Here is a link to the only place related to Kefir you'll ever need  <a href=\"https://myfermentedlife.com/\">myfermentedlife.com/</a><br><br>Or download the <a href=\"downloads/kefir-skill.md\" download=\"kefir-skill.md\">kefir skill.md</a> and hand it to your own AI agent — Claude, ChatGPT, or a model running on your own machine. It carries this same knowledge, so the agent answers from the archive instead of guessing.",
       "url": "https://myfermentedlife.com/"
     },
     {
