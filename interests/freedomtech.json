@@ -103,15 +103,9 @@
           "description": "A hardware signing device keeps private keys away from an internet-connected computer. Buy directly from the manufacturer or build your own, verify addresses on the device screen and protect the recovery backup offline.",
           "subInterests": [
             {
-              "id": "bitbox",
-              "name": "BITBOX",
-              "description": "A Swiss-made signing device with open-source firmware on a secure chip, backups on a microSD card or as recovery words, and touch controls to confirm what the screen shows. The Bitcoin-only edition runs firmware that handles nothing else.",
-              "url": "https://shop.bitbox.swiss/en/"
-            },
-            {
               "id": "seedsigner",
               "name": "SEEDSIGNER",
-              "description": "A Bitcoin-only signing device with a large screen for easy address verification and a simple workflow for signing transactions from an offline computer.",
+              "description": "A Bitcoin-only signing device with a large screen for easy address verification and a simple workflow for signing transactions from an offline computer. Many hardware wallets promise you the best security, but the best one is the one you build yourself and that nobody knows about.",
               "url": "https://seedsigner.com/"
             }
           ]
