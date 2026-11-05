@@ -19,7 +19,7 @@ const HTML = read('index.html');
 const OPML = read('assets/img/data/PodcastAddict_OPML_export_20260611_232241.opml');
 
 test('the subscriptions are one sorted list, and no cubes', () => {
-  assert.match(DATA, /interest\.podcastList = podcasts/);
+  assert.match(DATA, /interest\.podcastList = listed;/, 'the list takes the filtered subscriptions');
   assert.match(DATA, /\.sort\(\(first, second\) => first\.sortName\.localeCompare\(second\.sortName\)\)/,
     'sorted on the name, ignoring a leading "The"');
   assert.match(DATA, /interest\.subInterests = \[\];/,
@@ -105,6 +105,27 @@ test('the changed assets are versioned past the previous release', () => {
   }
   const feed = HTML.match(/feedView\.css\?v=(\d+)/);
   assert.ok(feed && Number(feed[1]) >= 5, 'feedView.css must be bumped past 4');
+});
+
+test('the hidden subscriptions are matched exactly, and every one really exists', () => {
+  const block = DATA.slice(DATA.indexOf('const HIDDEN_PODCASTS = new Set(['), DATA.indexOf(']);', DATA.indexOf('const HIDDEN_PODCASTS')));
+  const hidden = [...block.matchAll(/'([^']+)'/g)].map(match => match[1]);
+  assert.equal(hidden.length, 13, 'thirteen subscriptions were named');
+
+  // every name must exist in the export, or a typo would quietly remove nothing
+  const unescape = text => text.replace(/&amp;/g, '&').replace(/&quot;/g, '"').replace(/&#39;/g, "'");
+  const names = unescape(OPML).match(/<outline[^>]*?(?:text|title)="([^"]*)"[^>]*?xmlUrl="/g) || [];
+  const inOpml = new Set(names.map(tag => unescape((tag.match(/(?:text|title)="([^"]*)"/) || [])[1] || '').trim().toLowerCase()));
+  const missing = hidden.filter(name => !inOpml.has(name));
+  assert.deepEqual(missing, [], 'a hidden name that is not in the export would hide nothing');
+
+  // and the filter runs before the sort, so the list itself is already without them
+  assert.match(DATA, /\.filter\(podcast => !HIDDEN_PODCASTS\.has\(podcast\.name\.trim\(\)\.toLowerCase\(\)\)\)\s*\n\s*\.sort\(/);
+  assert.match(DATA, /interest\.podcastList = listed;/);
+});
+
+test('data.js carries a version, since it now changes too', () => {
+  assert.match(HTML, /data\.js\?v=\d+/, 'an unversioned data.js is cached for ten minutes');
 });
 
 test('every subscription in the OPML can produce a named row', () => {

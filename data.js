@@ -119,6 +119,25 @@ async function getInterestFiles() {
     return await manifestResponse.json();
 }
 
+// Subscriptions D asked to keep off the board. Matched on the name exactly (case-insensitively) so a
+// different show with a similar name cannot be dropped by accident, and applied to the OPML import
+// rather than to the file — a fresh Podcast Addict export therefore cannot quietly bring them back.
+const HIDDEN_PODCASTS = new Set([
+    'bitcoin magazine podcast',
+    'bitcoin.review podcast with nvk & guests',
+    'carrete digital',
+    'coindesk podcast network',
+    'darthcoin guides',
+    'decent crypto podcast',
+    'digitalika, el mundo de la tecnología a tu alcance',
+    'dr. roy casagranda podcast',
+    'fermup - the fermented food podcast',
+    'nutrition diva',
+    'potty mouth garden club',
+    'recallers of the lost pathfinder - a ttrpg campaign',
+    'youtuber: regina ferreira 5'
+]);
+
 // Convert OPML podcast subscriptions into grouped interests that remain manageable as cubes.
 async function loadPodcastInterests(interest) {
     if (!interest.opmlSource) {
@@ -160,14 +179,18 @@ async function loadPodcastInterests(interest) {
         };
     });
 
-    interest.description = `${podcasts.length} podcast subscriptions imported from Podcast Addict. `
-        + `Last updated: ${updatedAt}.`;
-
     // One alphabetical list rather than letter-range cubes: a hundred podcast cubes were a directory
     // with extra steps, and the board is meant to be a map of interests, not of subscriptions. The
     // list keeps each subscription's own feed, artwork and link, so nothing is lost by flattening it.
-    interest.podcastList = podcasts
+    const listed = podcasts
+        .filter(podcast => !HIDDEN_PODCASTS.has(podcast.name.trim().toLowerCase()))
         .sort((first, second) => first.sortName.localeCompare(second.sortName));
+
+    const hidden = podcasts.length - listed.length;
+    interest.description = `${listed.length} podcast subscriptions imported from Podcast Addict`
+        + (hidden > 0 ? `, ${hidden} hidden.` : '.')
+        + ` Last updated: ${updatedAt}.`;
+    interest.podcastList = listed;
     interest.subInterests = [];
 
     return interest;
