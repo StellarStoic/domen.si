@@ -23,7 +23,9 @@
 .feed-view {
     position: absolute;
     inset: 0;
-    z-index: 20;
+    /* Above the cubes' own stacking: a BACK cube sets z-index 50 inline, so at 20 it painted dimmed on
+       top of the episode view instead of behind it. */
+    z-index: 60;
     display: flex;
     flex-direction: column;
     gap: 0.9rem;

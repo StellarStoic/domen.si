@@ -969,6 +969,7 @@ function buildPodcastListBoard(interest, depth) {
         <div class="podcast-board__head">
             <strong>${escapeHtml(interest.name)} — ${interest.podcastList.length} podcasts, A to Z</strong>
             <span class="podcast-board__hint">A name opens its description, RSS feed and episodes</span>
+            <button type="button" class="podcast-board__back">← BACK</button>
         </div>
         <ol class="podcast-board__items">
             ${interest.podcastList.map((podcast, index) => `
@@ -998,6 +999,10 @@ function buildPodcastListBoard(interest, depth) {
         });
     });
 
+    // BACK is part of the list, not a cube floating over it: the board's BACK cube has z-index 50 and
+    // would paint above the list (and above the episode view), which is exactly what D found annoying.
+    board.querySelector('.podcast-board__back')?.addEventListener('click', () => goBack());
+
     // Artwork in the OPML can be stale or blocked; drop it rather than leaving a broken icon in every
     // row, exactly as the podcast panel already does for its own cover.
     board.querySelectorAll('.podcast-board__art').forEach(image => {
@@ -1019,15 +1024,9 @@ function openPodcastList(interest, position, depth) {
 
     currentInterests = [];
     container.innerHTML = '';
+    // No BACK cube here: the list carries its own BACK in the header. The cube version floats over the
+    // list (and over the episode view) and read as clutter.
     container.appendChild(buildPodcastListBoard(interest, depth));
-
-    // The ring placement the sub-interest levels use lands on the list's own header here, because the
-    // parent cube sits inside the area the list now covers. Pin BACK to the strip under the list instead.
-    const backCube = createBackCube(position, depth);
-    backCube.style.left = `${Math.max(12, container.clientWidth - 50 - 16)}px`;
-    backCube.style.top = `${Math.max(12, container.clientHeight - 30 - 16)}px`;
-    backCube.style.zIndex = '50';
-    container.appendChild(backCube);
 }
 
 function showInfoPanel(interest, depth) {

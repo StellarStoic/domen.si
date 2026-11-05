@@ -33,8 +33,8 @@ test('the list is drawn in the cubes container, not the panel', () => {
   assert.match(SCRIPT, /function buildPodcastListBoard\(interest, depth\)/);
   assert.match(SCRIPT, /container\.appendChild\(buildPodcastListBoard\(interest, depth\)\)/,
     'the list is appended to #brain-container');
-  assert.match(SCRIPT, /container\.appendChild\(backCube\)/,
-    'BACK comes with it, as it does at any other level');
+  assert.doesNotMatch(SCRIPT, /createBackCube\(position, depth\)/,
+    'no BACK cube floats over the list');
   // the panel says where the list is rather than repeating it
   assert.match(SCRIPT, /listed A to Z on the board/);
   assert.doesNotMatch(SCRIPT, /renderPodcastList/, 'the panel list is gone');
@@ -45,6 +45,20 @@ test('clicking the cube opens the list even though it has no sub-cubes', () => {
   assert.match(SCRIPT, /if \(opensBoardView \|\| getVisibleInterests\(interest\.subInterests\)\.length > 0\)/,
     'the cube has to reach handleCubeClick, or the board never changes');
   assert.match(SCRIPT, /openPodcastList\(interest, position, depth\);/);
+});
+
+test('BACK is part of the list, in its header', () => {
+  assert.match(SCRIPT, /<button type="button" class="podcast-board__back">← BACK<\/button>/);
+  assert.match(SCRIPT, /querySelector\('\.podcast-board__back'\)\?\.addEventListener\('click', \(\) => goBack\(\)\)/,
+    'the header control returns to the cubes through the same stack');
+  const css = STYLE.slice(STYLE.indexOf('.podcast-board__back {'), STYLE.indexOf('.podcast-board__items {'));
+  assert.doesNotMatch(css, /#[0-9a-fA-F]{3,6}/, 'the control reads the palette');
+});
+
+test('the episode view paints above a BACK cube (z-index 50)', () => {
+  const feed = read('feedView.css');
+  const zIndex = Number((feed.match(/\.feed-view \{[\s\S]{0,400}?z-index: (\d+);/) || [])[1]);
+  assert.ok(zIndex >= 60, `feed view z-index is ${zIndex}; a BACK cube sets 50 inline and painted over it`);
 });
 
 test('the list is a navigation level, so BACK works unchanged', () => {
@@ -81,14 +95,16 @@ test('the list styles read the palette, and go single-column on a narrow board',
   assert.match(block, /background-color: var\(--surface\)/);
   assert.match(block, /color: var\(--cube-ink\)/);
   assert.match(block, /max-width: 768px/, 'one column when the board is narrow');
-  assert.match(block, /inset: 12px 12px 56px 12px/, 'a strip stays free for the BACK cube');
+  assert.match(block, /inset: 12px;/, 'the list fills the board, since BACK left it');
 });
 
 test('the changed assets are versioned past the previous release', () => {
   for (const asset of ['style.css', 'script.js']) {
     const found = HTML.match(new RegExp(`${asset.replace('.', '\\.')}\\?v=(\\d+)`));
-    assert.ok(found && Number(found[1]) >= 6, `${asset} must be bumped past 5`);
+    assert.ok(found && Number(found[1]) >= 7, `${asset} must be bumped past 6`);
   }
+  const feed = HTML.match(/feedView\.css\?v=(\d+)/);
+  assert.ok(feed && Number(feed[1]) >= 5, 'feedView.css must be bumped past 4');
 });
 
 test('every subscription in the OPML can produce a named row', () => {

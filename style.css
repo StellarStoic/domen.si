@@ -459,8 +459,7 @@ font-weight: bold;
    and floats above it, as it does over the cubes. */
 .podcast-board {
     position: absolute;
-    /* the bottom strip is left free for the BACK cube, which floats above the list */
-    inset: 12px 12px 56px 12px;
+    inset: 12px;
     z-index: 1;
     display: flex;
     flex-direction: column;
@@ -481,6 +480,27 @@ font-weight: bold;
 .podcast-board__hint {
     font-size: 0.75rem;
     color: var(--muted);
+}
+
+/* BACK belongs to the list, in its header, rather than floating over it as a cube. */
+.podcast-board__back {
+    background-color: var(--cube);
+    color: var(--cube-ink);
+    border: 2px solid var(--cube-edge);
+    padding: 0.3rem 0.7rem;
+    font-family: 'Courier New', monospace;
+    font-size: 0.75rem;
+    font-weight: bold;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.podcast-board__back:hover,
+.podcast-board__back:focus {
+    background-color: var(--accent);
+    color: var(--accent-ink);
+    outline: none;
 }
 
 .podcast-board__items {
