@@ -39,10 +39,20 @@ test('the series is ordered, and the page says what a point means', () => {
     assert.match(data.note, /24 ur/i);
 });
 
+test('a hole in the record ends a run, so nothing is drawn across it', () => {
+    // The archive is 2019-2023 and recording resumes in 2026: a line across that gap,
+    // or a "last 7 vs previous 7" comparing 2026 with 2019, would be a chart that lies.
+    assert.match(view, /function splitRuns/);
+    assert.match(view, /gap > 1\.5/);
+    assert.match(view, /runs\.forEach/);
+    assert.match(view, /premalo zaporednih dni za trend/);
+    assert.match(view, /sklopih/);
+});
+
 test('the view draws a trailing mean, because one day never shows a trend', () => {
     assert.match(view, /TREND_WINDOW\s*=\s*7/);
     assert.match(view, /function trailingMean/);
-    assert.match(view, /premalo podatkov za trend/,
+    assert.match(view, /premalo zaporednih dni za trend/,
         'a short series must say so instead of inventing a trend');
     assert.match(view, /class="polistat-trend-line"|polistat-trend-line/);
 });

@@ -3,6 +3,9 @@ let navigationStack = []; // Stack to track navigation history
 let currentInterests = []; // Current level being displayed
 // The podcast list currently on the board, if any: a podcast opened from it steps back to it.
 let podcastBoardContext = null;
+// The path down to the cube in the panel, by name: the breadcrumb used to print one
+// arrow glyph per level, and in this font that glyph reads as the digit 4.
+let interestTrail = [];
 let activeGalleryImages = []; // Images currently shown in the lightbox
 let activeGalleryIndex = 0; // Selected lightbox image index
 let sintraPriceSocket = null; // Active Sintra WebSocket used for live Bitcoin prices.
@@ -1097,14 +1100,14 @@ function showInfoPanel(interest, depth) {
     const visibleSubInterests = getVisibleInterests(interest.subInterests);
     infoContent.dataset.interestId = interest.id;
     
-    // Create clickable breadcrumb navigation
+    // Create clickable breadcrumb navigation, by name
+    interestTrail[depth] = interest.name;
+    interestTrail.length = depth + 1;
     let breadcrumb = '<span class="breadcrumb-item" data-depth="0">ROOT</span>';
-    if (depth > 0) {
-        // Create clickable depth markers
-        const depthMarkers = Array(depth).fill(0).map((_, index) => 
-            `<span class="breadcrumb-item" data-depth="${index + 1}">↳</span>`
-        );
-        breadcrumb += ' > ' + depthMarkers.join(' > ');
+    for (let level = 0; level < depth; level += 1) {
+        const label = escapeHtml(interestTrail[level] || '');
+        if (!label) continue;
+        breadcrumb += ` > <span class="breadcrumb-item" data-depth="${level + 1}">${label}</span>`;
     }
     
     infoContent.innerHTML = `
