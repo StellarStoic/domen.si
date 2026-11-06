@@ -1,0 +1,178 @@
+/* POLISTAT — the police's own daily numbers, drawn in the board.
+
+   Same rules as the rest of the site: nothing leaves the page, no library, the
+   chart is an SVG built from the JSON the exporter writes, and every colour is a
+   palette role so the white theme inverts with everything else. */
+
+.brain-container.has-polistat {
+    position: relative;
+}
+
+.polistat-view {
+    position: absolute;
+    inset: 0;
+    /* above the cubes, which set z-index 50 on the BACK cube */
+    z-index: 60;
+    display: flex;
+    flex-direction: column;
+    gap: 0.7rem;
+    padding: 0.9rem 1rem 1rem;
+    background: var(--page);
+    border: 2px solid var(--rule);
+    color: var(--ink);
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    font-family: 'Courier New', monospace;
+}
+
+.polistat-view[hidden],
+.polistat-view [hidden] {
+    display: none !important;
+}
+
+.polistat-view__head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1rem;
+}
+
+.polistat-view__title {
+    font-size: 1rem;
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 0.06rem;
+}
+
+.polistat-view__sub {
+    margin-top: 0.15rem;
+    font-size: 0.72rem;
+    color: var(--muted);
+}
+
+.polistat-view__close {
+    flex: 0 0 auto;
+    width: 2rem;
+    height: 2rem;
+    display: grid;
+    place-items: center;
+    background: var(--page);
+    color: var(--ink);
+    border: 2px solid var(--rule);
+    font-family: inherit;
+    font-size: 1rem;
+    cursor: pointer;
+}
+
+.polistat-view__close:hover,
+.polistat-view__close:focus-visible {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: var(--accent-ink);
+    outline: none;
+}
+
+/* Metric and range selectors: the same button language as the rest of the board. */
+.polistat-view__buttons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+}
+
+.polistat-view__ranges {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+    align-items: center;
+}
+
+.polistat-chip {
+    background: var(--page);
+    color: var(--ink);
+    border: 1px solid var(--muted);
+    padding: 0.25rem 0.5rem;
+    font-family: inherit;
+    font-size: 0.7rem;
+    letter-spacing: 0.04rem;
+    text-transform: uppercase;
+    cursor: pointer;
+}
+
+.polistat-chip:hover,
+.polistat-chip:focus-visible {
+    border-color: var(--accent);
+    color: var(--accent-text);
+    outline: none;
+}
+
+/* Selected state is green, as D prefers for "active" anywhere on the board. */
+.polistat-chip.is-active {
+    border-color: var(--active);
+    color: var(--active-text);
+    font-weight: bold;
+}
+
+.polistat-view__trend {
+    font-size: 0.75rem;
+    color: var(--ink);
+}
+
+.polistat-view__trend b {
+    color: var(--accent-text);
+}
+
+.polistat-view__chart {
+    width: 100%;
+    height: auto;
+    border: 1px solid var(--surface-edge);
+    background: var(--surface);
+}
+
+.polistat-grid {
+    stroke: var(--surface-edge);
+    stroke-width: 1;
+}
+
+.polistat-axis {
+    fill: var(--muted);
+    font-family: 'Courier New', monospace;
+    font-size: 9px;
+}
+
+.polistat-daily {
+    fill: none;
+    stroke: var(--muted);
+    stroke-width: 1.2;
+}
+
+.polistat-area {
+    fill: var(--accent);
+    opacity: 0.12;
+}
+
+.polistat-trend-line {
+    fill: none;
+    stroke: var(--accent);
+    stroke-width: 2;
+}
+
+.polistat-point {
+    fill: var(--accent);
+}
+
+.polistat-view__note {
+    font-size: 0.7rem;
+    color: var(--muted);
+}
+
+@media (max-width: 768px) {
+    .polistat-view {
+        padding: 0.6rem 0.6rem 0.8rem;
+        gap: 0.5rem;
+    }
+
+    .polistat-chip {
+        font-size: 0.64rem;
+        padding: 0.2rem 0.4rem;
+    }
+}

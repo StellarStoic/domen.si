@@ -17,10 +17,13 @@ ROOT = pathlib.Path(__file__).resolve().parent.parent
 OUT = ROOT / "interests" / "builds.json"
 
 
-def project(pid: str, name: str, description: str, url: str = "") -> dict:
+def project(pid: str, name: str, description: str, url: str = "", **extra) -> dict:
     item = {"id": pid, "name": name, "description": description}
     if url:
         item["url"] = url
+    # `stats` marks an interest whose numbers this site keeps itself: the panel then
+    # offers the chart view instead of a link to somewhere else.
+    item.update(extra)
     return item
 
 
@@ -82,6 +85,11 @@ TELEGRAM = [
 ]
 
 OTHER = [
+    project("polistat", "POLISTAT", "What the Slovenian police recorded in the last 24 hours, "
+            "day after day: calls to 113, interventions, road accidents, breaches of public "
+            "order and criminal offences. Every day is kept, so the trend line shows whether "
+            "crime is actually rising or falling instead of leaving it to a single morning's "
+            "headline.", stats="polistat"),
     project("swatcher", "SWATCHER", "Private, watch-only Bitcoin wallet monitoring on StartOS, with a "
             "local Electrs and alerts about every transaction over NIP-17 or Telegram.",
             "https://github.com/StellarStoic/swatcher"),
