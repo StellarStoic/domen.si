@@ -106,7 +106,8 @@ test('the day files exist for every year the chart carries', () => {
             assert.match(date, /^\d{4}-\d{2}-\d{2}$/);
             assert.ok(typeof days[date].t === 'string' && days[date].t.length > 20,
                 `${date} has no usable text`);
-            assert.ok(days[date].t.length <= 430, `${date} carries more text than the exporter trims`);
+            // the whole report, not a gist: a couple of thousand characters is normal
+            assert.ok(days[date].t.length <= 4000, `${date} carries more text than the store keeps`);
         }
     }
 });
