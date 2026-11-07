@@ -150,7 +150,12 @@
         const series = (state.data && state.data.series) || [];
         const range = RANGES.find(item => item.key === rangeKey) || RANGES[RANGES.length - 1];
         let points = series
-            .map(row => ({ date: row.d, value: row[metricKey] }))
+            .map(row => ({
+                date: row.d,
+                value: row[metricKey],
+                phase: typeof row.p === 'number' ? row.p : null,
+                illum: typeof row.f === 'number' ? row.f : null,
+            }))
             .filter(point => typeof point.value === 'number');
         if (rangeKey === 'custom') {
             const { from, to } = state.custom;
@@ -238,110 +243,106 @@
     }
 
     /**
-     * The moon, because the police's own daily figures are the only series here that
-     * might answer whether a full moon makes a difference.
+     * Lunine mene. The phase comes from the exporter, which computes it with astral
+     * for 46.0766, 14.5109 — the page only names it, so there is one implementation
+     * of the astronomy instead of two that could disagree.
      *
-     * The phase is computed from the date with the standard synodic month, so no data
-     * has to be stored for it. Illumination is the honest measure of "growing or
-     * shrinking"; the eight names are buckets a half-phase wide, centred on the events
-     * themselves so a new moon is called a new moon and not "waning crescent".
+     * The eight names are buckets a half-step wide and centred on the events: astral
+     * reports the day of a new moon as phase 27.9, not 0.0, so an uncentred bucket
+     * would call the darkest night of the month "waning crescent".
      */
-    const SYNODIC = 29.530588853;                       // days, mean lunation
-    const NEW_MOON = Date.UTC(2000, 0, 6, 18, 14);      // a known new moon, UTC
     const MOON_PHASES = [
-        { key: 'mlaj', short: '●' },
-        { key: 'naraščajoči srp', short: '☽' },
-        { key: 'prvi krajec', short: '◐' },
-        { key: 'naraščajoča luna', short: '◑' },
-        { key: 'polna luna', short: '○' },
-        { key: 'padajoča luna', short: '◑' },
-        { key: 'zadnji krajec', short: '◐' },
-        { key: 'padajoči srp', short: '☾' },
+        { key: 'mlaj', icon: '🌑' },
+        { key: 'naraščajoči srp', icon: '🌒' },
+        { key: 'prvi krajec', icon: '🌓' },
+        { key: 'naraščajoča luna', icon: '🌔' },
+        { key: 'polna luna', icon: '🌕' },
+        { key: 'padajoča luna', icon: '🌖' },
+        { key: 'zadnji krajec', icon: '🌗' },
+        { key: 'padajoči srp', icon: '🌘' },
     ];
+    const PHASE_STEP = 3.5;                 // 28 astral units over 8 names
+    const FULL = 14;                        // the full moon sits here
 
-    /** Days since the reference new moon, 0 … 29.53. */
-    function moonAge(date) {
-        const days = (Date.parse(`${date}T12:00:00Z`) - NEW_MOON) / DAY;
-        return ((days % SYNODIC) + SYNODIC) % SYNODIC;
-    }
-
-    /** 0 … 1, where 0 is new and 1 is full. */
-    function moonIllumination(age) {
-        return (1 - Math.cos((2 * Math.PI * age) / SYNODIC)) / 2;
-    }
-
-    function moonPhaseIndex(age) {
-        // half a bucket of offset: without it the day of the new moon, age ≈ 29.5,
-        // lands in the last bucket and is named "waning crescent"
-        return Math.floor((age + SYNODIC / 16) / (SYNODIC / 8)) % 8;
+    function moonBucket(phase) {
+        return Math.floor((phase + PHASE_STEP / 2) / PHASE_STEP) % MOON_PHASES.length;
     }
 
     /**
-     * The figure broken down by moon phase, plus the growing/shrinking comparison D
-     * asked for. Means per phase, so a period holding more full-moon days than new-moon
-     * days does not reward the phase that merely appears more often.
+     * The figure by moon phase, and the growing/shrinking comparison.
+     * Means per phase, so a period holding more full-moon days than new-moon days
+     * does not reward the phase that merely appears more often.
      */
     function moonBreakdown(points) {
-        const buckets = MOON_PHASES.map(phase => ({ ...phase, total: 0, count: 0, waxing: 0, waning: 0 }));
-        let waxingTotal = 0;
-        let waxingDays = 0;
-        let waningTotal = 0;
-        let waningDays = 0;
+        const rows = MOON_PHASES.map((phase, index) => ({ ...phase, index, total: 0, count: 0, illum: 0 }));
+        let waxingTotal = 0, waxingDays = 0, waningTotal = 0, waningDays = 0;
+        let withPhase = 0;
         points.forEach(point => {
-            const age = moonAge(point.date);
-            const bucket = buckets[moonPhaseIndex(age)];
+            if (point.phase === null) return;
+            withPhase += 1;
+            const bucket = rows[moonBucket(point.phase)];
             bucket.total += point.value;
             bucket.count += 1;
-            if (age < SYNODIC / 2) {
-                waxingTotal += point.value;
-                waxingDays += 1;
-            } else {
-                waningTotal += point.value;
-                waningDays += 1;
-            }
+            bucket.illum += point.illum || 0;
+            if (point.phase < FULL) { waxingTotal += point.value; waxingDays += 1; }
+            else { waningTotal += point.value; waningDays += 1; }
         });
-        const rows = buckets.map(bucket => ({
-            ...bucket,
-            mean: bucket.count ? bucket.total / bucket.count : 0,
-            illumination: null,
-        }));
-        const overall = points.reduce((sum, point) => sum + point.value, 0) / (points.length || 1);
-        const totalMean = rows.reduce((sum, row) => sum + row.mean, 0);
+        const means = rows.map(row => (row.count ? row.total / row.count : 0));
+        const totalMean = means.reduce((sum, mean) => sum + mean, 0);
         return {
-            rows: rows.map(row => ({ ...row, share: totalMean ? (row.mean / totalMean) * 100 : 0 })),
+            rows: rows.map((row, index) => ({
+                ...row,
+                mean: means[index],
+                share: totalMean ? (means[index] / totalMean) * 100 : 0,
+                illum: row.count ? row.illum / row.count : 0,
+            })),
             waxing: waxingDays ? waxingTotal / waxingDays : null,
             waning: waningDays ? waningTotal / waningDays : null,
             waxingDays,
             waningDays,
-            overall,
+            withPhase,
         };
     }
+
+    let MOST_PHASE = -1;
 
     function renderMoon() {
         const box = root.querySelector('.polistat-view__moon');
         const points = root.__points || [];
         box.replaceChildren();
+
+        const head = element('div', 'polistat-view__moon-head', 'Lunine mene');
+        box.appendChild(head);
+
         if (points.length < 7) {
-            box.textContent = 'premalo dni za primerjavo z luno';
+            box.appendChild(element('div', 'polistat-view__moon-note', 'premalo dni za primerjavo z luno'));
             return;
         }
         const data = moonBreakdown(points);
         const seen = data.rows.filter(row => row.count > 0);
-        const ranked = [...seen].sort((a, b) => b.mean - a.mean);
-        const most = ranked[0];
+        if (!data.withPhase || seen.length < 2) {
+            box.appendChild(element('div', 'polistat-view__moon-note', 'podatka o lunini meni ni v izboru'));
+            return;
+        }
 
         const line = element('div', 'polistat-view__moon-line');
         const growing = data.waxing;
         const shrinking = data.waning;
         if (growing !== null && shrinking !== null && shrinking) {
             const change = ((growing - shrinking) / shrinking) * 100;
-            const arrow = change > 1 ? '▲' : change < -1 ? '▼' : '=';
-            const side = change > 1 ? 'naraščajoči' : change < -1 ? 'padajoči' : 'enako ob obeh';
-            line.append(
-                element('b', '', `${arrow} ${Math.abs(change).toFixed(0)} % več ob ${side} luni`),
-                document.createTextNode(` · naraščajoča ${growing.toFixed(1)}/dan (${data.waxingDays} dni)` +
-                    ` · padajoča ${shrinking.toFixed(1)}/dan (${data.waningDays} dni)`),
-            );
+            const pair = `${growing.toFixed(1)}/dan proti ${shrinking.toFixed(1)}/dan`;
+            // a plain sentence: the arrow carries the direction, the words say what
+            // is compared with what, and the two means are given so it can be checked
+            if (Math.abs(change) <= 1) {
+                line.append(element('b', '', 'ni razlike'),
+                    document.createTextNode(` med naraščajočo in padajočo luno (${pair})`));
+            } else if (change > 1) {
+                line.append(element('b', '', `ob naraščajoči luni ${Math.abs(change).toFixed(0)} % več`),
+                    document.createTextNode(` kot ob padajoči (${pair})`));
+            } else {
+                line.append(element('b', '', `ob padajoči luni ${Math.abs(change).toFixed(0)} % več`),
+                    document.createTextNode(` kot ob naraščajoči (${pair})`));
+            }
         } else {
             line.textContent = 'premalo dni na eni strani luninega cikla';
         }
@@ -349,24 +350,24 @@
 
         const bars = element('div', 'polistat-view__moon-bars');
         const peak = Math.max(...seen.map(row => row.mean)) || 1;
+        MOST_PHASE = [...seen].sort((a, b) => b.mean - a.mean)[0].index;
         seen.forEach(row => {
             const bar = element('div', 'polistat-view__moon-bar');
-            if (most && row.key === most.key) bar.classList.add('is-most');
+            if (row.index === MOST_PHASE) bar.classList.add('is-most');
+            bar.title = `${row.key}: ${row.mean.toFixed(1)}/dan · ${row.share.toFixed(1)} % · ` +
+                `${row.count} dni · svetlost ${row.illum.toFixed(0)} %`;
             const fill = element('span', 'polistat-view__moon-fill');
-            fill.style.height = `${Math.max(6, (row.mean / peak) * 100)}%`;
-            fill.title = `${row.key}: ${row.mean.toFixed(1)}/dan · ${row.share.toFixed(1)} % · ${row.count} dni`;
-            const label = element('span', 'polistat-view__moon-label', row.short);
-            bar.append(fill, label);
+            fill.style.height = `${Math.max(8, (row.mean / peak) * 100)}%`;
+            const icon = element('span', 'polistat-view__moon-icon', row.icon);
+            bar.append(fill, icon);
             bars.appendChild(bar);
         });
         box.appendChild(bars);
 
-        const note = element('div', 'polistat-view__moon-note');
-        note.textContent = seen.length
-            // the phase names are nominative, so a plain label beats "ob … luni"
-            ? `največ: ${most.key} (${most.mean.toFixed(1)}/dan) · ${seen.length} od 8 faz v izboru`
-            : '';
-        box.appendChild(note);
+        const heaviest = [...seen].sort((a, b) => b.mean - a.mean)[0];
+        box.appendChild(element('div', 'polistat-view__moon-note',
+            `največ: ${heaviest.icon} ${heaviest.key} (${heaviest.mean.toFixed(1)}/dan) · ` +
+            `${seen.length} od 8 luninih men v izboru`));
     }
 
     function fmtDate(iso) {

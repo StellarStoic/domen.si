@@ -181,10 +181,20 @@
     }
 }
 
-/* The figure by moon phase: bar per phase, the heaviest in green. */
+/* Lunine mene: the phase icon lives inside its bar, so the order of the cycle is
+   readable at a glance — 🌑 new moon first, waxing to 🌕, waning back to 🌘. */
 .polistat-view__moon {
     font-size: 0.72rem;
     color: var(--muted);
+}
+
+.polistat-view__moon-head {
+    text-transform: uppercase;
+    letter-spacing: 0.05rem;
+    font-weight: bold;
+    color: var(--ink);
+    font-size: 0.72rem;
+    margin-bottom: 0.2rem;
 }
 
 .polistat-view__moon-line b {
@@ -195,44 +205,51 @@
     display: flex;
     align-items: flex-end;
     gap: 0.3rem;
-    height: 3.1rem;
-    margin-top: 0.3rem;
+    height: 3.6rem;
+    margin-top: 0.35rem;
 }
 
 .polistat-view__moon-bar {
+    position: relative;
     flex: 1 1 0;
-    display: flex;
-    flex-direction: column;
-    justify-content: flex-end;
-    align-items: center;
     height: 100%;
-    gap: 0.15rem;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    background: var(--surface);
+    border: 1px solid var(--surface-edge);
 }
 
 .polistat-view__moon-fill {
-    width: 100%;
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
     background: var(--muted);
-    opacity: 0.55;
-    min-height: 2px;
+    opacity: 0.45;
 }
 
 .polistat-view__moon-bar.is-most .polistat-view__moon-fill {
     background: var(--active);
-    opacity: 1;
+    opacity: 0.75;
 }
 
-.polistat-view__moon-label {
-    font-size: 0.72rem;
-    color: var(--muted);
+/* the icon, large enough to read and sitting inside the bar it belongs to */
+.polistat-view__moon-icon {
+    position: relative;
+    z-index: 1;
+    font-size: 1.25rem;
     line-height: 1;
+    padding-bottom: 0.15rem;
+    filter: drop-shadow(0 0 2px var(--page));
 }
 
-.polistat-view__moon-bar.is-most .polistat-view__moon-label {
-    color: var(--active-text);
+.polistat-view__moon-bar.is-most {
+    border-color: var(--active);
 }
 
 .polistat-view__moon-note {
-    margin-top: 0.2rem;
+    margin-top: 0.25rem;
     font-size: 0.68rem;
     color: var(--muted);
 }

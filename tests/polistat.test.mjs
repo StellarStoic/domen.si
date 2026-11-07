@@ -65,36 +65,57 @@ test('the readout compares the window with the selected period\'s average', () =
     assert.match(view, /zadnjih \$\{label\} ≈ \$\{now\.toFixed\(1\)\}\/dan · povprečje/);
 });
 
-test('the moon replaces the weekday breakdown, under the trend', () => {
-    assert.match(view, /function moonAge/);
+test('the moon comes from astral, not from arithmetic in the page', () => {
     assert.match(view, /function moonBreakdown/);
     assert.match(view, /function renderMoon/);
-    assert.match(view, /const SYNODIC = 29\.530588853/);
-    assert.match(view, /naraščajoča luna|naraščajoči srp/);
-    assert.match(view, /več ob \$\{side\} luni/);
-    assert.match(view, /premalo dni za primerjavo z luno/);
+    assert.match(view, /Lunine mene/);
+    // the phase is computed once, in the exporter, and only named here
+    assert.doesNotMatch(view, /const SYNODIC/, 'the page must not re-derive the phase');
+    assert.match(view, /phase: typeof row\.p === 'number' \? row\.p : null/);
+    assert.match(view, /podatka o lunini meni ni v izboru/);
     // the weekday block is gone
     assert.doesNotMatch(view, /weekdayShares|renderWeekday/);
     assert.doesNotMatch(css, /weekday/);
-    // and the phase of a new moon must not be named "waning crescent"
-    assert.match(view, /const SYNODIC \/ 16|SYNODIC \/ 16/);
     assert.ok(view.indexOf('polistat-view__moon"></div>') > view.indexOf('polistat-view__trend"></div>'));
 });
 
-test('the moon maths is the real one, not a placeholder', () => {
-    // checked against known events before shipping: the total solar eclipse of
-    // 2024-04-08 (new moon) and the full moon of 2024-03-25
-    const SYNODIC = 29.530588853;
-    const REF = Date.UTC(2000, 0, 6, 18, 14);
-    const age = date => {
-        const days = (Date.parse(`${date}T12:00:00Z`) - REF) / 86400000;
-        return ((days % SYNODIC) + SYNODIC) % SYNODIC;
-    };
-    const illumination = a => (1 - Math.cos((2 * Math.PI * a) / SYNODIC)) / 2;
-    assert.ok(illumination(age('2024-04-08')) < 0.01, 'new moon should be dark');
-    assert.ok(illumination(age('2024-03-25')) > 0.99, 'full moon should be lit');
-    // the implementation in the page uses the same constants
-    assert.match(view, /const NEW_MOON = Date\.UTC\(2000, 0, 6, 18, 14\)/);
+test('the eight phase icons are in cycle order', () => {
+    // 🌑 new → 🌒 waxing crescent → 🌓 first quarter → 🌔 waxing gibbous →
+    // 🌕 full → 🌖 waning gibbous → 🌗 last quarter → 🌘 waning crescent
+    const icons = [...view.matchAll(/icon: '([^']+)'/g)].map(m => m[1]);
+    assert.deepEqual(icons, ['🌑', '🌒', '🌓', '🌔', '🌕', '🌖', '🌗', '🌘']);
+    assert.match(view, /const PHASE_STEP = 3\.5/);
+    // centred buckets, or astral's 27.9 on a new-moon day becomes "waning crescent"
+    assert.match(view, /Math\.floor\(\(phase \+ PHASE_STEP \/ 2\) \/ PHASE_STEP\) % MOON_PHASES\.length/);
+});
+
+test('the moon sentence says what is compared with what', () => {
+    // "več ob enako ob obeh luni" was nonsense; the arrow carries the direction and
+    // the words name both sides plus the two means
+    assert.match(view, /'ni razlike'/);
+    assert.match(view, /ob naraščajoči luni \$\{Math\.abs\(change\)\.toFixed\(0\)\} % več/);
+    assert.match(view, /ob padajoči luni \$\{Math\.abs\(change\)\.toFixed\(0\)\} % več/);
+    assert.match(view, /\/dan proti \$\{shrinking\.toFixed\(1\)\}\/dan/);
+    assert.doesNotMatch(view, /več ob enako/, 'the old nonsense string must not return');
+});
+
+test('the phase the exporter writes matches known events', () => {
+    // astral, 46.0766/14.5109: the total solar eclipse of 2024-04-08 is a new moon and
+    // 2024-03-25 a full one. The data carries the phase, so this is checkable here.
+    const data = JSON.parse(read('data/polistat.json'));
+    const byDate = Object.fromEntries(data.series.map(row => [row.d, row]));
+    const checks = [['2024-04-08', 'new'], ['2024-03-25', 'full']];
+    for (const [date, kind] of checks) {
+        const row = byDate[date];
+        if (!row) continue;                       // that day may not be in the archive
+        if (kind === 'new') assert.ok(row.f <= 1, `${date} should be dark, got ${row.f} %`);
+        else assert.ok(row.f >= 99, `${date} should be lit, got ${row.f} %`);
+    }
+    // every row carries a phase and an illumination
+    for (const row of data.series) {
+        assert.ok(typeof row.p === 'number' && row.p >= 0 && row.p <= 28, `${row.d} has no phase`);
+        assert.ok(typeof row.f === 'number' && row.f >= 0 && row.f <= 100, `${row.d} has no illumination`);
+    }
 });
 
 test('the window is a setting: 7 days, 14, a month, three months', () => {
@@ -197,7 +218,7 @@ test('pressing the cube draws the chart: no button to press first', () => {
 });
 
 test('the page loads both assets, versioned, and the data sits under data/', () => {
-    assert.match(index, /polistat\.css\?v=6/);
-    assert.match(index, /polistat\.js\?v=7/);
+    assert.match(index, /polistat\.css\?v=7/);
+    assert.match(index, /polistat\.js\?v=8/);
     assert.match(view, /DATA_URL = 'data\/polistat\.json'/);
 });
