@@ -21,7 +21,11 @@
     border: 2px solid var(--rule);
     color: var(--ink);
     overflow-y: auto;
-    overscroll-behavior: contain;
+    /* NOT `contain`: the chart usually fits its box, and contain then swallows a
+       one-finger drag that the reader needs for moving the page when the page itself
+       is zoomed. Letting the scroll chain out means the view scrolls first (when it
+       has something to scroll) and the page takes over at the end. */
+    overscroll-behavior: auto;
     font-family: 'Courier New', monospace;
 }
 

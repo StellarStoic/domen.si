@@ -80,6 +80,16 @@ test('a zoomed board always has a way out', () => {
         'the board\'s click suppression would make the control untappable');
 });
 
+test('an open view must not swallow the drag that moves the page', () => {
+    // The chart fits its box, so it has nothing to scroll — with overscroll-behavior:
+    // contain the one-finger drag died there and a page-zoomed board could not be
+    // moved at all. The scroll has to chain out to the page.
+    const polistatCss = read('polistat.css');
+    const feedCss = read('feedView.css');
+    assert.doesNotMatch(polistatCss, /overscroll-behavior:\s*contain/);
+    assert.doesNotMatch(feedCss, /overscroll-behavior:\s*contain/);
+});
+
 test('a touch or wheel on a view is not the board\'s business', () => {
     assert.match(script, /closest\('\.polistat-view, \.feed-view'\)/);
     assert.match(script, /closest\('\.polistat-view, \.feed-view, \.podcast-board'\)/);

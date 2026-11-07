@@ -36,7 +36,7 @@
     background: var(--page, #000);
     border: 2px solid var(--rule, #fff);
     overflow-y: auto;
-    overscroll-behavior: contain;
+    overscroll-behavior: auto;
     font-family: 'Courier New', monospace;
     color: var(--ink, #fff);
     animation: feed-view-in 0.18s ease-out;
