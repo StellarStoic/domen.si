@@ -46,7 +46,7 @@ test('the view is clamped so the board always covers its container', () => {
 
 test('a drag must not end by opening the cube it started on', () => {
     assert.match(script, /suppressClick/);
-    assert.match(script, /container\.addEventListener\('click',[\s\S]{0,220}\}, true\)/,
+    assert.match(script, /container\.addEventListener\('click',[\s\S]{0,700}\}, true\)/,
         'the click that follows a drag has to be swallowed in the capture phase');
 });
 
@@ -59,12 +59,33 @@ test('the gesture the browser would claim is claimed first', () => {
     assert.match(script, /if \(!event\.ctrlKey && !event\.metaKey\) return;/);
 });
 
+test('a zoomed board always has a way out', () => {
+    // A gesture is not enough: Safari zooms the page and leaves the board unpannable,
+    // so there is a control that resets, and the page zoom is blocked at the source.
+    assert.match(script, /function ensureZoomControl/);
+    assert.match(script, /container\.appendChild\(chip\)/);
+    assert.doesNotMatch(script, /boardLayer\(\)\.appendChild\(chip\)/,
+        'the control must not scale or pan with the board');
+    assert.match(script, /addEventListener\('gesturestart'/,
+        'Safari pinch arrives as gesture events and would zoom the page');
+    assert.match(script, /addEventListener\('gesturechange'/);
+    assert.match(script, /event\.preventDefault\(\);[\s\S]{0,120}gestureBase/);
+    // and the escape keys, for a mouse-and-keyboard reader
+    assert.match(script, /event\.key === 'Escape' \|\| event\.key === '0'/);
+    // at 1:1 a drag over the board must still scroll the page
+    assert.match(script, /boardView\.scale <= 1\.001\) return;/);
+    assert.match(css, /\.board-zoom\s*\{[\s\S]*?position:\s*fixed/,
+        'a control pinned to the board\'s bottom edge is below the fold when zoomed');
+    assert.match(script, /if \(event\.target\.closest\('\.board-zoom'\)\) \{/,
+        'the board\'s click suppression would make the control untappable');
+});
+
 test('a touch or wheel on a view is not the board\'s business', () => {
     assert.match(script, /closest\('\.polistat-view, \.feed-view'\)/);
     assert.match(script, /closest\('\.polistat-view, \.feed-view, \.podcast-board'\)/);
 });
 
 test('the changed assets carry new versions', () => {
-    assert.match(index, /style\.css\?v=9/);
-    assert.match(index, /script\.js\?v=12/);
+    assert.match(index, /style\.css\?v=11/);
+    assert.match(index, /script\.js\?v=14/);
 });

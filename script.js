@@ -55,6 +55,39 @@ function applyBoardView() {
     clampBoardView();
     layer.style.transformOrigin = '0 0';
     layer.style.transform = `translate(${boardView.x}px, ${boardView.y}px) scale(${boardView.scale})`;
+    // At 1:1 a drag over the board should still scroll the page; once the board is
+    // magnified it owns the gesture, or the page scrolls instead of the board moving.
+    const zoomed = boardView.scale > 1.001;
+    layer.style.touchAction = zoomed ? 'none' : 'pan-y';
+    let chip = document.querySelector('#brain-container .board-zoom');
+    if (!chip) {
+        ensureZoomControl();
+        chip = document.querySelector('#brain-container .board-zoom');
+    }
+    if (chip) {
+        chip.hidden = !zoomed && !boardView.pinching;
+        chip.textContent = `${Math.round(boardView.scale * 100)} %`;
+        chip.title = 'Nazaj na 100 %';
+    }
+}
+
+/** A control, not only a gesture: whatever happens to the pinch, this resets. */
+function ensureZoomControl() {
+    const container = document.getElementById('brain-container');
+    if (!container || container.querySelector('.board-zoom')) return;
+    const chip = document.createElement('button');
+    chip.type = 'button';
+    chip.className = 'board-zoom';
+    chip.hidden = true;
+    chip.setAttribute('aria-label', 'Ponastavi povečavo na 100 %');
+    chip.addEventListener('click', event => {
+        event.stopPropagation();
+        resetBoardView();
+    });
+    // the board's own touch handlers must not eat the finger that lands on the chip
+    chip.addEventListener('touchstart', event => event.stopPropagation(), { passive: true });
+    chip.addEventListener('touchend', event => event.stopPropagation(), { passive: true });
+    container.appendChild(chip);
 }
 
 function resetBoardView() {
@@ -84,6 +117,7 @@ function setupBoardPanZoom() {
     const container = document.getElementById('brain-container');
     if (!container || container.dataset.panZoom === 'on') return;
     container.dataset.panZoom = 'on';
+    ensureZoomControl();
 
     let suppressClick = false;
     let touchMode = null;            // 'pan' | 'pinch'
@@ -117,6 +151,7 @@ function setupBoardPanZoom() {
 
     const onTouchMove = event => {
         if (touchMode === 'pan' && event.touches.length === 1 && start) {
+            if (boardView.scale <= 1.001) return;   // at 1:1 the page scrolls, not the board
             const now = point(event.touches[0]);
             const dx = now.x - start.point.x;
             const dy = now.y - start.point.y;
@@ -148,6 +183,8 @@ function setupBoardPanZoom() {
         touchMode = null;
         start = null;
         pinch = null;
+        // the click caused by the gesture arrives immediately; anything later is a real tap
+        window.setTimeout(() => { suppressClick = false; }, 350);
     };
 
     const onMouseDown = event => {
@@ -184,11 +221,69 @@ function setupBoardPanZoom() {
 
     // a drag must not end by opening the cube it started on
     container.addEventListener('click', event => {
+        // the control is inside this container; a pinch must not make it untappable
+        if (event.target.closest('.board-zoom')) {
+            suppressClick = false;
+            return;
+        }
         if (!suppressClick) return;
         suppressClick = false;
         event.stopPropagation();
         event.preventDefault();
     }, true);
+
+    // Safari does not honour touch-action for pinch: it zooms the page and leaves the
+    // board unpannable behind it, which is a state with no way out but a reload.
+    let gestureBase = null;
+    const onGestureStart = event => {
+        event.preventDefault();
+        gestureBase = { scale: boardView.scale, x: boardView.x, y: boardView.y };
+    };
+    const onGestureChange = event => {
+        event.preventDefault();
+        if (!gestureBase) return;
+        const rect = container.getBoundingClientRect();
+        const next = Math.min(boardView.max,
+            Math.max(boardView.min, gestureBase.scale * (event.scale || 1)));
+        const midX = (event.clientX || rect.left + rect.width / 2) - rect.left;
+        const midY = (event.clientY || rect.top + rect.height / 2) - rect.top;
+        boardView.x = midX - (midX - gestureBase.x) * (next / gestureBase.scale);
+        boardView.y = midY - (midY - gestureBase.y) * (next / gestureBase.scale);
+        boardView.scale = next;
+        applyBoardView();
+    };
+    const onGestureEnd = event => {
+        event.preventDefault();
+        gestureBase = null;
+    };
+    container.addEventListener('gesturestart', onGestureStart);
+    container.addEventListener('gesturechange', onGestureChange);
+    container.addEventListener('gestureend', onGestureEnd);
+
+    // two quick taps on empty board space also return to 100 %
+    let lastTap = 0;
+    const onTapEnd = event => {
+        if (event.touches.length) return;
+        if (event.target.closest('.cube, .back-button, .board-zoom')) { lastTap = 0; return; }
+        const now = Date.now();
+        if (now - lastTap < 320) {
+            resetBoardView();
+            lastTap = 0;
+        } else {
+            lastTap = now;
+        }
+    };
+    container.addEventListener('touchend', onTapEnd, { passive: true });
+
+    // desktop: Escape or 0 resets, so a zoomed board is never a trap there either
+    document.addEventListener('keydown', event => {
+        if (event.key === 'Escape' || event.key === '0') {
+            if (boardView.scale !== 1) {
+                resetBoardView();
+                event.preventDefault();
+            }
+        }
+    });
 
     container.addEventListener('touchstart', onTouchStart, { passive: true });
     container.addEventListener('touchmove', onTouchMove, { passive: false });

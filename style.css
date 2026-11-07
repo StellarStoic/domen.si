@@ -158,6 +158,39 @@ body {
     will-change: transform;
 }
 
+/* The way out of a zoom, as a control rather than only a gesture: it appears the
+   moment the board is magnified and returns it to 100 %. */
+.board-zoom {
+    /* fixed, not absolute: the board is taller than a phone screen, and a control
+       pinned to its bottom edge sits below the fold exactly when it is needed */
+    position: fixed;
+    left: 12px;
+    bottom: 12px;
+    z-index: 70;
+    min-width: 3.6rem;
+    min-height: 2.4rem;
+    padding: 0.3rem 0.55rem;
+    background: var(--page);
+    color: var(--active-text);
+    border: 2px solid var(--active);
+    font-family: 'Courier New', monospace;
+    font-size: 0.78rem;
+    font-weight: bold;
+    letter-spacing: 0.04rem;
+    cursor: pointer;
+}
+
+.board-zoom:hover,
+.board-zoom:focus-visible {
+    background: var(--active);
+    color: var(--page);
+    outline: none;
+}
+
+.board-zoom[hidden] {
+    display: none !important;
+}
+
 .brain-container {
     flex: 1;
     position: relative;
