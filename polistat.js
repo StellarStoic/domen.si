@@ -20,7 +20,16 @@
     // only when someone asks for it
     const DAYS_URL = year => `data/polistat-days-${year}.json`;
     const DAY = 86400000;
-    const TREND_WINDOW = 7;
+    const TREND_WINDOW = 7;                 // the moving average drawn on the chart
+    // How many days the readout above the chart looks at. A fixed seven made every
+    // period answer the same question; comparing against the period's own average is
+    // what makes "is this high for a year" answerable.
+    const WINDOWS = [
+        { key: '7', label: '7 dni', days: 7 },
+        { key: '14', label: '14 dni', days: 14 },
+        { key: '30', label: '1 mesec', days: 30 },
+        { key: '90', label: '3 mesece', days: 90 },
+    ];
     const RANGES = [
         { key: '7', label: '7 dni', days: 7 },
         { key: '30', label: '30 dni', days: 30 },
@@ -41,6 +50,7 @@
         // the axis is built from the points actually selected, so a short range fills
         // the width.
         range: '30',
+        window: '7',
         custom: { from: '', to: '' },
         loading: false,
         error: '',
@@ -71,6 +81,7 @@
             </div>
             <div class="polistat-view__buttons"></div>
             <div class="polistat-view__ranges"></div>
+            <div class="polistat-view__windows"></div>
             <div class="polistat-view__custom">
                 <label>od <input type="date" class="polistat-from"></label>
                 <label>do <input type="date" class="polistat-to"></label>
@@ -119,6 +130,10 @@
         state.custom = { from, to };
         state.range = 'custom';
         render();
+    }
+
+    function windowsLabelNode() {
+        return element('span', 'polistat-view__windows-label', 'primerjaj:');
     }
 
     function metrics() {
@@ -171,28 +186,53 @@
         });
     }
 
-    /** The recent trend, measured only over the latest unbroken run of days. */
-    function describeTrend(points) {
+    /** Short name for the period on screen, used in the readout's own words. */
+    function periodWords(rangeKey) {
+        if (rangeKey === 'custom') return 'izbranega obdobja';
+        const range = RANGES.find(item => item.key === rangeKey);
+        if (!range) return 'izbranega obdobja';
+        return ({
+            '7': 'tedna', '30': 'meseca', '90': 'treh mesecev',
+            '365': 'leta', all: 'celotnega obdobja',
+        })[rangeKey] || 'izbranega obdobja';
+    }
+
+    /**
+     * The last `windowDays` days against the average of the whole selected period.
+     *
+     * Two means, both stated: the window's own mean and the period's. Comparing the
+     * window with the seven days before it answered "did this week differ from last
+     * week", which is a different question from "is this week high for the year I am
+     * looking at" — and on a noisy daily series the second is the one worth asking.
+     */
+    function describeTrend(points, windowDays) {
+        if (!points.length) return { text: '', detail: 'ni podatkov' };
+        const mean = list => list.reduce((sum, item) => sum + item.value, 0) / list.length;
+        const baseline = mean(points);          // every day in the selected period
+
         const runs = splitRuns(points);
         const latest = runs[runs.length - 1] || [];
-        if (latest.length < TREND_WINDOW * 2) {
-            const why = latest.length
-                ? `premalo zaporednih dni za trend (${latest.length})`
-                : 'ni podatkov';
-            return { text: '', detail: why };
+        const last = points[points.length - 1].date;
+        const cutoff = new Date(new Date(last).getTime() - (windowDays - 1) * DAY)
+            .toISOString().slice(0, 10);
+        // the window never reaches across a hole: only days of the latest unbroken run
+        const recent = latest.filter(point => point.date >= cutoff);
+        if (recent.length < 2) {
+            return { text: '', detail: `premalo dni za primerjavo (${recent.length})` };
         }
-        const recent = latest.slice(-TREND_WINDOW);
-        const previous = latest.slice(-TREND_WINDOW * 2, -TREND_WINDOW);
-        const mean = list => list.reduce((sum, item) => sum + item.value, 0) / list.length;
+        if (!baseline) return { text: '', detail: '' };
+
         const now = mean(recent);
-        const before = mean(previous);
-        if (!before) return { text: '', detail: '' };
-        const change = ((now - before) / before) * 100;
+        const change = ((now - baseline) / baseline) * 100;
         const arrow = change > 1 ? '▲' : change < -1 ? '▼' : '=';
-        const word = change > 1 ? 'višje' : change < -1 ? 'nižje' : 'enako';
+        const where = change > 1 ? 'nad' : change < -1 ? 'pod' : 'na';
+        const percent = Math.abs(change).toFixed(0);
+        const label = WINDOWS.find(item => item.days === windowDays)?.label || `${windowDays} dni`;
         return {
-            text: `${arrow} ${Math.abs(change).toFixed(0)} % ${word} kot v prejšnjih ${TREND_WINDOW} dneh`,
-            detail: `zadnjih ${TREND_WINDOW} dni ≈ ${now.toFixed(1)}/dan · prej ${before.toFixed(1)}/dan`,
+            text: change > 1 || change < -1
+                ? `${arrow} ${percent} % ${where} povprečjem ${periodWords(state.range)}`
+                : `= na povprečju ${periodWords(state.range)}`,
+            detail: `zadnjih ${label} ≈ ${now.toFixed(1)}/dan · povprečje ${baseline.toFixed(1)}/dan`,
         };
     }
 
@@ -222,6 +262,18 @@
             buttons.appendChild(chip);
         });
 
+        const windows = root.querySelector('.polistat-view__windows');
+        windows.replaceChildren(windowsLabelNode(), ...WINDOWS.map(item => {
+            const chip = element('button', 'polistat-chip', item.label);
+            chip.type = 'button';
+            if (item.key === state.window) chip.classList.add('is-active');
+            chip.addEventListener('click', () => {
+                state.window = item.key;
+                render();
+            });
+            return chip;
+        }));
+
         const ranges = root.querySelector('.polistat-view__ranges');
         ranges.replaceChildren();
         RANGES.forEach(range => {
@@ -250,7 +302,8 @@
             ? `${metric.label}${span ? ' · ' + span : ''} · tapni dan za poročilo`
             : '';
 
-        const trend = describeTrend(points);
+        const windowDays = (WINDOWS.find(item => item.key === state.window) || WINDOWS[0]).days;
+        const trend = describeTrend(points, windowDays);
         const trendBox = root.querySelector('.polistat-view__trend');
         trendBox.replaceChildren();
         if (trend.text) {

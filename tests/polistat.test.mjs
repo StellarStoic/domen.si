@@ -45,16 +45,35 @@ test('a hole in the record ends a run, so nothing is drawn across it', () => {
     assert.match(view, /function splitRuns/);
     assert.match(view, /gap > 1\.5/);
     assert.match(view, /runs\.forEach/);
-    assert.match(view, /premalo zaporednih dni za trend/);
+    assert.match(view, /premalo dni za primerjavo/);
     assert.match(view, /sklopih/);
 });
 
-test('the view draws a trailing mean, because one day never shows a trend', () => {
+test('the chart draws a trailing mean, because one day never shows a trend', () => {
     assert.match(view, /TREND_WINDOW\s*=\s*7/);
     assert.match(view, /function trailingMean/);
-    assert.match(view, /premalo zaporednih dni za trend/,
-        'a short series must say so instead of inventing a trend');
     assert.match(view, /class="polistat-trend-line"|polistat-trend-line/);
+});
+
+test('the readout compares the window with the selected period\'s average', () => {
+    // not "this week against last week", which is a different question from
+    // "is this week high for the year I am looking at"
+    assert.match(view, /const baseline = mean\(points\)/);
+    assert.match(view, /nad' : change < -1 \? 'pod/);
+    assert.match(view, /povprečjem \$\{periodWords\(state\.range\)\}/);
+    assert.match(view, /function periodWords/);
+    assert.match(view, /zadnjih \$\{label\} ≈ \$\{now\.toFixed\(1\)\}\/dan · povprečje/);
+});
+
+test('the window is a setting: 7 days, 14, a month, three months', () => {
+    assert.match(view, /const WINDOWS = \[/);
+    for (const label of ['7 dni', '14 dni', '1 mesec', '3 mesece']) {
+        assert.ok(view.includes(label), `missing window option: ${label}`);
+    }
+    assert.match(view, /state\.window = item\.key/);
+    // the window must not reach across a gap in the record
+    assert.match(view, /const recent = latest\.filter\(point => point\.date >= cutoff\)/);
+    assert.match(view, /premalo dni za primerjavo/);
 });
 
 test('the view offers a button per dataset and per range', () => {
@@ -147,6 +166,6 @@ test('pressing the cube draws the chart: no button to press first', () => {
 
 test('the page loads both assets, versioned, and the data sits under data/', () => {
     assert.match(index, /polistat\.css\?v=\d+/);
-    assert.match(index, /polistat\.js\?v=4/);
+    assert.match(index, /polistat\.js\?v=5/);
     assert.match(view, /DATA_URL = 'data\/polistat\.json'/);
 });

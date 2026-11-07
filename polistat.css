@@ -181,6 +181,21 @@
     }
 }
 
+/* The window the readout compares against the period's average. */
+.polistat-view__windows {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.35rem;
+}
+
+.polistat-view__windows-label {
+    font-size: 0.7rem;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.04rem;
+}
+
 /* Date range: two dates and a button that applies them. */
 .polistat-view__custom {
     display: flex;
