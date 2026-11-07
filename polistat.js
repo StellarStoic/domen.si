@@ -88,7 +88,7 @@
                 <button type="button" class="polistat-chip polistat-apply">prikaži</button>
             </div>
             <div class="polistat-view__trend"></div>
-            <div class="polistat-view__weekday"></div>
+            <div class="polistat-view__moon"></div>
             <svg class="polistat-view__chart" viewBox="0 0 640 260" preserveAspectRatio="none"
                  role="img" aria-label="Graf dnevne statistike"></svg>
             <div class="polistat-view__note"></div>
@@ -238,73 +238,135 @@
     }
 
     /**
-     * Which weekday carries the most of the selected figure.
+     * The moon, because the police's own daily figures are the only series here that
+     * might answer whether a full moon makes a difference.
      *
-     * Means, not totals: a period holding five Saturdays and four Tuesdays would
-     * otherwise reward the weekday that simply appears more often. The share is the
-     * weekday's mean over the sum of all seven, so the seven shares add to 100 % and
-     * the comparison is fair whatever the period covers.
+     * The phase is computed from the date with the standard synodic month, so no data
+     * has to be stored for it. Illumination is the honest measure of "growing or
+     * shrinking"; the eight names are buckets a half-phase wide, centred on the events
+     * themselves so a new moon is called a new moon and not "waning crescent".
      */
-    function weekdayShares(points) {
-        const names = ['ponedeljek', 'torek', 'sreda', 'četrtek', 'petek', 'sobota', 'nedelja'];
-        const short = ['pon', 'tor', 'sre', 'čet', 'pet', 'sob', 'ned'];
-        const sums = names.map(() => ({ total: 0, count: 0 }));
-        points.forEach(point => {
-            // getDay(): 0 = Sunday; the week here starts on Monday
-            const index = (new Date(`${point.date}T12:00:00`).getDay() + 6) % 7;
-            sums[index].total += point.value;
-            sums[index].count += 1;
-        });
-        const means = sums.map((item, index) => ({
-            index,
-            name: names[index],
-            short: short[index],
-            count: item.count,
-            mean: item.count ? item.total / item.count : 0,
-        }));
-        const total = means.reduce((sum, item) => sum + item.mean, 0);
-        return means.map(item => ({
-            ...item,
-            share: total ? (item.mean / total) * 100 : 0,
-            seen: item.count > 0,
-        }));
+    const SYNODIC = 29.530588853;                       // days, mean lunation
+    const NEW_MOON = Date.UTC(2000, 0, 6, 18, 14);      // a known new moon, UTC
+    const MOON_PHASES = [
+        { key: 'mlaj', short: '●' },
+        { key: 'naraščajoči srp', short: '☽' },
+        { key: 'prvi krajec', short: '◐' },
+        { key: 'naraščajoča luna', short: '◑' },
+        { key: 'polna luna', short: '○' },
+        { key: 'padajoča luna', short: '◑' },
+        { key: 'zadnji krajec', short: '◐' },
+        { key: 'padajoči srp', short: '☾' },
+    ];
+
+    /** Days since the reference new moon, 0 … 29.53. */
+    function moonAge(date) {
+        const days = (Date.parse(`${date}T12:00:00Z`) - NEW_MOON) / DAY;
+        return ((days % SYNODIC) + SYNODIC) % SYNODIC;
     }
 
-    function renderWeekday() {
-        const box = root.querySelector('.polistat-view__weekday');
+    /** 0 … 1, where 0 is new and 1 is full. */
+    function moonIllumination(age) {
+        return (1 - Math.cos((2 * Math.PI * age) / SYNODIC)) / 2;
+    }
+
+    function moonPhaseIndex(age) {
+        // half a bucket of offset: without it the day of the new moon, age ≈ 29.5,
+        // lands in the last bucket and is named "waning crescent"
+        return Math.floor((age + SYNODIC / 16) / (SYNODIC / 8)) % 8;
+    }
+
+    /**
+     * The figure broken down by moon phase, plus the growing/shrinking comparison D
+     * asked for. Means per phase, so a period holding more full-moon days than new-moon
+     * days does not reward the phase that merely appears more often.
+     */
+    function moonBreakdown(points) {
+        const buckets = MOON_PHASES.map(phase => ({ ...phase, total: 0, count: 0, waxing: 0, waning: 0 }));
+        let waxingTotal = 0;
+        let waxingDays = 0;
+        let waningTotal = 0;
+        let waningDays = 0;
+        points.forEach(point => {
+            const age = moonAge(point.date);
+            const bucket = buckets[moonPhaseIndex(age)];
+            bucket.total += point.value;
+            bucket.count += 1;
+            if (age < SYNODIC / 2) {
+                waxingTotal += point.value;
+                waxingDays += 1;
+            } else {
+                waningTotal += point.value;
+                waningDays += 1;
+            }
+        });
+        const rows = buckets.map(bucket => ({
+            ...bucket,
+            mean: bucket.count ? bucket.total / bucket.count : 0,
+            illumination: null,
+        }));
+        const overall = points.reduce((sum, point) => sum + point.value, 0) / (points.length || 1);
+        const totalMean = rows.reduce((sum, row) => sum + row.mean, 0);
+        return {
+            rows: rows.map(row => ({ ...row, share: totalMean ? (row.mean / totalMean) * 100 : 0 })),
+            waxing: waxingDays ? waxingTotal / waxingDays : null,
+            waning: waningDays ? waningTotal / waningDays : null,
+            waxingDays,
+            waningDays,
+            overall,
+        };
+    }
+
+    function renderMoon() {
+        const box = root.querySelector('.polistat-view__moon');
         const points = root.__points || [];
         box.replaceChildren();
-        const days = weekdayShares(points).filter(item => item.seen);
-        if (days.length < 3 || points.length < 7) {
-            box.textContent = 'premalo dni za razporeditev po dnevih';
+        if (points.length < 7) {
+            box.textContent = 'premalo dni za primerjavo z luno';
             return;
         }
-        const ranked = [...days].sort((a, b) => b.share - a.share);
+        const data = moonBreakdown(points);
+        const seen = data.rows.filter(row => row.count > 0);
+        const ranked = [...seen].sort((a, b) => b.mean - a.mean);
         const most = ranked[0];
-        const least = ranked[ranked.length - 1];
 
-        const line = element('div', 'polistat-view__weekday-line');
-        line.append(
-            document.createTextNode('največji delež: '),
-            element('b', '', `${most.name} ${most.share.toFixed(0)} %`),
-            document.createTextNode(` · najmanjši: ${least.name} ${least.share.toFixed(0)} %`),
-        );
+        const line = element('div', 'polistat-view__moon-line');
+        const growing = data.waxing;
+        const shrinking = data.waning;
+        if (growing !== null && shrinking !== null && shrinking) {
+            const change = ((growing - shrinking) / shrinking) * 100;
+            const arrow = change > 1 ? '▲' : change < -1 ? '▼' : '=';
+            const side = change > 1 ? 'naraščajoči' : change < -1 ? 'padajoči' : 'enako ob obeh';
+            line.append(
+                element('b', '', `${arrow} ${Math.abs(change).toFixed(0)} % več ob ${side} luni`),
+                document.createTextNode(` · naraščajoča ${growing.toFixed(1)}/dan (${data.waxingDays} dni)` +
+                    ` · padajoča ${shrinking.toFixed(1)}/dan (${data.waningDays} dni)`),
+            );
+        } else {
+            line.textContent = 'premalo dni na eni strani luninega cikla';
+        }
         box.appendChild(line);
 
-        // a small bar per weekday, so the shape is visible and not only the winner
-        const bars = element('div', 'polistat-view__weekday-bars');
-        const peak = Math.max(...days.map(item => item.share));
-        days.forEach(item => {
-            const bar = element('div', 'polistat-view__weekday-bar');
-            if (item.index === most.index) bar.classList.add('is-most');
-            const fill = element('span', 'polistat-view__weekday-fill');
-            fill.style.height = `${Math.max(6, (item.share / peak) * 100)}%`;
-            fill.title = `${item.name}: ${item.share.toFixed(1)} % (${item.mean.toFixed(1)}/dan, ${item.count} dni)`;
-            const label = element('span', 'polistat-view__weekday-label', item.short);
+        const bars = element('div', 'polistat-view__moon-bars');
+        const peak = Math.max(...seen.map(row => row.mean)) || 1;
+        seen.forEach(row => {
+            const bar = element('div', 'polistat-view__moon-bar');
+            if (most && row.key === most.key) bar.classList.add('is-most');
+            const fill = element('span', 'polistat-view__moon-fill');
+            fill.style.height = `${Math.max(6, (row.mean / peak) * 100)}%`;
+            fill.title = `${row.key}: ${row.mean.toFixed(1)}/dan · ${row.share.toFixed(1)} % · ${row.count} dni`;
+            const label = element('span', 'polistat-view__moon-label', row.short);
             bar.append(fill, label);
             bars.appendChild(bar);
         });
         box.appendChild(bars);
+
+        const note = element('div', 'polistat-view__moon-note');
+        note.textContent = seen.length
+            // the phase names are nominative, so a plain label beats "ob … luni"
+            ? `največ: ${most.key} (${most.mean.toFixed(1)}/dan) · ${seen.length} od 8 faz v izboru`
+            : '';
+        box.appendChild(note);
     }
 
     function fmtDate(iso) {
@@ -385,7 +447,7 @@
         }
 
         root.__points = points;
-        renderWeekday();
+        renderMoon();
 
         draw(root.querySelector('.polistat-view__chart'), points, runs);
 

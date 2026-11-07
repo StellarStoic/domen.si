@@ -65,19 +65,36 @@ test('the readout compares the window with the selected period\'s average', () =
     assert.match(view, /zadnjih \$\{label\} ≈ \$\{now\.toFixed\(1\)\}\/dan · povprečje/);
 });
 
-test('the weekday with the largest share is named under the trend', () => {
-    assert.match(view, /function weekdayShares/);
-    assert.match(view, /function renderWeekday/);
-    assert.match(view, /največji delež: /);
-    // means per weekday, not totals: a period with five Saturdays would otherwise
-    // reward the weekday that merely appears more often
-    assert.match(view, /const total = means\.reduce\(\(sum, item\) => sum \+ item\.mean, 0\)/);
-    // Monday first, while getDay() starts on Sunday
-    assert.match(view, /const index = \(new Date\(`\$\{point\.date\}T12:00:00`\)\.getDay\(\) \+ 6\) % 7/);
-    assert.match(view, /premalo dni za razporeditev po dnevih/);
-    assert.match(css, /\.polistat-view__weekday-bar\.is-most \.polistat-view__weekday-fill/);
-    // it sits under the trend readout
-    assert.ok(view.indexOf('polistat-view__weekday"></div>') > view.indexOf('polistat-view__trend"></div>'));
+test('the moon replaces the weekday breakdown, under the trend', () => {
+    assert.match(view, /function moonAge/);
+    assert.match(view, /function moonBreakdown/);
+    assert.match(view, /function renderMoon/);
+    assert.match(view, /const SYNODIC = 29\.530588853/);
+    assert.match(view, /naraščajoča luna|naraščajoči srp/);
+    assert.match(view, /več ob \$\{side\} luni/);
+    assert.match(view, /premalo dni za primerjavo z luno/);
+    // the weekday block is gone
+    assert.doesNotMatch(view, /weekdayShares|renderWeekday/);
+    assert.doesNotMatch(css, /weekday/);
+    // and the phase of a new moon must not be named "waning crescent"
+    assert.match(view, /const SYNODIC \/ 16|SYNODIC \/ 16/);
+    assert.ok(view.indexOf('polistat-view__moon"></div>') > view.indexOf('polistat-view__trend"></div>'));
+});
+
+test('the moon maths is the real one, not a placeholder', () => {
+    // checked against known events before shipping: the total solar eclipse of
+    // 2024-04-08 (new moon) and the full moon of 2024-03-25
+    const SYNODIC = 29.530588853;
+    const REF = Date.UTC(2000, 0, 6, 18, 14);
+    const age = date => {
+        const days = (Date.parse(`${date}T12:00:00Z`) - REF) / 86400000;
+        return ((days % SYNODIC) + SYNODIC) % SYNODIC;
+    };
+    const illumination = a => (1 - Math.cos((2 * Math.PI * a) / SYNODIC)) / 2;
+    assert.ok(illumination(age('2024-04-08')) < 0.01, 'new moon should be dark');
+    assert.ok(illumination(age('2024-03-25')) > 0.99, 'full moon should be lit');
+    // the implementation in the page uses the same constants
+    assert.match(view, /const NEW_MOON = Date\.UTC\(2000, 0, 6, 18, 14\)/);
 });
 
 test('the window is a setting: 7 days, 14, a month, three months', () => {
@@ -180,7 +197,7 @@ test('pressing the cube draws the chart: no button to press first', () => {
 });
 
 test('the page loads both assets, versioned, and the data sits under data/', () => {
-    assert.match(index, /polistat\.css\?v=5/);
-    assert.match(index, /polistat\.js\?v=6/);
+    assert.match(index, /polistat\.css\?v=6/);
+    assert.match(index, /polistat\.js\?v=7/);
     assert.match(view, /DATA_URL = 'data\/polistat\.json'/);
 });

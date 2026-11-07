@@ -181,17 +181,17 @@
     }
 }
 
-/* Which weekday carries the most of the figure on screen. */
-.polistat-view__weekday {
+/* The figure by moon phase: bar per phase, the heaviest in green. */
+.polistat-view__moon {
     font-size: 0.72rem;
     color: var(--muted);
 }
 
-.polistat-view__weekday-line b {
+.polistat-view__moon-line b {
     color: var(--accent-text);
 }
 
-.polistat-view__weekday-bars {
+.polistat-view__moon-bars {
     display: flex;
     align-items: flex-end;
     gap: 0.3rem;
@@ -199,7 +199,7 @@
     margin-top: 0.3rem;
 }
 
-.polistat-view__weekday-bar {
+.polistat-view__moon-bar {
     flex: 1 1 0;
     display: flex;
     flex-direction: column;
@@ -209,29 +209,32 @@
     gap: 0.15rem;
 }
 
-.polistat-view__weekday-fill {
+.polistat-view__moon-fill {
     width: 100%;
     background: var(--muted);
     opacity: 0.55;
     min-height: 2px;
 }
 
-/* the heaviest weekday, marked in the same green the board uses for "active" */
-.polistat-view__weekday-bar.is-most .polistat-view__weekday-fill {
+.polistat-view__moon-bar.is-most .polistat-view__moon-fill {
     background: var(--active);
     opacity: 1;
 }
 
-.polistat-view__weekday-label {
-    font-size: 0.6rem;
+.polistat-view__moon-label {
+    font-size: 0.72rem;
     color: var(--muted);
-    text-transform: uppercase;
-    letter-spacing: 0.03rem;
+    line-height: 1;
 }
 
-.polistat-view__weekday-bar.is-most .polistat-view__weekday-label {
+.polistat-view__moon-bar.is-most .polistat-view__moon-label {
     color: var(--active-text);
-    font-weight: bold;
+}
+
+.polistat-view__moon-note {
+    margin-top: 0.2rem;
+    font-size: 0.68rem;
+    color: var(--muted);
 }
 
 /* The window the readout compares against the period's average. */
