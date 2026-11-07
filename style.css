@@ -146,6 +146,18 @@ body {
 }
 
 /* Brain container for the cubes */
+/* The movable layer: the cubes live here, everything else (panels, views) does not.
+   touch-action: none is what stops the browser from claiming the gesture — with the
+   page's own pinch zoom in charge, the board could not be panned at all, because
+   `overflow-x: hidden` on the body leaves no horizontal scroll room to pan into. */
+.board-layer {
+    position: absolute;
+    inset: 0;
+    transform-origin: 0 0;
+    touch-action: none;
+    will-change: transform;
+}
+
 .brain-container {
     flex: 1;
     position: relative;

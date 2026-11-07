@@ -6,6 +6,203 @@ let podcastBoardContext = null;
 // The path down to the cube in the panel, by name: the breadcrumb used to print one
 // arrow glyph per level, and in this font that glyph reads as the digit 4.
 let interestTrail = [];
+
+// ── the board as a surface you can move ───────────────────────────────────
+// The cubes live in one layer so the board can be panned and magnified without
+// dragging the panels with it. Relying on the browser's own pinch zoom does not
+// work here: `body { overflow-x: hidden }` leaves the page with no horizontal
+// scroll room at all, so on a phone a zoomed board can only be nudged a few
+// hundred pixels vertically and then sits on black. One finger pans, two pinch,
+// ctrl+wheel zooms (a trackpad pinch arrives as ctrl+wheel).
+const boardView = { scale: 1, x: 0, y: 0, min: 0.5, max: 3, dragging: false };
+
+function boardLayer() {
+    const container = document.getElementById('brain-container');
+    if (!container) return null;
+    let layer = container.querySelector(':scope > .board-layer');
+    if (!layer) {
+        layer = document.createElement('div');
+        layer.className = 'board-layer';
+        container.insertBefore(layer, container.firstChild);
+    }
+    return layer;
+}
+
+/** Keep the board covering its container: no drifting onto empty black. */
+function clampBoardView() {
+    const container = document.getElementById('brain-container');
+    if (!container) return;
+    const width = container.clientWidth;
+    const height = container.clientHeight;
+    const scaledWidth = width * boardView.scale;
+    const scaledHeight = height * boardView.scale;
+
+    if (scaledWidth <= width) {
+        boardView.x = (width - scaledWidth) / 2;
+    } else {
+        boardView.x = Math.min(0, Math.max(width - scaledWidth, boardView.x));
+    }
+    if (scaledHeight <= height) {
+        boardView.y = (height - scaledHeight) / 2;
+    } else {
+        boardView.y = Math.min(0, Math.max(height - scaledHeight, boardView.y));
+    }
+}
+
+function applyBoardView() {
+    const layer = boardLayer();
+    if (!layer) return;
+    clampBoardView();
+    layer.style.transformOrigin = '0 0';
+    layer.style.transform = `translate(${boardView.x}px, ${boardView.y}px) scale(${boardView.scale})`;
+}
+
+function resetBoardView() {
+    boardView.scale = 1;
+    boardView.x = 0;
+    boardView.y = 0;
+    applyBoardView();
+}
+
+/** Zoom about a point in container coordinates, so it stays under the finger. */
+function zoomBoardAt(clientX, clientY, factor) {
+    const container = document.getElementById('brain-container');
+    if (!container) return;
+    const rect = container.getBoundingClientRect();
+    const pointX = clientX - rect.left;
+    const pointY = clientY - rect.top;
+    const next = Math.min(boardView.max, Math.max(boardView.min, boardView.scale * factor));
+    if (next === boardView.scale) return;
+    // the board point under the cursor must not move while the scale changes
+    boardView.x = pointX - (pointX - boardView.x) * (next / boardView.scale);
+    boardView.y = pointY - (pointY - boardView.y) * (next / boardView.scale);
+    boardView.scale = next;
+    applyBoardView();
+}
+
+function setupBoardPanZoom() {
+    const container = document.getElementById('brain-container');
+    if (!container || container.dataset.panZoom === 'on') return;
+    container.dataset.panZoom = 'on';
+
+    let suppressClick = false;
+    let touchMode = null;            // 'pan' | 'pinch'
+    let start = null;
+    let pinch = null;
+
+    const point = touch => ({ x: touch.clientX, y: touch.clientY });
+    const distance = (a, b) => Math.hypot(a.x - b.x, a.y - b.y);
+    const middle = (a, b) => ({ x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 });
+
+    const onTouchStart = event => {
+        if (!event.touches.length) return;
+        // A touch that starts on a view or the panel is not the board's business.
+        if (event.target.closest('.polistat-view, .feed-view')) return;
+        if (event.touches.length === 1) {
+            touchMode = 'pan';
+            start = { point: point(event.touches[0]), x: boardView.x, y: boardView.y };
+        } else {
+            touchMode = 'pinch';
+            const [a, b] = event.touches;
+            pinch = {
+                distance: distance(point(a), point(b)),
+                middle: middle(point(a), point(b)),
+                scale: boardView.scale,
+                x: boardView.x,
+                y: boardView.y,
+            };
+        }
+        suppressClick = false;
+    };
+
+    const onTouchMove = event => {
+        if (touchMode === 'pan' && event.touches.length === 1 && start) {
+            const now = point(event.touches[0]);
+            const dx = now.x - start.point.x;
+            const dy = now.y - start.point.y;
+            if (Math.abs(dx) > 4 || Math.abs(dy) > 4) suppressClick = true;
+            boardView.x = start.x + dx;
+            boardView.y = start.y + dy;
+            applyBoardView();
+            event.preventDefault();
+        } else if (touchMode === 'pinch' && pinch && event.touches.length >= 2) {
+            const [a, b] = event.touches;
+            const spread = distance(point(a), point(b));
+            const where = middle(point(a), point(b));
+            const next = Math.min(boardView.max,
+                Math.max(boardView.min, pinch.scale * (spread / Math.max(1, pinch.distance))));
+            // keep the point that was between the fingers between the fingers
+            const rect = container.getBoundingClientRect();
+            const pointX = pinch.middle.x - rect.left;
+            const pointY = pinch.middle.y - rect.top;
+            boardView.x = (where.x - rect.left) - (pointX - pinch.x) * (next / pinch.scale);
+            boardView.y = (where.y - rect.top) - (pointY - pinch.y) * (next / pinch.scale);
+            boardView.scale = next;
+            applyBoardView();
+            suppressClick = true;
+            event.preventDefault();
+        }
+    };
+
+    const onTouchEnd = () => {
+        touchMode = null;
+        start = null;
+        pinch = null;
+    };
+
+    const onMouseDown = event => {
+        if (event.button !== 0) return;
+        if (event.target.closest('.polistat-view, .feed-view, .podcast-board')) return;
+        start = { point: { x: event.clientX, y: event.clientY }, x: boardView.x, y: boardView.y };
+        boardView.dragging = false;
+        const onMove = moveEvent => {
+            const dx = moveEvent.clientX - start.point.x;
+            const dy = moveEvent.clientY - start.point.y;
+            if (!boardView.dragging && Math.hypot(dx, dy) > 4) boardView.dragging = true;
+            if (!boardView.dragging) return;
+            boardView.x = start.x + dx;
+            boardView.y = start.y + dy;
+            applyBoardView();
+        };
+        const onUp = () => {
+            suppressClick = boardView.dragging;
+            boardView.dragging = false;
+            start = null;
+            document.removeEventListener('mousemove', onMove);
+            document.removeEventListener('mouseup', onUp);
+        };
+        document.addEventListener('mousemove', onMove);
+        document.addEventListener('mouseup', onUp);
+    };
+
+    const onWheel = event => {
+        // a trackpad pinch arrives as ctrl+wheel; a plain wheel keeps scrolling the page
+        if (!event.ctrlKey && !event.metaKey) return;
+        event.preventDefault();
+        zoomBoardAt(event.clientX, event.clientY, event.deltaY < 0 ? 1.12 : 1 / 1.12);
+    };
+
+    // a drag must not end by opening the cube it started on
+    container.addEventListener('click', event => {
+        if (!suppressClick) return;
+        suppressClick = false;
+        event.stopPropagation();
+        event.preventDefault();
+    }, true);
+
+    container.addEventListener('touchstart', onTouchStart, { passive: true });
+    container.addEventListener('touchmove', onTouchMove, { passive: false });
+    container.addEventListener('touchend', onTouchEnd, { passive: true });
+    container.addEventListener('touchcancel', onTouchEnd, { passive: true });
+    container.addEventListener('mousedown', onMouseDown);
+    container.addEventListener('wheel', onWheel, { passive: false });
+    // a double click on empty board space is the quick way back out
+    container.addEventListener('dblclick', event => {
+        if (event.target.closest('.cube, .back-button, .polistat-view, .feed-view')) return;
+        resetBoardView();
+    });
+    window.addEventListener('resize', applyBoardView);
+}
 let activeGalleryImages = []; // Images currently shown in the lightbox
 let activeGalleryIndex = 0; // Selected lightbox image index
 let sintraPriceSocket = null; // Active Sintra WebSocket used for live Bitcoin prices.
@@ -26,6 +223,7 @@ async function initPortfolio() {
     await loadInterestsData();
     await refreshBitcoinMetrics();
     renderBrain();
+    setupBoardPanZoom();
     setupEventListeners();
     connectSintraPriceStream();
 
@@ -412,6 +610,7 @@ function renderBrain() {
     window.polistatView?.close?.();
     podcastBoardContext = null;
     container.innerHTML = ''; // Clear container
+    resetBoardView();
 
     // Start with main interests
     currentInterests = getVisibleInterests(interestsData.mainInterests);
@@ -426,7 +625,7 @@ function renderBrain() {
         // pass the mobileRandom flag through the createCube call via the depth param (we'll accept extra arg)
         // NOTE: next code change modifies createCube signature to accept mobileRandom.
         const cube = createCube(interest, index, false, null, 0, mobileRandom);
-        container.appendChild(cube);
+        boardLayer().appendChild(cube);
     });
 }
 
@@ -894,12 +1093,12 @@ function navigateToSubInterests(interest, parentPosition, parentDepth) {
     // Create sub-interest cubes first so BACK can avoid their final positions.
     currentInterests.forEach((subInterest, index) => {
         const cube = createCube(subInterest, index, true, parentPosition, parentDepth + 1);
-        container.appendChild(cube);
+        boardLayer().appendChild(cube);
     });
 
     // Place BACK only after all interest cubes participate in its collision check.
     const backCube = createBackCube(parentPosition, parentDepth);
-    container.appendChild(backCube);
+    boardLayer().appendChild(backCube);
 }
 
 // Go back to previous level
@@ -975,14 +1174,15 @@ function goBack() {
 
         // Clear container
         container.innerHTML = '';
-        
+        resetBoardView();
+
         // Check if we're at the root level
         if (navigationStack.length === 0) {
             podcastBoardContext = null;
             // Recreate main brain
             currentInterests.forEach((interest, index) => {
                 const cube = createCube(interest, index, false, null, 0);
-                container.appendChild(cube);
+                boardLayer().appendChild(cube);
                             });
             // Hide info panel when back at root level
             hideInfoPanel();
@@ -997,7 +1197,7 @@ function goBack() {
                     previousState.parentPosition, 
                     previousState.depth
                 );
-                container.appendChild(cube);
+                boardLayer().appendChild(cube);
             });
 
             // Recalculate BACK after restored cubes exist, preventing any overlap.
@@ -1005,7 +1205,7 @@ function goBack() {
                 previousState.parentPosition,
                 previousState.depth
             );
-            container.appendChild(backCube);
+            boardLayer().appendChild(backCube);
             
             // Update info panel for the parent interest
             if (navigationStack.length > 0) {
