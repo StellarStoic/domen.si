@@ -39,6 +39,7 @@ body {
     --accent: #ff6600;                       /* fills and edges */
     --accent-text: #ff6600;                  /* the accent as words, measured against --page */
     --active: #3ddc84;                       /* active/selected state: green, not the accent */
+    --scrim: rgba(0, 0, 0, 0.62);            /* behind a dialog */
     --active-text: #3ddc84;
     --accent-ink: #000;    /* text sitting on an accent fill */
     --player-wash: rgba(0, 0, 0, 0.6);
@@ -70,6 +71,7 @@ body {
        and fills stay the bright one. */
     --accent-text: #b34700;
     --active: #1b7a33;
+    --scrim: rgba(20, 20, 20, 0.55);
     --active-text: #1b7a33;
     --accent-ink: #000;
     --player-wash: rgba(255, 255, 255, 0.85);

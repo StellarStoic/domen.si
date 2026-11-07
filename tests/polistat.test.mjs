@@ -66,6 +66,51 @@ test('the view offers a button per dataset and per range', () => {
     assert.ok(ranges.length >= 3, 'expected at least three time ranges');
 });
 
+test('every day is pressable, and pressing it shows that day\'s report', () => {
+    // a 2px dot is not a target for a finger
+    assert.match(view, /class: 'polistat-hit'/);
+    assert.match(view, /r: 11/);
+    assert.match(view, /hit\.setAttribute\('role', 'button'\)/);
+    assert.match(view, /hit\.addEventListener\('click', open\)/);
+    assert.match(view, /hit\.addEventListener\('keydown'/);
+    // the report is fetched per year, so the chart payload stays small
+    assert.match(view, /const DAYS_URL = year => `data\/polistat-days-\$\{year\}\.json`/);
+    assert.match(view, /async function showDay/);
+    assert.match(view, /aria-modal="true"/);
+    // a figure a bulletin never mentions is not a zero
+    assert.match(view, /'ni podatka'/);
+    // and it must close three ways: the button, the backdrop, Escape
+    assert.match(view, /polistat-modal__close'\).addEventListener\('click', \(\) => hideDay\(\)\)/);
+    assert.match(view, /event\.target === root\.querySelector\('\.polistat-modal'\)/);
+    assert.match(view, /event\.key === 'Escape' && state\.open && state\.modalDate/);
+});
+
+test('a date range can be chosen by hand', () => {
+    assert.match(view, /type="date" class="polistat-from"/);
+    assert.match(view, /type="date" class="polistat-to"/);
+    assert.match(view, /function applyCustomRange/);
+    // selecting them backwards is a slip, not an empty chart
+    assert.match(view, /if \(from && to && from > to\) \[from, to\] = \[to, from\]/);
+    assert.match(view, /rangeKey === 'custom'/);
+    assert.match(view, /key: '7', label: '7 dni'/);
+});
+
+test('the day files exist for every year the chart carries', () => {
+    const data = JSON.parse(read('data/polistat.json'));
+    const years = [...new Set(data.series.map(row => row.d.slice(0, 4)))];
+    for (const year of years) {
+        const days = JSON.parse(read(`data/polistat-days-${year}.json`));
+        const dated = Object.keys(days);
+        assert.ok(dated.length > 0, `${year} has no day texts`);
+        for (const date of dated) {
+            assert.match(date, /^\d{4}-\d{2}-\d{2}$/);
+            assert.ok(typeof days[date].t === 'string' && days[date].t.length > 20,
+                `${date} has no usable text`);
+            assert.ok(days[date].t.length <= 430, `${date} carries more text than the exporter trims`);
+        }
+    }
+});
+
 test('the stylesheet reads the palette, never a literal colour', () => {
     const stripped = css.replace(/\/\*[\s\S]*?\*\//g, '');
     const literals = stripped.match(/#[0-9a-fA-F]{3,8}\b|\brgba?\(/g) || [];
@@ -101,6 +146,6 @@ test('pressing the cube draws the chart: no button to press first', () => {
 
 test('the page loads both assets, versioned, and the data sits under data/', () => {
     assert.match(index, /polistat\.css\?v=\d+/);
-    assert.match(index, /polistat\.js\?v=3/);
+    assert.match(index, /polistat\.js\?v=4/);
     assert.match(view, /DATA_URL = 'data\/polistat\.json'/);
 });

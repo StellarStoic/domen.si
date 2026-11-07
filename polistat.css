@@ -180,3 +180,150 @@
         padding: 0.2rem 0.4rem;
     }
 }
+
+/* Date range: two dates and a button that applies them. */
+.polistat-view__custom {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 0.72rem;
+    color: var(--muted);
+}
+
+.polistat-view__custom label {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+.polistat-view__custom input[type="date"] {
+    background: var(--page);
+    color: var(--ink);
+    border: 1px solid var(--muted);
+    padding: 0.15rem 0.25rem;
+    font-family: inherit;
+    font-size: 0.72rem;
+}
+
+.polistat-view__custom input[type="date"]:focus-visible {
+    border-color: var(--accent);
+    outline: none;
+}
+
+/* The pressable target around each day: invisible, but big enough for a finger. */
+.polistat-hit {
+    fill: transparent;
+    cursor: pointer;
+}
+
+.polistat-hit:hover,
+.polistat-hit:focus-visible {
+    fill: var(--accent);
+    fill-opacity: 0.18;
+    outline: none;
+}
+
+/* The day's report, over the chart. */
+.polistat-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 80;
+    display: grid;
+    place-items: center;
+    padding: 1rem;
+    background: var(--scrim);
+}
+
+.polistat-modal[hidden] {
+    display: none !important;
+}
+
+.polistat-modal__box {
+    position: relative;
+    width: min(30rem, 100%);
+    max-height: 80vh;
+    overflow-y: auto;
+    padding: 1rem 1.1rem 1.1rem;
+    background: var(--page);
+    color: var(--ink);
+    border: 2px solid var(--accent);
+    font-family: 'Courier New', monospace;
+}
+
+.polistat-modal__close {
+    position: absolute;
+    top: 0.4rem;
+    right: 0.4rem;
+    width: 2rem;
+    height: 2rem;
+    display: grid;
+    place-items: center;
+    background: var(--page);
+    color: var(--ink);
+    border: 2px solid var(--rule);
+    font-family: inherit;
+    font-size: 1rem;
+    cursor: pointer;
+}
+
+.polistat-modal__close:hover,
+.polistat-modal__close:focus-visible {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: var(--accent-ink);
+    outline: none;
+}
+
+.polistat-modal__date {
+    font-size: 0.95rem;
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 0.05rem;
+    padding-right: 2.4rem;
+}
+
+.polistat-modal__figures {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 0.15rem 0.8rem;
+    margin: 0.7rem 0;
+    font-size: 0.76rem;
+}
+
+.polistat-modal__figures dt {
+    color: var(--ink);
+}
+
+.polistat-modal__figures dd {
+    margin: 0;
+    text-align: right;
+    font-weight: bold;
+    color: var(--accent-text);
+}
+
+.polistat-modal__figures .is-missing {
+    color: var(--muted);
+    font-weight: normal;
+}
+
+.polistat-modal__text {
+    margin: 0.4rem 0 0.8rem;
+    font-size: 0.78rem;
+    line-height: 1.5;
+}
+
+.polistat-modal__source {
+    font-size: 0.72rem;
+    color: var(--accent-text);
+}
+
+@media (max-width: 768px) {
+    .polistat-modal__box {
+        max-height: 84vh;
+    }
+
+    .polistat-view__custom {
+        font-size: 0.66rem;
+    }
+}

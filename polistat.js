@@ -16,9 +16,13 @@
     'use strict';
 
     const DATA_URL = 'data/polistat.json';
+    // one file per year: the chart payload stays small and a day's report is fetched
+    // only when someone asks for it
+    const DAYS_URL = year => `data/polistat-days-${year}.json`;
     const DAY = 86400000;
     const TREND_WINDOW = 7;
     const RANGES = [
+        { key: '7', label: '7 dni', days: 7 },
         { key: '30', label: '30 dni', days: 30 },
         { key: '90', label: '90 dni', days: 90 },
         { key: '365', label: '1 leto', days: 365 },
@@ -27,6 +31,7 @@
 
     let container = null;
     let root = null;
+    const dayCache = {};
     const state = {
         open: false,
         data: null,
@@ -36,8 +41,10 @@
         // the axis is built from the points actually selected, so a short range fills
         // the width.
         range: '30',
+        custom: { from: '', to: '' },
         loading: false,
         error: '',
+        modalDate: null,
     };
 
     function element(tag, className, text) {
@@ -64,16 +71,54 @@
             </div>
             <div class="polistat-view__buttons"></div>
             <div class="polistat-view__ranges"></div>
+            <div class="polistat-view__custom">
+                <label>od <input type="date" class="polistat-from"></label>
+                <label>do <input type="date" class="polistat-to"></label>
+                <button type="button" class="polistat-chip polistat-apply">prikaži</button>
+            </div>
             <div class="polistat-view__trend"></div>
             <svg class="polistat-view__chart" viewBox="0 0 640 260" preserveAspectRatio="none"
                  role="img" aria-label="Graf dnevne statistike"></svg>
-            <div class="polistat-view__note"></div>`;
+            <div class="polistat-view__note"></div>
+            <div class="polistat-modal" hidden>
+                <div class="polistat-modal__box" role="dialog" aria-modal="true"
+                     aria-label="Dnevno poročilo">
+                    <button type="button" class="polistat-modal__close" aria-label="Zapri">×</button>
+                    <div class="polistat-modal__date"></div>
+                    <dl class="polistat-modal__figures"></dl>
+                    <p class="polistat-modal__text"></p>
+                    <a class="polistat-modal__source" target="_blank" rel="noopener noreferrer">vir: policija.si</a>
+                </div>
+            </div>`;
         container.classList.add('has-polistat');
         container.appendChild(root);
 
         root.querySelector('.polistat-view__close')
             .addEventListener('click', () => close());
+        root.querySelector('.polistat-apply').addEventListener('click', applyCustomRange);
+        root.querySelector('.polistat-modal__close').addEventListener('click', () => hideDay());
+        root.querySelector('.polistat-modal').addEventListener('click', event => {
+            // only the backdrop closes it, not a press inside the box
+            if (event.target === root.querySelector('.polistat-modal')) hideDay();
+        });
+        document.addEventListener('keydown', event => {
+            if (event.key === 'Escape' && state.open && state.modalDate) {
+                hideDay();
+                event.stopPropagation();
+            }
+        }, true);
         return true;
+    }
+
+    /** Two dates, or nothing: an empty field means "open at that end". */
+    function applyCustomRange() {
+        let from = root.querySelector('.polistat-from').value;
+        let to = root.querySelector('.polistat-to').value;
+        if (!from && !to) return;
+        if (from && to && from > to) [from, to] = [to, from];
+        state.custom = { from, to };
+        state.range = 'custom';
+        render();
     }
 
     function metrics() {
@@ -91,6 +136,10 @@
         let points = series
             .map(row => ({ date: row.d, value: row[metricKey] }))
             .filter(point => typeof point.value === 'number');
+        if (rangeKey === 'custom') {
+            const { from, to } = state.custom;
+            return points.filter(point => (!from || point.date >= from) && (!to || point.date <= to));
+        }
         if (range.days && points.length) {
             const last = new Date(points[points.length - 1].date).getTime();
             points = points.filter(point => last - new Date(point.date).getTime() <= range.days * DAY);
@@ -186,12 +235,20 @@
             ranges.appendChild(chip);
         });
 
+        const fromInput = root.querySelector('.polistat-from');
+        const toInput = root.querySelector('.polistat-to');
+        if (fromInput.value !== state.custom.from) fromInput.value = state.custom.from;
+        if (toInput.value !== state.custom.to) toInput.value = state.custom.to;
+        root.querySelector('.polistat-apply').classList.toggle('is-active', state.range === 'custom');
+
         const sub = root.querySelector('.polistat-view__sub');
         const span = points.length
             ? `${fmtDate(points[0].date)} – ${fmtDate(points[points.length - 1].date)} · ${points.length} dni` +
               (runs.length > 1 ? ` v ${runs.length} sklopih` : '')
             : '';
-        sub.textContent = metric ? `${metric.label}${span ? ' · ' + span : ''}` : '';
+        sub.textContent = metric
+            ? `${metric.label}${span ? ' · ' + span : ''} · tapni dan za poročilo`
+            : '';
 
         const trend = describeTrend(points);
         const trendBox = root.querySelector('.polistat-view__trend');
@@ -277,19 +334,34 @@
                 svg.appendChild(make('path', { d: path(run), class: 'polistat-daily' }));
                 svg.appendChild(make('path', { d: path(mean), class: 'polistat-trend-line' }));
             }
-            if (points.length <= 120) {
-                run.forEach(point => {
-                    const dot = make('circle', {
-                        cx: x(point.date), cy: y(point.value), r: 2, class: 'polistat-point',
-                    });
-                    // an attribute named "title" is not a tooltip; the value a dot carries
-                    // has to be a <title> child element, or hovering says nothing
-                    const label = document.createElementNS('http://www.w3.org/2000/svg', 'title');
-                    label.textContent = `${fmtDate(point.date)}: ${point.value}`;
-                    dot.appendChild(label);
-                    svg.appendChild(dot);
+            run.forEach(point => {
+                const dot = make('circle', {
+                    cx: x(point.date), cy: y(point.value), r: 2, class: 'polistat-point',
                 });
-            }
+                // an attribute named "title" is not a tooltip; the value a dot carries
+                // has to be a <title> child element, or hovering says nothing
+                const label = document.createElementNS('http://www.w3.org/2000/svg', 'title');
+                label.textContent = `${fmtDate(point.date)}: ${point.value}`;
+                dot.appendChild(label);
+                svg.appendChild(dot);
+
+                // a finger needs more than two pixels: this is what gets pressed
+                const hit = make('circle', {
+                    cx: x(point.date), cy: y(point.value), r: 11, class: 'polistat-hit',
+                });
+                hit.setAttribute('role', 'button');
+                hit.setAttribute('tabindex', '0');
+                hit.setAttribute('aria-label', `${fmtDate(point.date)}, ${point.value}`);
+                const open = () => showDay(point.date);
+                hit.addEventListener('click', open);
+                hit.addEventListener('keydown', event => {
+                    if (event.key === 'Enter' || event.key === ' ') {
+                        event.preventDefault();
+                        open();
+                    }
+                });
+                svg.appendChild(hit);
+            });
         });
 
         // date labels at the ends, and in the middle of the span
@@ -301,6 +373,66 @@
             label.textContent = fmtDate(new Date(stamp).toISOString().slice(0, 10));
             svg.appendChild(label);
         });
+    }
+
+    function weekday(iso) {
+        const names = ['nedelja', 'ponedeljek', 'torek', 'sreda', 'četrtek', 'petek', 'sobota'];
+        return names[new Date(`${iso}T12:00:00`).getDay()];
+    }
+
+    /** The day's report: its figures, and the bulletin's own words. */
+    async function showDay(date) {
+        if (!root) return;
+        state.modalDate = date;
+        const modal = root.querySelector('.polistat-modal');
+        const row = ((state.data && state.data.series) || []).find(item => item.d === date) || {};
+
+        root.querySelector('.polistat-modal__date').textContent =
+            `${weekday(date)}, ${fmtDate(date)}`;
+
+        const figures = root.querySelector('.polistat-modal__figures');
+        figures.replaceChildren();
+        metrics().forEach(item => {
+            const missing = row[item.key] === null || row[item.key] === undefined;
+            // a report that does not mention a figure gets "ni podatka", not a zero:
+            // a day with no number is not a day with none of the thing
+            figures.append(
+                element('dt', missing ? 'is-missing' : '', item.label),
+                element('dd', missing ? 'is-missing' : '', missing ? 'ni podatka' : String(row[item.key])),
+            );
+        });
+
+        const textNode = root.querySelector('.polistat-modal__text');
+        const source = root.querySelector('.polistat-modal__source');
+        source.hidden = true;
+        textNode.textContent = 'Berem poročilo …';
+
+        const year = date.slice(0, 4);
+        try {
+            if (!dayCache[year]) {
+                const response = await fetch(DAYS_URL(year), { headers: { accept: 'application/json' } });
+                dayCache[year] = response.ok ? await response.json() : {};
+            }
+            const entry = dayCache[year][date];
+            textNode.textContent = entry && entry.t
+                ? entry.t
+                : 'Za ta dan ni shranjenega besedila poročila.';
+            if (entry && entry.u) {
+                source.href = entry.u;
+                source.hidden = false;
+            }
+        } catch (error) {
+            textNode.textContent = `Poročila ni bilo mogoče prebrati (${error.message}).`;
+        }
+
+        modal.hidden = false;
+        root.querySelector('.polistat-modal__close').focus();
+    }
+
+    function hideDay() {
+        state.modalDate = null;
+        const modal = root && root.querySelector('.polistat-modal');
+        if (modal) modal.hidden = true;
     }
 
     async function load() {
@@ -331,6 +463,7 @@
     }
 
     function close() {
+        hideDay();
         container = container || document.getElementById('brain-container');
         container?.classList.remove('has-polistat');
         if (root) root.hidden = true;
