@@ -88,6 +88,7 @@
                 <button type="button" class="polistat-chip polistat-apply">prikaži</button>
             </div>
             <div class="polistat-view__trend"></div>
+            <div class="polistat-view__weekday"></div>
             <svg class="polistat-view__chart" viewBox="0 0 640 260" preserveAspectRatio="none"
                  role="img" aria-label="Graf dnevne statistike"></svg>
             <div class="polistat-view__note"></div>
@@ -236,6 +237,76 @@
         };
     }
 
+    /**
+     * Which weekday carries the most of the selected figure.
+     *
+     * Means, not totals: a period holding five Saturdays and four Tuesdays would
+     * otherwise reward the weekday that simply appears more often. The share is the
+     * weekday's mean over the sum of all seven, so the seven shares add to 100 % and
+     * the comparison is fair whatever the period covers.
+     */
+    function weekdayShares(points) {
+        const names = ['ponedeljek', 'torek', 'sreda', 'četrtek', 'petek', 'sobota', 'nedelja'];
+        const short = ['pon', 'tor', 'sre', 'čet', 'pet', 'sob', 'ned'];
+        const sums = names.map(() => ({ total: 0, count: 0 }));
+        points.forEach(point => {
+            // getDay(): 0 = Sunday; the week here starts on Monday
+            const index = (new Date(`${point.date}T12:00:00`).getDay() + 6) % 7;
+            sums[index].total += point.value;
+            sums[index].count += 1;
+        });
+        const means = sums.map((item, index) => ({
+            index,
+            name: names[index],
+            short: short[index],
+            count: item.count,
+            mean: item.count ? item.total / item.count : 0,
+        }));
+        const total = means.reduce((sum, item) => sum + item.mean, 0);
+        return means.map(item => ({
+            ...item,
+            share: total ? (item.mean / total) * 100 : 0,
+            seen: item.count > 0,
+        }));
+    }
+
+    function renderWeekday() {
+        const box = root.querySelector('.polistat-view__weekday');
+        const points = root.__points || [];
+        box.replaceChildren();
+        const days = weekdayShares(points).filter(item => item.seen);
+        if (days.length < 3 || points.length < 7) {
+            box.textContent = 'premalo dni za razporeditev po dnevih';
+            return;
+        }
+        const ranked = [...days].sort((a, b) => b.share - a.share);
+        const most = ranked[0];
+        const least = ranked[ranked.length - 1];
+
+        const line = element('div', 'polistat-view__weekday-line');
+        line.append(
+            document.createTextNode('največji delež: '),
+            element('b', '', `${most.name} ${most.share.toFixed(0)} %`),
+            document.createTextNode(` · najmanjši: ${least.name} ${least.share.toFixed(0)} %`),
+        );
+        box.appendChild(line);
+
+        // a small bar per weekday, so the shape is visible and not only the winner
+        const bars = element('div', 'polistat-view__weekday-bars');
+        const peak = Math.max(...days.map(item => item.share));
+        days.forEach(item => {
+            const bar = element('div', 'polistat-view__weekday-bar');
+            if (item.index === most.index) bar.classList.add('is-most');
+            const fill = element('span', 'polistat-view__weekday-fill');
+            fill.style.height = `${Math.max(6, (item.share / peak) * 100)}%`;
+            fill.title = `${item.name}: ${item.share.toFixed(1)} % (${item.mean.toFixed(1)}/dan, ${item.count} dni)`;
+            const label = element('span', 'polistat-view__weekday-label', item.short);
+            bar.append(fill, label);
+            bars.appendChild(bar);
+        });
+        box.appendChild(bars);
+    }
+
     function fmtDate(iso) {
         const [year, month, day] = iso.split('-');
         return `${Number(day)}. ${Number(month)}. ${year}`;
@@ -312,6 +383,9 @@
         } else {
             trendBox.textContent = trend.detail || '';
         }
+
+        root.__points = points;
+        renderWeekday();
 
         draw(root.querySelector('.polistat-view__chart'), points, runs);
 

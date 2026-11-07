@@ -65,6 +65,21 @@ test('the readout compares the window with the selected period\'s average', () =
     assert.match(view, /zadnjih \$\{label\} ≈ \$\{now\.toFixed\(1\)\}\/dan · povprečje/);
 });
 
+test('the weekday with the largest share is named under the trend', () => {
+    assert.match(view, /function weekdayShares/);
+    assert.match(view, /function renderWeekday/);
+    assert.match(view, /največji delež: /);
+    // means per weekday, not totals: a period with five Saturdays would otherwise
+    // reward the weekday that merely appears more often
+    assert.match(view, /const total = means\.reduce\(\(sum, item\) => sum \+ item\.mean, 0\)/);
+    // Monday first, while getDay() starts on Sunday
+    assert.match(view, /const index = \(new Date\(`\$\{point\.date\}T12:00:00`\)\.getDay\(\) \+ 6\) % 7/);
+    assert.match(view, /premalo dni za razporeditev po dnevih/);
+    assert.match(css, /\.polistat-view__weekday-bar\.is-most \.polistat-view__weekday-fill/);
+    // it sits under the trend readout
+    assert.ok(view.indexOf('polistat-view__weekday"></div>') > view.indexOf('polistat-view__trend"></div>'));
+});
+
 test('the window is a setting: 7 days, 14, a month, three months', () => {
     assert.match(view, /const WINDOWS = \[/);
     for (const label of ['7 dni', '14 dni', '1 mesec', '3 mesece']) {
@@ -165,7 +180,7 @@ test('pressing the cube draws the chart: no button to press first', () => {
 });
 
 test('the page loads both assets, versioned, and the data sits under data/', () => {
-    assert.match(index, /polistat\.css\?v=\d+/);
-    assert.match(index, /polistat\.js\?v=5/);
+    assert.match(index, /polistat\.css\?v=5/);
+    assert.match(index, /polistat\.js\?v=6/);
     assert.match(view, /DATA_URL = 'data\/polistat\.json'/);
 });
