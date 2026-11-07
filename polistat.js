@@ -31,7 +31,11 @@
         open: false,
         data: null,
         metric: 'calls_113',
-        range: 'all',
+        // Open on the present: the archive is sparse and spread over eight years, so
+        // "vse" draws a near-empty plot on arrival. The reader can still choose it —
+        // the axis is built from the points actually selected, so a short range fills
+        // the width.
+        range: '30',
         loading: false,
         error: '',
     };

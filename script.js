@@ -977,7 +977,10 @@ function createCube(interest, index, isSubCube = false, parentPosition = null, d
         event.stopPropagation();
 
         // A podcast root has no sub-cubes but still opens something on the board itself: its list.
-        const opensBoardView = Array.isArray(interest.podcastList) && interest.podcastList.length > 0;
+        // POLISTAT has no sub-cubes either: its board view is the chart, and pressing the
+        // cube should land on it rather than on a panel with a button to press next.
+        const opensBoardView = (Array.isArray(interest.podcastList) && interest.podcastList.length > 0)
+            || interest.stats === 'polistat';
 
         if (opensBoardView || getVisibleInterests(interest.subInterests).length > 0) {
             // Get current position in pixels for navigation (if not set this will produce NaN)
@@ -1158,6 +1161,12 @@ function handleCubeClick(interest, position, depth) {
     // still a step into the board, so BACK returns to the cubes as it does everywhere else.
     if (Array.isArray(interest.podcastList) && interest.podcastList.length > 0) {
         openPodcastList(interest, position, depth);
+        return;
+    }
+
+    // The numbers this site keeps itself are the cube's content: pressing it draws them.
+    if (interest.stats === 'polistat') {
+        window.polistatView?.open?.();
         return;
     }
 
@@ -1426,12 +1435,6 @@ function showInfoPanel(interest, depth) {
             `<button type="button" class="article-link feed-episodes">Episodes</button>` :
             ''
         }
-        ${interest.stats === 'polistat' ?
-            // Data this site draws itself rather than a page elsewhere: the numbers live in
-            // data/polistat.json and the chart is built in polistat.js.
-            `<button type="button" class="article-link stats-open">Grafi</button>` :
-            ''
-        }
         ${interest.id === 'bitcoin-price' ? renderBitcoinCurrencyControls() : ''}
         ${interest.gallery ? renderGallery(interest.gallery) : ''}
         ${Array.isArray(interest.podcastList) && interest.podcastList.length > 0
@@ -1513,18 +1516,6 @@ function showInfoPanel(interest, depth) {
             imageUrl: interest.imageUrl,
             url: interest.url
         });
-    });
-
-    // Open the statistics view for interests whose numbers this site keeps itself.
-    infoContent.querySelector('.stats-open')?.addEventListener('click', event => {
-        if (!window.polistatView?.open) {
-            const note = document.createElement('p');
-            note.className = 'leaf-node';
-            note.textContent = 'The statistics view did not load on this page. Reload the page.';
-            event.currentTarget.replaceWith(note);
-            return;
-        }
-        window.polistatView.open();
     });
 
     // Allow the Bitcoin price panel to switch the live cube between Sintra currencies.

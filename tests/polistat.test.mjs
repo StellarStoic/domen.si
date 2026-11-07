@@ -61,6 +61,7 @@ test('the view offers a button per dataset and per range', () => {
     assert.match(view, /state\.metric = item\.key/);
     assert.match(view, /state\.range = range\.key/);
     assert.match(view, /is-active/);
+    assert.match(view, /range: '30'/, 'the view should open on the present, not a sparse whole-archive plot');
     const ranges = view.match(/key: '\d+'|key: 'all'/g) || [];
     assert.ok(ranges.length >= 3, 'expected at least three time ranges');
 });
@@ -87,16 +88,19 @@ test('POLISTAT is a cube under BUILDS > OTHER and opens the chart view', () => {
     assert.ok(cube.description.length > 80, 'the panel needs a real description');
 });
 
-test('the panel offers the button only for interests that carry stats', () => {
+test('pressing the cube draws the chart: no button to press first', () => {
     const script = read('script.js');
-    assert.match(script, /interest\.stats === 'polistat'/);
-    assert.match(script, /polistatView\?\.open/);
+    // the cube counts as a board view, or createCube only opens the panel
+    assert.match(script, /const opensBoardView =[\s\S]{0,200}interest\.stats === 'polistat'/);
+    assert.match(script, /if \(interest\.stats === 'polistat'\) \{\s*\n\s*window\.polistatView\?\.open\?\.\(\);/);
     // and BACK has to leave the view before it can mean anything else
     assert.match(script, /function goBack\(\)[\s\S]{0,400}polistatView\?\.isOpen/);
+    // the panel carries no leftover control
+    assert.doesNotMatch(script, /stats-open/);
 });
 
 test('the page loads both assets, versioned, and the data sits under data/', () => {
     assert.match(index, /polistat\.css\?v=\d+/);
-    assert.match(index, /polistat\.js\?v=\d+/);
+    assert.match(index, /polistat\.js\?v=3/);
     assert.match(view, /DATA_URL = 'data\/polistat\.json'/);
 });

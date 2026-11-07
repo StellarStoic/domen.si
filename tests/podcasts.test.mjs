@@ -41,7 +41,7 @@ test('the list is drawn in the cubes container, not the panel', () => {
 });
 
 test('clicking the cube opens the list even though it has no sub-cubes', () => {
-  assert.match(SCRIPT, /const opensBoardView = Array\.isArray\(interest\.podcastList\) && interest\.podcastList\.length > 0;/);
+  assert.match(SCRIPT, /opensBoardView =[\s\S]{0,200}Array\.isArray\(interest\.podcastList\)/);
   assert.match(SCRIPT, /if \(opensBoardView \|\| getVisibleInterests\(interest\.subInterests\)\.length > 0\)/,
     'the cube has to reach handleCubeClick, or the board never changes');
   assert.match(SCRIPT, /openPodcastList\(interest, position, depth\);/);
