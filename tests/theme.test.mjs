@@ -180,9 +180,16 @@ test('a green fill never carries green text', () => {
     const text = read(sheet);
     const rules = text.split('}');
     for (const rule of rules) {
-      if (!/background:\s*var\(--active\)/.test(rule)) continue;
-      assert.doesNotMatch(rule, /color:\s*var\(--active-text\)/,
-        `${sheet}: a selected state paints green text on a green fill`);
+      // green fill → the label must not be the same green
+      if (/background:\s*var\(--active\)/.test(rule)) {
+        assert.doesNotMatch(rule, /color:\s*var\(--active-text\)/,
+          `${sheet}: a selected state paints green text on a green fill`);
+      }
+      // accent fill → the ink is --accent-ink; --accent-text is the same orange as --accent
+      if (/background:\s*var\(--accent\)\s*;/.test(rule)) {
+        assert.doesNotMatch(rule, /color:\s*var\(--accent-text\)/,
+          `${sheet}: a highlighted word is painted orange on orange`);
+      }
     }
   }
 });

@@ -221,9 +221,12 @@
     overflow: visible;
 }
 
+/* A marked word sits ON the accent, so its ink is --accent-ink (black). --accent-text is the SAME
+   orange as --accent, so pairing them paints an orange word on an orange block: 1.00:1, and the one
+   thing a search must show becomes the one thing you cannot read. */
 .day86400-hit {
     background: var(--accent);
-    color: var(--accent-text);
+    color: var(--accent-ink);
     padding: 0 0.1em;
 }
 
