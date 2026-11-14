@@ -23,7 +23,8 @@ test('the podcast cube holds two cells: the OPML list and the inspector', () => 
     'the root describes a directory, not a list');
   const block = DATA.match(/interest\.subInterests = \[[\s\S]{0,1400}?\n    \];/);
   assert.ok(block, 'the podcast cube has no cells');
-  assert.match(block[0], /id: 'podcast-opml'/);
+  assert.match(block[0], /id: 'opml'/);
+  assert.doesNotMatch(block[0], /id: 'podcast-/, 'the cell must not sit in the imported-podcast id space');
   assert.match(block[0], /podcastList: listed/, 'the OPML cell carries the subscriptions');
   assert.match(block[0], /id: 'pod-inspector'/);
   assert.match(block[0], /stats: 'podInspector'/, 'the inspector cell opens a view');
@@ -110,8 +111,10 @@ test('BACK steps out of one thing at a time, top first', () => {
     'the episode view closes first');
   assert.ok(goBack.indexOf('podcastFeedView') < goBack.indexOf('navigationStack.pop()'),
     'nothing may pop the stack before the view is closed');
-  // a podcast opened from the list steps back to the list, not over it to the root board
-  assert.match(goBack, /if \(podcastBoardContext && shownInterestId\.startsWith\('podcast-'\)\) \{/);
+  // a podcast opened from the list steps back to the list, not over it to the root board — decided by
+  // asking the list whether it holds that podcast, never by an id prefix
+  assert.match(goBack, /const shownIsOneOfTheList = [\s\S]{0,200}?podcastList\.some\(/);
+  assert.match(goBack, /if \(shownIsOneOfTheList\) \{/);
   assert.match(goBack, /showInfoPanel\(podcastBoardContext\.interest, podcastBoardContext\.depth\)/);
   assert.match(SCRIPT, /podcastBoardContext = \{ interest, depth \};/, 'the list records itself when it opens');
   assert.match(SCRIPT, /podcastBoardContext = null;/, 'the root board forgets it');
@@ -132,7 +135,7 @@ test('stepping back onto the list draws it on the board, not just in the panel',
   assert.match(SCRIPT, /container\.appendChild\(buildPodcastListBoard\(podcastBoardContext\.interest, podcastBoardContext\.depth\)\)/,
     'a list level rebuilt after the container was cleared comes back');
   // the branch that turns the panel onto a podcast must call it, or the two halves disagree
-  const branch = SCRIPT.slice(SCRIPT.indexOf('if (podcastBoardContext && shownInterestId.startsWith'), SCRIPT.indexOf('// At the root level, BACK closes'));
+  const branch = SCRIPT.slice(SCRIPT.indexOf('if (shownIsOneOfTheList)'), SCRIPT.indexOf('// At the root level, BACK closes'));
   assert.match(branch, /ensurePodcastListOnBoard\(\)/);
   assert.match(branch, /showInfoPanel\(podcastBoardContext\.interest/);
 });
@@ -181,4 +184,15 @@ test('every subscription in the OPML can produce a named row', () => {
   assert.equal(outlines.length, 100, 'the OPML holds 100 subscriptions');
   const unnamed = outlines.filter(outline => !/(text|title)="[^"]+"/.test(outline));
   assert.equal(unnamed.length, 0, 'a row with no name would read as a blank line');
+});
+
+test('BACK decides what is open by looking, not by reading an id prefix', () => {
+  // The OPML cell's id used to start with `podcast-`, which the old `startsWith('podcast-')` test
+  // read as "a podcast from the list is open" — so BACK from the list redrew the list forever.
+  const back = SCRIPT.match(/function goBack\(\) \{[\s\S]{0,3200}/);
+  assert.ok(back, 'goBack not found');
+  assert.doesNotMatch(back[0], /shownInterestId\.startsWith\('podcast-'\)/,
+    'a prefix test is what broke it');
+  assert.match(back[0], /podcastList\.some\([\s\S]{0,60}shownInterestId/,
+    'the list itself has to answer whether the shown interest is one of its own');
 });

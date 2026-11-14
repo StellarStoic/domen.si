@@ -196,7 +196,7 @@ async function loadPodcastInterests(interest) {
     interest.podcastList = [];
     interest.subInterests = [
         {
-            id: 'podcast-opml',
+            id: 'opml',
             name: 'OPML',
             description: `${listed.length} subscriptions from the Podcast Addict export, listed A to Z.`,
             metadata: `OPML last updated: ${updatedAt}.`,

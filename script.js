@@ -1534,8 +1534,13 @@ function goBack() {
     // A podcast opened from the list steps back to that list: the panel names it AND the board draws it,
     // because a panel showing the list over a board of cubes is not a step back — it is two disagreeing
     // halves of one screen.
+    // Membership, not a prefix: an opaque `startsWith('podcast-')` test also matched the OPML cell
+    // itself (whose id used to be `podcast-opml`), so BACK from the list redrew the list forever.
     const shownInterestId = document.getElementById('info-content')?.dataset.interestId || '';
-    if (podcastBoardContext && shownInterestId.startsWith('podcast-')) {
+    const shownIsOneOfTheList = !!podcastBoardContext
+        && Array.isArray(podcastBoardContext.interest?.podcastList)
+        && podcastBoardContext.interest.podcastList.some(entry => entry.id === shownInterestId);
+    if (shownIsOneOfTheList) {
         ensurePodcastListOnBoard();
         showInfoPanel(podcastBoardContext.interest, podcastBoardContext.depth);
         return;
