@@ -160,3 +160,18 @@ test('the view fetches the raw document through the reader, never direct', () =>
     assert.match(VIEW, /pod-inspector-tags__summary/);
     assert.match(VIEW, /type = 'checkbox'/);
 });
+
+test('the tool speaks English, and only the tool', () => {
+  // D asked for this split explicitly: the inspector is English while the rest of the board stays
+  // Slovene, so a future pass must not "translate" the neighbouring view either.
+  assert.doesNotMatch(VIEW, /[čšžČŠŽ]/, 'no Slovene letters belong in the inspector');
+  for (const word of ['inspect', 'show more', 'clear selection', 'tags (', 'Episode or feed address']) {
+    assert.ok(VIEW.includes(word), `missing English label: ${word}`);
+  }
+  assert.doesNotMatch(VIEW, /preglej|počisti izbiro|pokaži več|oznake/i,
+    'a Slovene label came back');
+
+  const day = read('day86400.js');
+  assert.match(day, /ni zadetkov/, 'the 86400 view stays Slovene');
+  assert.match(day, /objava|objav/);
+});

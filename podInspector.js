@@ -14,7 +14,7 @@ import {decorate, prettyBytes, tagStats, tokenize, windowTokens} from './podInsp
 
 (function initPodInspector(global) {
     const FIRST_WINDOW = 3000;      // tokens painted on the first pass
-    const WINDOW_STEP = 6000;       // added by each "pokaži več"
+    const WINDOW_STEP = 6000;       // added by each "show more"
 
     let container = null;
     let root = null;
@@ -48,17 +48,17 @@ import {decorate, prettyBytes, tagStats, tokenize, windowTokens} from './podInsp
         if (root && container.contains(root)) return true;
 
         root = element('section', 'pod-inspector-view');
-        root.setAttribute('aria-label', 'Pod Inspector — oznake v RSS dokumentu');
+        root.setAttribute('aria-label', 'Pod Inspector — the tags in an RSS document');
 
         const head = element('div', 'pod-inspector-view__head');
         const titles = element('div');
         titles.appendChild(element('div', 'pod-inspector-view__title', 'POD INSPECTOR'));
         titles.appendChild(element('div', 'pod-inspector-view__sub',
-            'prilepi naslov epizode ali feeda — prikaže se dokument, kakršen ga izda založnik'));
+            'paste an episode, page or feed address — the document appears as the publisher serves it'));
         head.appendChild(titles);
         const close = element('button', 'pod-inspector-view__close', '×');
         close.type = 'button';
-        close.setAttribute('aria-label', 'Zapri');
+        close.setAttribute('aria-label', 'Close');
         close.addEventListener('click', () => closeView());
         head.appendChild(close);
         root.appendChild(head);
@@ -68,10 +68,10 @@ import {decorate, prettyBytes, tagStats, tokenize, windowTokens} from './podInsp
         input.type = 'url';
         input.autocomplete = 'off';
         input.spellcheck = false;
-        input.placeholder = 'https://… (epizoda, stran ali feed)';
-        input.setAttribute('aria-label', 'Naslov epizode ali feeda');
+        input.placeholder = 'https://… (episode, page or feed)';
+        input.setAttribute('aria-label', 'Episode or feed address');
         form.appendChild(input);
-        const go = element('button', 'pod-inspector-go', 'preglej');
+        const go = element('button', 'pod-inspector-go', 'inspect');
         go.type = 'submit';
         form.appendChild(go);
         form.addEventListener('submit', event => {
@@ -84,11 +84,11 @@ import {decorate, prettyBytes, tagStats, tokenize, windowTokens} from './podInsp
 
         const tools = element('div', 'pod-inspector-view__tools');
         const details = element('details', 'pod-inspector-tags');
-        const summary = element('summary', 'pod-inspector-tags__summary', 'oznake (0)');
+        const summary = element('summary', 'pod-inspector-tags__summary', 'tags (0)');
         details.appendChild(summary);
         details.appendChild(element('div', 'pod-inspector-tags__menu'));
         tools.appendChild(details);
-        const clear = element('button', 'pod-inspector-clear', 'počisti izbiro');
+        const clear = element('button', 'pod-inspector-clear', 'clear selection');
         clear.type = 'button';
         clear.addEventListener('click', () => {
             state.selected.clear();
@@ -99,7 +99,7 @@ import {decorate, prettyBytes, tagStats, tokenize, windowTokens} from './podInsp
         root.appendChild(tools);
 
         root.appendChild(element('pre', 'pod-inspector-view__code'));
-        const more = element('button', 'pod-inspector-more', 'pokaži več');
+        const more = element('button', 'pod-inspector-more', 'show more');
         more.type = 'button';
         more.hidden = true;
         more.addEventListener('click', () => {
@@ -118,7 +118,7 @@ import {decorate, prettyBytes, tagStats, tokenize, windowTokens} from './podInsp
         const node = root.querySelector('.pod-inspector-view__status');
         node.replaceChildren();
         if (state.loading) {
-            node.textContent = 'berem … (Tor zna trajati do pol minute)';
+            node.textContent = 'reading … (over Tor this can take half a minute)';
             return;
         }
         if (state.error) {
@@ -133,16 +133,16 @@ import {decorate, prettyBytes, tagStats, tokenize, windowTokens} from './podInsp
             return;
         }
         const bits = [
-            payload.kind === 'xml' ? 'RSS/XML' : (payload.kind === 'html' ? 'stran HTML' : payload.kind),
+            payload.kind === 'xml' ? 'RSS/XML' : (payload.kind === 'html' ? 'HTML page' : payload.kind),
             `HTTP ${payload.status}`,
             prettyBytes(payload.bytes),
-            `${state.tokens.length} delov`,
-            payload.truncated ? 'odrezano pri omejitvi' : '',
-            payload.cached ? 'iz predpomnilnika' : '',
+            `${state.tokens.length} tokens`,
+            payload.truncated ? 'truncated at the cap' : '',
+            payload.cached ? 'cached' : '',
         ].filter(Boolean);
         node.textContent = bits.join(' · ');
         if (payload.kind === 'html' && payload.alternate) {
-            node.appendChild(document.createTextNode(' · stran ponuja feed: '));
+            node.appendChild(document.createTextNode(' · the page advertises: '));
             const link = element('button', 'pod-inspector-link', payload.alternate);
             link.type = 'button';
             link.addEventListener('click', () => inspect(payload.alternate));
@@ -157,8 +157,8 @@ import {decorate, prettyBytes, tagStats, tokenize, windowTokens} from './podInsp
         const menu = root.querySelector('.pod-inspector-tags__menu');
         menu.replaceChildren();
         summary.textContent = state.selected.size
-            ? `oznake (${state.selected.size} izbranih od ${stats.length})`
-            : `oznake (${stats.length})`;
+            ? `tags (${state.selected.size} of ${stats.length} selected)`
+            : `tags (${stats.length})`;
         details.hidden = stats.length === 0;
 
         if (!stats.length) return;
@@ -214,16 +214,16 @@ import {decorate, prettyBytes, tagStats, tokenize, windowTokens} from './podInsp
 
         if (visible.more) {
             more.hidden = false;
-            more.textContent = `pokaži več (${visible.shown} / ${visible.total})`;
+            more.textContent = `show more (${visible.shown} / ${visible.total})`;
         } else if (visible.total) {
-            note.textContent = `${visible.total} oznak skupaj`;
+            // tokens, not tags: the number counts every piece of markup and text in the file
+            note.textContent = `${visible.total} tokens in total`;
         }
 
         if (state.payload.kind === 'html' && !state.payload.alternate) {
-            note.textContent = 'To je spletna stran, ne feed — oznake RSS so v datoteki, na katero '
-                + 'se stran sklicuje.';
+            note.textContent = 'This is a web page, not a feed — the RSS tags live in the document it points at.';
         } else if (state.payload.kind === 'html') {
-            note.textContent = 'To je spletna stran, ne feed — klikni naslov feeda zgoraj.';
+            note.textContent = 'This is a web page, not a feed — click the feed address above.';
         }
     }
 
@@ -245,7 +245,7 @@ import {decorate, prettyBytes, tagStats, tokenize, windowTokens} from './podInsp
         try {
             const response = await fetch(`${readerBase()}/raw?url=${encodeURIComponent(url)}`);
             const payload = await response.json().catch(() => null);
-            if (!payload) throw new Error(`odgovor ni bil JSON (HTTP ${response.status})`);
+            if (!payload) throw new Error(`the answer was not JSON (HTTP ${response.status})`);
             if (!payload.ok) throw new Error(payload.error || `HTTP ${response.status}`);
             state.payload = payload;
             state.tokens = tokenize(payload.document);
@@ -253,7 +253,7 @@ import {decorate, prettyBytes, tagStats, tokenize, windowTokens} from './podInsp
                 state.error = '';
             }
         } catch (error) {
-            state.error = `Dokumenta ni bilo mogoče prebrati (${error.message}).`;
+            state.error = `The document could not be read (${error.message}).`;
         } finally {
             state.loading = false;
         }
