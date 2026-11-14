@@ -85,6 +85,9 @@ TELEGRAM = [
 ]
 
 OTHER = [
+    project("day86400", "86400", "One day of official reporting in one place: the CZ daily "
+            "bulletin and the police press releases of the last 24 hours, searchable by keyword "
+            "and filterable by section.", stats="day86400"),
     project("polistat", "POLISTAT", "What the Slovenian police recorded in the last 24 hours, "
             "day after day: calls to 113, interventions, road accidents, breaches of public "
             "order and criminal offences. Every day is kept, so the trend line shows whether "

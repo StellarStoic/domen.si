@@ -1,0 +1,302 @@
+/* 86400 — the CZ bulletin and the last 24 hours of police reporting, in the board.
+
+   Same rules as the rest of the site: nothing leaves the page beyond the links out, no library,
+   and every colour is a palette role so the white theme inverts with everything else. A test
+   refuses any hex literal in this file. */
+
+.brain-container.has-day86400 {
+    position: relative;
+}
+
+.day86400-view {
+    position: absolute;
+    inset: 0;
+    /* above the cubes, which set z-index 50 inline on the BACK cube */
+    z-index: 60;
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+    padding: 0.9rem 1rem 1.2rem;
+    background: var(--page);
+    border: 2px solid var(--rule);
+    color: var(--ink);
+    overflow-y: auto;
+    /* NOT `contain`: this list is often longer than the box, and a reader moving the page with one
+       finger needs the drag to chain out when the list runs out. */
+    overscroll-behavior: auto;
+    font-family: 'Courier New', monospace;
+}
+
+.day86400-view[hidden],
+.day86400-view [hidden] {
+    display: none !important;
+}
+
+.day86400-view__head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 0.6rem;
+    border-bottom: 1px solid var(--rule);
+    padding-bottom: 0.5rem;
+}
+
+.day86400-view__title {
+    font-size: 1.15rem;
+    letter-spacing: 0.18em;
+    color: var(--accent-text);
+}
+
+.day86400-view__sub {
+    margin-top: 0.2rem;
+    font-size: 0.7rem;
+    color: var(--muted);
+    letter-spacing: 0.04em;
+}
+
+.day86400-view__close {
+    flex: none;
+    width: 2rem;
+    height: 2rem;
+    font-size: 1.1rem;
+    line-height: 1;
+    background: var(--surface);
+    color: var(--ink);
+    border: 2px solid var(--cube-edge);
+    cursor: pointer;
+}
+
+.day86400-view__close:hover,
+.day86400-view__close:focus-visible {
+    background: var(--active);
+    color: var(--active-text);
+}
+
+.day86400-view__search {
+    display: flex;
+    gap: 0.5rem;
+    align-items: stretch;
+}
+
+.day86400-query {
+    flex: 1 1 auto;
+    min-width: 0;
+    padding: 0.45rem 0.6rem;
+    font-family: inherit;
+    font-size: 0.8rem;
+    background: var(--surface);
+    color: var(--ink);
+    border: 2px solid var(--cube-edge);
+}
+
+.day86400-query:focus-visible {
+    outline: 2px solid var(--active);
+    outline-offset: 1px;
+}
+
+.day86400-clear {
+    flex: none;
+    padding: 0 0.6rem;
+    font-family: inherit;
+    font-size: 0.7rem;
+    letter-spacing: 0.06em;
+    background: var(--surface);
+    color: var(--muted);
+    border: 2px solid var(--cube-edge);
+    cursor: pointer;
+}
+
+.day86400-clear:hover,
+.day86400-clear:focus-visible {
+    color: var(--ink);
+    border-color: var(--active);
+}
+
+.day86400-view__status {
+    font-size: 0.74rem;
+    letter-spacing: 0.03em;
+    color: var(--muted);
+    min-height: 1rem;
+}
+
+.day86400-view__status.is-error {
+    color: var(--accent-text);
+}
+
+.day86400-view__chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+}
+
+.day86400-chip {
+    padding: 0.18rem 0.5rem;
+    font-family: inherit;
+    font-size: 0.68rem;
+    letter-spacing: 0.03em;
+    background: var(--surface);
+    color: var(--muted);
+    border: 1px solid var(--cube-edge);
+    cursor: pointer;
+}
+
+.day86400-chip:hover,
+.day86400-chip:focus-visible {
+    color: var(--ink);
+    border-color: var(--active);
+}
+
+/* D asks for green, not red, to mark what is selected. */
+.day86400-chip.is-active {
+    background: var(--active);
+    color: var(--active-text);
+    border-color: var(--active);
+    font-weight: bold;
+}
+
+.day86400-chip.is-empty {
+    opacity: 0.45;
+}
+
+.day86400-view__list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.8rem;
+}
+
+.day86400-item {
+    padding: 0.6rem 0.7rem 0.5rem;
+    background: var(--surface);
+    border: 1px solid var(--rule);
+    /* depth rides on the edge tone in dark and on its width in the white theme */
+    border-left: 3px solid var(--cube-edge);
+}
+
+.day86400-item[data-source='cz'] {
+    border-left-color: var(--accent);
+}
+
+.day86400-item__head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 0.6rem;
+}
+
+.day86400-badge {
+    font-size: 0.66rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--accent-text);
+}
+
+.day86400-item__time {
+    flex: none;
+    font-size: 0.66rem;
+    color: var(--muted);
+}
+
+.day86400-item__title {
+    margin: 0.25rem 0 0.3rem;
+    font-size: 0.86rem;
+    line-height: 1.3;
+    color: var(--ink);
+}
+
+.day86400-item__text {
+    margin: 0;
+    font-size: 0.76rem;
+    line-height: 1.5;
+    color: var(--ink);
+    /* clamped until asked for: a day of reports is long, and the search opens what it matched */
+    display: -webkit-box;
+    -webkit-line-clamp: 4;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.day86400-item__text.is-open {
+    display: block;
+    -webkit-line-clamp: unset;
+    overflow: visible;
+}
+
+.day86400-hit {
+    background: var(--accent);
+    color: var(--accent-text);
+    padding: 0 0.1em;
+}
+
+.day86400-more {
+    margin-top: 0.35rem;
+    padding: 0;
+    font-family: inherit;
+    font-size: 0.68rem;
+    letter-spacing: 0.04em;
+    background: none;
+    color: var(--accent-text);
+    border: 0;
+    border-bottom: 1px dotted var(--accent-text);
+    cursor: pointer;
+}
+
+.day86400-item__source {
+    display: inline-block;
+    margin-top: 0.35rem;
+    margin-left: 0.7rem;
+    font-size: 0.68rem;
+    color: var(--muted);
+    text-decoration: none;
+    border-bottom: 1px dotted var(--muted);
+}
+
+.day86400-item__source:hover,
+.day86400-item__source:focus-visible {
+    color: var(--accent-text);
+    border-bottom-color: var(--accent-text);
+}
+
+.day86400-empty {
+    margin: 0.4rem 0;
+    font-size: 0.76rem;
+    color: var(--muted);
+}
+
+.day86400-view__note {
+    margin-top: auto;
+    padding-top: 0.5rem;
+    border-top: 1px solid var(--rule);
+    font-size: 0.66rem;
+    color: var(--muted);
+}
+
+.day86400-view__note a {
+    color: var(--muted);
+    text-decoration: none;
+    border-bottom: 1px dotted var(--muted);
+}
+
+.day86400-view__note a:hover,
+.day86400-view__note a:focus-visible {
+    color: var(--accent-text);
+}
+
+.day86400-warn {
+    margin-top: 0.3rem;
+    color: var(--accent-text);
+}
+
+@media (max-width: 600px) {
+    .day86400-view {
+        padding: 0.7rem 0.6rem 1rem;
+    }
+
+    .day86400-item__title {
+        font-size: 0.82rem;
+    }
+
+    .day86400-item__text {
+        font-size: 0.74rem;
+        -webkit-line-clamp: 3;
+    }
+}

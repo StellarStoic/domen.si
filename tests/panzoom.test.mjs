@@ -91,11 +91,18 @@ test('an open view must not swallow the drag that moves the page', () => {
 });
 
 test('a touch or wheel on a view is not the board\'s business', () => {
-    assert.match(script, /closest\('\.polistat-view, \.feed-view'\)/);
-    assert.match(script, /closest\('\.polistat-view, \.feed-view, \.podcast-board'\)/);
+    // Every overlay is named in these guards, so assert the members rather than one literal: 86400
+    // joined the list, and a pinned string would fail on that legitimate generalisation.
+    const guards = script.match(/closest\('[^']*'\)/g) || [];
+    const overlays = guards.filter(guard => guard.includes('.polistat-view'));
+    assert.ok(overlays.length >= 2, 'the overlay guards are missing');
+    for (const guard of overlays) {
+        assert.ok(guard.includes('.feed-view'), guard);
+        assert.ok(guard.includes('.day86400-view'), `overlay guard incomplete: ${guard}`);
+    }
 });
 
 test('the changed assets carry new versions', () => {
     assert.match(index, /style\.css\?v=11/);
-    assert.match(index, /script\.js\?v=15/);
+    assert.match(index, /script\.js\?v=16/);
 });
