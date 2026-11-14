@@ -131,7 +131,7 @@ function setupBoardPanZoom() {
     const onTouchStart = event => {
         if (!event.touches.length) return;
         // A touch that starts on a view or the panel is not the board's business.
-        if (event.target.closest('.polistat-view, .feed-view, .day86400-view')) return;
+        if (event.target.closest('.polistat-view, .feed-view, .day86400-view, .pod-inspector-view')) return;
         if (event.touches.length === 1) {
             touchMode = 'pan';
             start = { point: point(event.touches[0]), x: boardView.x, y: boardView.y };
@@ -189,7 +189,7 @@ function setupBoardPanZoom() {
 
     const onMouseDown = event => {
         if (event.button !== 0) return;
-        if (event.target.closest('.polistat-view, .feed-view, .day86400-view, .podcast-board')) return;
+        if (event.target.closest('.polistat-view, .feed-view, .day86400-view, .pod-inspector-view, .podcast-board')) return;
         start = { point: { x: event.clientX, y: event.clientY }, x: boardView.x, y: boardView.y };
         boardView.dragging = false;
         const onMove = moveEvent => {
@@ -293,7 +293,7 @@ function setupBoardPanZoom() {
     container.addEventListener('wheel', onWheel, { passive: false });
     // a double click on empty board space is the quick way back out
     container.addEventListener('dblclick', event => {
-        if (event.target.closest('.cube, .back-button, .polistat-view, .feed-view, .day86400-view, .day86400-view')) return;
+        if (event.target.closest('.cube, .back-button, .polistat-view, .feed-view, .day86400-view, .pod-inspector-view, .day86400-view')) return;
         resetBoardView();
     });
     window.addEventListener('resize', applyBoardView);
@@ -717,6 +717,7 @@ function renderBrain() {
     window.podcastFeedView?.close?.();
     window.polistatView?.close?.();
     window.day86400View?.close?.();
+    window.podInspectorView?.close?.();
     podcastBoardContext = null;
     container.innerHTML = ''; // Clear container
     resetBoardView();
@@ -1124,7 +1125,8 @@ function createCube(interest, index, isSubCube = false, parentPosition = null, d
         // cube should land on it rather than on a panel with a button to press next.
         const opensBoardView = (Array.isArray(interest.podcastList) && interest.podcastList.length > 0)
             || interest.stats === 'polistat'
-            || interest.stats === 'day86400';
+            || interest.stats === 'day86400'
+            || interest.stats === 'podInspector';
 
         if (opensBoardView || getVisibleInterests(interest.subInterests).length > 0) {
             // Get current position in pixels for navigation (if not set this will produce NaN)
@@ -1419,6 +1421,12 @@ function handleCubeClick(interest, position, depth) {
         return;
     }
 
+    // The Pod Inspector is a tool, not a link: pressing it opens the input and the code view.
+    if (interest.stats === 'podInspector') {
+        window.podInspectorView?.open?.();
+        return;
+    }
+
     // If the interest has sub-interests, navigate deeper
     if (getVisibleInterests(interest.subInterests).length > 0) {
         navigateToSubInterests(interest, position, depth);
@@ -1475,6 +1483,16 @@ function ensurePodcastListOnBoard() {
 }
 
 function goBack() {
+    // The Pod Inspector covers the container like the other views, so BACK leaves it first.
+    if (window.podInspectorView?.isOpen?.()) {
+        const shell = document.querySelector('#brain-container .pod-inspector-view');
+        const wasOnScreen = !!shell && !shell.hidden;
+        window.podInspectorView.close();
+        if (wasOnScreen) {
+            return;
+        }
+    }
+
     // 86400 and POLISTAT cover the whole container, so whichever is open is the topmost layer and
     // BACK has to leave it before the press can mean anything else.
     if (window.day86400View?.isOpen?.()) {

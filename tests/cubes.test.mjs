@@ -92,7 +92,7 @@ test('the shake starts with the board and is reachable on a desktop', () => {
 test('the mix nudge animates through palette roles and both assets are versioned', () => {
     assert.match(CSS, /\.board-layer\.is-mixed[\s\S]{0,200}animation:/);
     assert.match(HTML, /style\.css\?v=12/);
-    assert.match(HTML, /script\.js\?v=17/);
+    assert.ok(Number((HTML.match(/script\.js\?v=(\d+)/) || [])[1]) >= 18);
 });
 
 // The measured half lives here as a note, so the next session knows what proves what:

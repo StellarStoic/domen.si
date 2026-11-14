@@ -47,6 +47,11 @@ const INFLIGHT_MAX = Number(process.env.INFLIGHT_MAX || 6);
 const MAX_EPISODES = Number(process.env.MAX_EPISODES || 60);
 const MAX_CHAPTER_FILES = Number(process.env.MAX_CHAPTER_FILES || 12);
 const USER_AGENT = process.env.USER_AGENT || 'domen.si feed reader (+https://domen.si)';
+// The Pod Inspector shows a publisher's document as it is written, so it needs the bytes rather
+// than the parsed feed the panels use. Kept well below the feed cap: this payload travels to the
+// browser as JSON, and nobody reads 25 MB of tags.
+const RAW_MAX_BYTES = Number(process.env.RAW_MAX_BYTES || 2_000_000);
+const RAW_CACHE_SECONDS = Number(process.env.RAW_CACHE_SECONDS || 300);
 const ALLOW_ORIGINS = (process.env.ALLOW_ORIGINS || 'https://domen.si,https://www.domen.si')
   .split(',').map(origin => origin.trim()).filter(Boolean);
 
@@ -63,6 +68,7 @@ try {
 
 const feedCache = new Map();
 const chapterCache = new Map();
+const rawCache = new Map();
 const inflight = { count: 0 };
 
 const PRIVATE_HOST_RE = /^(?:localhost|.*\.(?:localhost|local|internal|home|lan)|0\.0\.0\.0|127\.\d+\.\d+\.\d+|10\.\d+\.\d+\.\d+|192\.168\.\d+\.\d+|169\.254\.\d+\.\d+|172\.(?:1[6-9]|2\d|3[01])\.\d+\.\d+|\d+|\d+\.\d+\.\d+\.\d+|\[.*\])$/;
@@ -170,7 +176,7 @@ function readUrl(url, { timeout = FETCH_TIMEOUT_S, maxBytes = MAX_BYTES } = {}) 
 }
 
 /** A URL that this service is willing to read, or a refusal saying why. */
-export function validateTarget(raw) {
+export function validateTarget(raw, { allowAnyHost = false } = {}) {
   let parsed;
   try {
     parsed = new URL(String(raw || ''));
@@ -185,7 +191,7 @@ export function validateTarget(raw) {
   }
   const refused = targetRefused(parsed.hostname);
   if (refused) return { ok: false, code: 'forbidden_target', error: `that address is ${refused}` };
-  if (allowedHosts.size && !allowedHosts.has(parsed.hostname.toLowerCase())) {
+  if (!allowAnyHost && allowedHosts.size && !allowedHosts.has(parsed.hostname.toLowerCase())) {
     return {
       ok: false, code: 'not_subscribed',
       error: `this reader only fetches hosts in the podcast list; ${parsed.hostname} is not one of them`,
@@ -304,6 +310,76 @@ async function buildFeed(url) {
   }
 }
 
+/**
+ * The document behind a URL, exactly as the publisher serves it.
+ *
+ * Two things this is not: it is not the parsed feed (the panels have that), and it is not an open
+ * proxy — a host is only fetched when the address is public, carries no credentials, is not an
+ * onion, and the body is capped. The subscription allow-list is deliberately not applied here: the
+ * point of the inspector is to look at feeds that are not in D's OPML, which is how a publisher's
+ * own tag choices become visible at all.
+ */
+function documentKind(body) {
+  const head = String(body || '').slice(0, 2048).trim().toLowerCase();
+  if (!head) return 'empty';
+  if (head.startsWith('<?xml') || head.includes('<rss') || head.includes('<feed')
+      || head.includes('<opml') || head.includes('<rdf:rdf')) return 'xml';
+  if (head.startsWith('<!doctype html') || head.includes('<html')) return 'html';
+  if (head.startsWith('{') || head.startsWith('[')) return 'json';
+  return 'other';
+}
+
+/** A page that advertises its own feed: the usual way to get from an episode link to the XML. */
+function alternateFeed(body) {
+  const head = String(body || '').slice(0, 200_000);
+  const pattern = /<link\b[^>]*>/gi;
+  let match;
+  while ((match = pattern.exec(head)) !== null) {
+    const tag = match[0];
+    if (!/rel\s*=\s*["']?alternate/i.test(tag)) continue;
+    if (!/type\s*=\s*["']?application\/(?:rss|atom)\+xml/i.test(tag)) continue;
+    const href = tag.match(/href\s*=\s*["']([^"']+)["']/i);
+    if (href) return href[1];
+  }
+  return null;
+}
+
+async function buildRaw(url) {
+  const cached = recall(rawCache, url);
+  if (cached) return { ...cached.payload, cached: true };
+
+  let response;
+  try {
+    response = await readUrl(url, { timeout: Math.min(FETCH_TIMEOUT_S, 25), maxBytes: RAW_MAX_BYTES });
+  } catch (error) {
+    if (error.code === 'timeout' || error.code === 'unreachable') {
+      response = await readUrl(url, { timeout: Math.min(FETCH_TIMEOUT_S, 25), maxBytes: RAW_MAX_BYTES });
+    } else {
+      throw error;
+    }
+  }
+  const finalRefused = targetRefused(new URL(response.finalUrl).hostname);
+  if (finalRefused) {
+    throw Object.assign(new Error(`the address redirected to ${finalRefused}`), { code: 'forbidden_target' });
+  }
+
+  const kind = documentKind(response.body);
+  const payload = {
+    ok: true,
+    fetchedAt: new Date().toISOString(),
+    requestedUrl: url,
+    finalUrl: response.finalUrl,
+    status: response.status,
+    kind,
+    bytes: Buffer.byteLength(String(response.body || ''), 'utf8'),
+    truncated: response.truncated === true,
+    alternate: kind === 'html' ? alternateFeed(response.body) : null,
+    document: String(response.body || ''),
+  };
+  remember(rawCache, url, payload, RAW_CACHE_SECONDS);
+  return { ...payload, cached: false };
+}
+
 function corsHeaders(origin) {
   const allowed = ALLOW_ORIGINS.includes(origin) ? origin : ALLOW_ORIGINS[0];
   return {
@@ -347,6 +423,7 @@ const server = createServer(async (req, res) => {
       hosts: allowedHosts.size,
       cachedFeeds: feedCache.size,
       cachedChapterFiles: chapterCache.size,
+      cachedDocuments: rawCache.size,
       inflight: inflight.count,
       tor: Boolean(SOCKS5),
     }, cors);
@@ -378,7 +455,32 @@ const server = createServer(async (req, res) => {
     return;
   }
 
-  send(res, 404, { ok: false, error: 'not found — try /feed?url=… or /health' }, cors);
+  if (url.pathname === '/raw') {
+    // Any public host, because the point is to inspect feeds that are not in the subscription list.
+    const target = validateTarget(url.searchParams.get('url'), { allowAnyHost: true });
+    if (!target.ok) {
+      console.log(JSON.stringify({ event: 'raw_refused', code: target.code, host: String(url.searchParams.get('url') || '').slice(0, 200) }));
+      send(res, target.code === 'forbidden_target' ? 403 : 400,
+        { ok: false, reason: target.code, error: target.error }, cors);
+      return;
+    }
+    try {
+      const payload = await buildRaw(target.url);
+      console.log(JSON.stringify({
+        event: 'raw_read', host: target.host, kind: payload.kind,
+        bytes: payload.bytes, truncated: payload.truncated, cached: payload.cached,
+      }));
+      send(res, 200, payload, { ...cors, 'cache-control': `public, max-age=${Math.round(RAW_CACHE_SECONDS / 5)}` });
+    } catch (error) {
+      const status = error.code === 'timeout' ? 504 : (error.code === 'forbidden_target' ? 403 : 502);
+      console.log(JSON.stringify({ event: 'raw_failed', host: target.host, code: error.code || 'error',
+        message: error.message }));
+      send(res, status, { ok: false, reason: error.code || 'error', error: error.message }, cors);
+    }
+    return;
+  }
+
+  send(res, 404, { ok: false, error: 'not found — try /feed?url=…, /raw?url=… or /health' }, cors);
 });
 
 server.listen(PORT, HOST, () => {

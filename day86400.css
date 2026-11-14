@@ -69,7 +69,7 @@
 .day86400-view__close:hover,
 .day86400-view__close:focus-visible {
     background: var(--active);
-    color: var(--active-text);
+    color: var(--page);
 }
 
 .day86400-view__search {
@@ -149,7 +149,7 @@
 /* D asks for green, not red, to mark what is selected. */
 .day86400-chip.is-active {
     background: var(--active);
-    color: var(--active-text);
+    color: var(--page);
     border-color: var(--active);
     font-weight: bold;
 }

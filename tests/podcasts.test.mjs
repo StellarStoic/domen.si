@@ -18,12 +18,17 @@ const STYLE = read('style.css');
 const HTML = read('index.html');
 const OPML = read('assets/img/data/PodcastAddict_OPML_export_20260611_232241.opml');
 
-test('the subscriptions are one sorted list, and no cubes', () => {
-  assert.match(DATA, /interest\.podcastList = listed;/, 'the list takes the filtered subscriptions');
+test('the podcast cube holds two cells: the OPML list and the inspector', () => {
+  assert.match(DATA, /interest\.podcastList = \[\];/,
+    'the root describes a directory, not a list');
+  const block = DATA.match(/interest\.subInterests = \[[\s\S]{0,1400}?\n    \];/);
+  assert.ok(block, 'the podcast cube has no cells');
+  assert.match(block[0], /id: 'podcast-opml'/);
+  assert.match(block[0], /podcastList: listed/, 'the OPML cell carries the subscriptions');
+  assert.match(block[0], /id: 'pod-inspector'/);
+  assert.match(block[0], /stats: 'podInspector'/, 'the inspector cell opens a view');
   assert.match(DATA, /\.sort\(\(first, second\) => first\.sortName\.localeCompare\(second\.sortName\)\)/,
-    'sorted on the name, ignoring a leading "The"');
-  assert.match(DATA, /interest\.subInterests = \[\];/,
-    'no podcast cubes exist, so nothing navigates deeper');
+    'the list is still sorted on the name, ignoring a leading "The"');
   for (const range of ['a-f', 'g-l', 'm-r', 's-z']) {
     assert.doesNotMatch(DATA, new RegExp(`id: '${range}'`), `the ${range} range cube is gone`);
   }
@@ -164,7 +169,7 @@ test('the hidden subscriptions are matched exactly, and every one really exists'
 
   // and the filter runs before the sort, so the list itself is already without them
   assert.match(DATA, /\.filter\(podcast => !HIDDEN_PODCASTS\.has\(podcast\.name\.trim\(\)\.toLowerCase\(\)\)\)\s*\n\s*\.sort\(/);
-  assert.match(DATA, /interest\.podcastList = listed;/);
+  assert.match(DATA, /podcastList: listed/);
 });
 
 test('data.js carries a version, since it now changes too', () => {

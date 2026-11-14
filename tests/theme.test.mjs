@@ -171,3 +171,18 @@ test('every asset that changed carries a new version', () => {
     assert.ok(found && Number(found[1]) >= 5, `${asset} must be bumped past 4 for the podcast list`);
   }
 });
+
+test('a green fill never carries green text', () => {
+  // --active and --active-text hold the same value in both palettes, so pairing them is 1.00:1 and
+  // the label disappears. Text on a green fill takes --page (10.6:1 dark, 5.4:1 light).
+  const sheets = ['style.css', 'feedView.css', 'polistat.css', 'day86400.css', 'podInspector.css'];
+  for (const sheet of sheets) {
+    const text = read(sheet);
+    const rules = text.split('}');
+    for (const rule of rules) {
+      if (!/background:\s*var\(--active\)/.test(rule)) continue;
+      assert.doesNotMatch(rule, /color:\s*var\(--active-text\)/,
+        `${sheet}: a selected state paints green text on a green fill`);
+    }
+  }
+});

@@ -45,13 +45,16 @@ test('a board rebuild closes the view before the container is cleared', () => {
 });
 
 test('BACK leaves the view before it steps anywhere else', () => {
-    const back = SCRIPT.match(/function goBack\(\) \{[\s\S]{0,900}/);
+    const back = SCRIPT.match(/function goBack\(\) \{[\s\S]{0,1600}/);
     assert.ok(back, 'goBack not found');
     assert.match(back[0], /day86400View\?\.isOpen\?\.\(\)/);
     assert.match(back[0], /day86400View\.close\(\)/);
     // and it must come before the polistat branch, or a second BACK press is needed to leave it
+    // (the pod inspector branch sits above both; every view is left in the order it was opened)
     assert.ok(back[0].indexOf('day86400View') < back[0].indexOf('polistatView?.isOpen'),
         'the 86400 branch has to precede the polistat one');
+    assert.ok(back[0].indexOf('podInspectorView') < back[0].indexOf('day86400View'),
+        'the inspector branch sits above the 86400 one');
 });
 
 test('the view neither pans the board nor opens a cube', () => {

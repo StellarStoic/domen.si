@@ -190,8 +190,29 @@ async function loadPodcastInterests(interest) {
     interest.description = `${listed.length} podcast subscriptions imported from Podcast Addict`
         + (hidden > 0 ? `, ${hidden} hidden.` : '.')
         + ` Last updated: ${updatedAt}.`;
-    interest.podcastList = listed;
-    interest.subInterests = [];
+    // Two cells rather than one list: the subscriptions keep their own cell, and the inspector that
+    // shows a publisher's own tags sits beside them instead of hiding behind a menu. The root keeps
+    // an empty podcastList so its panel describes a directory, not a list.
+    interest.podcastList = [];
+    interest.subInterests = [
+        {
+            id: 'podcast-opml',
+            name: 'OPML',
+            description: `${listed.length} subscriptions from the Podcast Addict export, listed A to Z.`,
+            metadata: `OPML last updated: ${updatedAt}.`,
+            visible: true,
+            podcastList: listed
+        },
+        {
+            id: 'pod-inspector',
+            name: 'POD INSPECTOR',
+            description: 'Paste an episode or feed address and read the publisher\'s own document: '
+                + 'which tags they use, in what order, and what each one carries. Every tag can be '
+                + 'picked out of the text.',
+            visible: true,
+            stats: 'podInspector'
+        }
+    ];
 
     return interest;
 }
