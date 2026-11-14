@@ -82,6 +82,24 @@ TELEGRAM = [
             "https://t.me/trackstrbot"),
     project("notamcheckbot", "NOTAMCHECKBOT", "Checks NOTAMs for a flight and says what matters: "
             "closures, restrictions, the lines that actually affect the day.", "https://t.me/notamcheckbot"),
+    # A bot that lives in a group, so it gets a level of its own: the group it posts to and the bot
+    # that does the posting are two different things to open, and D asked for both.
+    project("na-soncni-strani-alp", "NA SONČNI STRANI ALP",
+            "Incident reports from the SPIN3 RSS feed of the Slovenian civil protection service, "
+            "passed on as they arrive: by region and by type of event, with a map — a point for a "
+            "single location, the municipality for a wider event. An unofficial bot, not connected "
+            "with URSZR.",
+            visible=True,
+            subInterests=[
+                project("na-soncni-strani-alp-group", "GROUP",
+                        "The group the reports land in: Na sončni strani Alp — an unofficial SPIN "
+                        "robot, reading the civil protection RSS feed and passing it on.",
+                        "https://t.me/nasoncnistranialp"),
+                project("na-soncni-strani-alp-bot", "BOT",
+                        "The bot itself: it posts by region and by type of event, and it can be set "
+                        "to nudge you only about the regions and the kinds of event that matter.",
+                        "https://t.me/nasoncnistranialpbot"),
+            ]),
 ]
 
 OTHER = [

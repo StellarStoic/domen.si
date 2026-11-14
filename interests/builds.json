@@ -145,6 +145,26 @@
                     "name": "NOTAMCHECKBOT",
                     "description": "Checks NOTAMs for a flight and says what matters: closures, restrictions, the lines that actually affect the day.",
                     "url": "https://t.me/notamcheckbot"
+                },
+                {
+                    "id": "na-soncni-strani-alp",
+                    "name": "NA SONČNI STRANI ALP",
+                    "description": "Incident reports from the SPIN3 RSS feed of the Slovenian civil protection service, passed on as they arrive: by region and by type of event, with a map — a point for a single location, the municipality for a wider event. An unofficial bot, not connected with URSZR.",
+                    "visible": true,
+                    "subInterests": [
+                        {
+                            "id": "na-soncni-strani-alp-group",
+                            "name": "GROUP",
+                            "description": "The group the reports land in: Na sončni strani Alp — an unofficial SPIN robot, reading the civil protection RSS feed and passing it on.",
+                            "url": "https://t.me/nasoncnistranialp"
+                        },
+                        {
+                            "id": "na-soncni-strani-alp-bot",
+                            "name": "BOT",
+                            "description": "The bot itself: it posts by region and by type of event, and it can be set to nudge you only about the regions and the kinds of event that matter.",
+                            "url": "https://t.me/nasoncnistranialpbot"
+                        }
+                    ]
                 }
             ]
         },
