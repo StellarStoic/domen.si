@@ -380,6 +380,19 @@ function resizeMetricCube(cube) {
     );
     cube.style.left = `${boundedPosition.x}px`;
     cube.style.top = `${boundedPosition.y}px`;
+
+    // The label changed, so the box did too, and a box that grew out of a 50px square can now sit
+    // on the cube next to it. Move this one rather than repaint the whole board around it.
+    const spans = occupiedSpans(cube);
+    if (checkRectangleCollisionPixels(boundedPosition, cube.offsetWidth, cube.offsetHeight, spans)) {
+        const spot = findFreeSpot(cube.offsetWidth, cube.offsetHeight, spans, boardBox());
+        if (spot.exact) {
+            cube.style.left = `${Math.round(spot.position.x)}px`;
+            cube.style.top = `${Math.round(spot.position.y)}px`;
+        } else {
+            repackLevel(Array.from(boardLayer().querySelectorAll('.cube')), {gapped: false});
+        }
+    }
 }
 
 // Update one metric in memory and on its visible cube without recreating the layout.
@@ -723,6 +736,11 @@ function renderBrain() {
         const cube = createCube(interest, index, false, null, 0, mobileRandom);
         boardLayer().appendChild(cube);
     });
+
+    // The render is not finished until the board is provably clear: placement per cube cannot see
+    // a cube that is added after it, so the level is checked as a whole.
+    ensureNoOverlaps();
+    initShakeToMix();
 }
 
 // Keep a position fully inside the brain container, including a visible edge margin.
@@ -737,53 +755,218 @@ function clampPositionToContainer(position, cubeWidth, cubeHeight, containerRect
     };
 }
 
-// Find a bounded non-overlapping position, using a grid scan if random placement fails.
-function getRandomNonOverlappingPosition(cubeWidth, cubeHeight, containerRect, existingPositions = null) {
-    const margin = 10;
-    const maxAttempts = 300;
-    const occupiedPositions = existingPositions || getExistingCubePositionsPixels();
-    const maxX = Math.max(margin, containerRect.width - cubeWidth - margin);
-    const maxY = Math.max(margin, containerRect.height - cubeHeight - margin);
+// ── Where a cube may sit ────────────────────────────────────────────────────────────────
+// One engine decides it, and it is the only code allowed to. Three things used to overlap
+// cubes: a saved layout was restored with no collision check at all (a position remembered on a
+// wide screen was clamped into a narrow one, straight on top of a neighbour), the "container is
+// full" branch deliberately stacked cubes diagonally, and a metric cube resized itself after it
+// had been placed. Nothing here guesses: a cube either gets a spot that the collision test
+// accepts, or the whole level is repacked, and packing a level cannot overlap by construction.
 
-    for (let attempt = 0; attempt < maxAttempts; attempt++) {
-        // Choose a fully bounded random coordinate inside the container.
-        const pos = {
-            x: margin + Math.random() * Math.max(0, maxX - margin),
-            y: margin + Math.random() * Math.max(0, maxY - margin)
+const CUBE_GAP = 8;        // enforced gap between cubes, in board pixels
+const EDGE_MARGIN = 10;    // kept clear at the container's edges
+
+function boardBox() {
+    const container = document.getElementById('brain-container');
+    return {width: container.clientWidth, height: container.clientHeight};
+}
+
+function cubeSpan(cube) {
+    return {
+        width: Math.ceil(cube.offsetWidth) || 50,
+        height: Math.ceil(cube.offsetHeight) || 30
+    };
+}
+
+// Measured from the elements, never from remembered numbers: a cube's real size depends on its
+// own text, so the style attributes and the rendered box disagree often enough to matter.
+function occupiedSpans(exclude = null) {
+    const layer = boardLayer();
+    const spans = [];
+    for (const cube of layer.querySelectorAll('.cube')) {
+        if (cube === exclude) continue;
+        const x = parseFloat(cube.style.left);
+        const y = parseFloat(cube.style.top);
+        if (Number.isNaN(x) || Number.isNaN(y)) continue;
+        spans.push({x, y, ...cubeSpan(cube)});
+    }
+    return spans;
+}
+
+function overlapsAny(position, width, height, spans) {
+    return checkRectangleCollisionPixels(position, width, height, spans);
+}
+
+// Try random spots, then a fine grid scan. `exact` says whether the answer is genuinely free.
+function findFreeSpot(width, height, spans, box) {
+    const maxX = Math.max(EDGE_MARGIN, box.width - width - EDGE_MARGIN);
+    const maxY = Math.max(EDGE_MARGIN, box.height - height - EDGE_MARGIN);
+
+    for (let attempt = 0; attempt < 400; attempt++) {
+        const position = {
+            x: EDGE_MARGIN + Math.random() * Math.max(0, maxX - EDGE_MARGIN),
+            y: EDGE_MARGIN + Math.random() * Math.max(0, maxY - EDGE_MARGIN)
         };
+        if (!overlapsAny(position, width, height, spans)) return {position, exact: true};
+    }
 
-        // Check whether the random position collides with an already placed cube.
-        const collision = checkRectangleCollisionPixels(
-            pos,
-            cubeWidth,
-            cubeHeight,
-            occupiedPositions
-        );
-
-        // Return immediately when a clean random position is available.
-        if (!collision) {
-            return pos;
+    for (let y = EDGE_MARGIN; y <= maxY; y += 6) {
+        for (let x = EDGE_MARGIN; x <= maxX; x += 6) {
+            const position = {x, y};
+            if (!overlapsAny(position, width, height, spans)) return {position, exact: true};
         }
     }
 
-    // Scan the full container so failed random attempts never stack cubes at one fallback point.
-    const scanStep = 5;
-    for (let y = margin; y <= maxY; y += scanStep) {
-        for (let x = margin; x <= maxX; x += scanStep) {
-            const pos = { x, y };
+    // Nothing free at this size. The caller repacks the level rather than stacking this cube on
+    // top of something — an overlapping board reads as a rendering fault.
+    return {position: {x: EDGE_MARGIN, y: EDGE_MARGIN}, exact: false};
+}
 
-            if (!checkRectangleCollisionPixels(pos, cubeWidth, cubeHeight, occupiedPositions)) {
-                return pos;
+function getRandomNonOverlappingPosition(cubeWidth, cubeHeight, containerRect, existingPositions = null) {
+    const spans = existingPositions || occupiedSpans();
+    const box = containerRect || boardBox();
+    return findFreeSpot(cubeWidth, cubeHeight, spans, box).position;
+}
+
+// Shelf packing: rows as tall as their tallest cube. It cannot overlap, and it is the guaranteed
+// answer when the container is too small for a scatter.
+function packSpans(spans, boxWidth, gap) {
+    const rows = [];
+    let row = null;
+    for (const span of spans) {
+        const needed = row ? row.width + gap + span.width : span.width;
+        if (row && needed > boxWidth - EDGE_MARGIN * 2) {
+            rows.push(row);
+            row = null;
+        }
+        if (!row) {
+            row = {spans: [], width: span.width, height: span.height};
+            rows.push(row);
+        } else {
+            row.width += gap + span.width;
+            row.height = Math.max(row.height, span.height);
+        }
+        row.spans.push(span);
+    }
+    const height = rows.reduce((total, current, index) => total + current.height + (index ? gap : 0), 0);
+    const width = rows.reduce((widest, current) => Math.max(widest, current.width), 0);
+    return {rows, height, width};
+}
+
+function fitPacking(spans, box) {
+    // Tighten the gap before anything is allowed outside the container.
+    for (const gap of [CUBE_GAP, 6, 4, 2, 1]) {
+        const packed = packSpans(spans, box.width, gap);
+        if (packed.height <= box.height - EDGE_MARGIN) return {...packed, gap};
+    }
+    return {...packSpans(spans, box.width, 1), gap: 1};
+}
+
+// Repack every cube of the current level. Used when a level is genuinely too crowded for a
+// scatter, and by the shake, which asks for a fresh arrangement outright.
+function repackLevel(cubes, {gapped = true} = {}) {
+    const box = boardBox();
+    const entries = cubes.map(cube => ({cube, ...cubeSpan(cube)}));
+    const packed = fitPacking(entries, box);
+    const gap = packed.gap;
+
+    let y = EDGE_MARGIN;
+    for (const row of packed.rows) {
+        // a row is laid out from the left, with a small jitter so it does not read as a table
+        let x = EDGE_MARGIN + (gapped ? Math.random() * Math.max(0, box.width - row.width - EDGE_MARGIN * 2) : 0);
+        for (const span of row.spans) {
+            span.cube.style.left = `${Math.round(x)}px`;
+            span.cube.style.top = `${Math.round(y + (row.height - span.height) / 2)}px`;
+            x += span.width + gap;
+        }
+        y += row.height + gap;
+    }
+    // A board taller than its container is reached by the board's own pan, so nothing is lost.
+    const layer = boardLayer();
+    layer.style.minHeight = `${Math.max(box.height, Math.ceil(y - gap + EDGE_MARGIN))}px`;
+    saveVisibleLayouts();
+    return packed;
+}
+
+function saveVisibleLayouts() {
+    const layer = boardLayer();
+    for (const cube of layer.querySelectorAll('.cube')) {
+        const id = cube.dataset.id;
+        if (!id) continue;
+        const interest = findInterestById(currentInterests, id) || findInterestById(interestsData.mainInterests, id);
+        if (!interest) continue;
+        interest.cubeLayout = {
+            orientation: cube.dataset.orientation || 'horizontal',
+            x: parseFloat(cube.style.left),
+            y: parseFloat(cube.style.top)
+        };
+    }
+}
+
+// Do any two cubes of this level actually overlap on screen? Measured, because the placement code
+// believing it succeeded is exactly what was wrong before.
+function overlappingPairs(cubes) {
+    const pairs = [];
+    for (let i = 0; i < cubes.length; i += 1) {
+        const a = cubes[i];
+        const ax = parseFloat(a.style.left);
+        const ay = parseFloat(a.style.top);
+        const as = cubeSpan(a);
+        for (let j = i + 1; j < cubes.length; j += 1) {
+            const b = cubes[j];
+            const bx = parseFloat(b.style.left);
+            const by = parseFloat(b.style.top);
+            const bs = cubeSpan(b);
+            if (ax < bx + bs.width && ax + as.width > bx && ay < by + bs.height && ay + as.height > by) {
+                pairs.push([a.dataset.id || a.textContent, b.dataset.id || b.textContent]);
             }
         }
     }
+    return pairs;
+}
 
-    // When the container is genuinely full, distribute the cube within bounds instead of hiding it.
-    const fallbackIndex = occupiedPositions.length;
-    return clampPositionToContainer({
-        x: margin + (fallbackIndex * (cubeWidth + margin)),
-        y: margin + (fallbackIndex * (cubeHeight + margin))
-    }, cubeWidth, cubeHeight, containerRect);
+// The last thing every level render does: move the fewest cubes that make the board clear.
+//
+// A whole-level repack is the last resort, not the first answer. Cubes are restored from layouts
+// remembered on an earlier visit, and a container that has since changed size (a phone rotated, an
+// info panel opened) makes one of them collide after clamping — repacking all of them for that one
+// cube shuffles a board the reader had already arranged and expects to find again.
+function ensureNoOverlaps() {
+    const cubes = Array.from(boardLayer().querySelectorAll('.cube'));
+    if (cubes.length < 2) return [];
+
+    const overlapPairs = overlappingPairs(cubes);
+    if (!overlapPairs.length) return [];
+
+    const box = boardBox();
+    const accepted = [];
+    let moved = 0;
+    let stuck = false;
+
+    for (const cube of cubes) {
+        const span = cubeSpan(cube);
+        const position = {x: parseFloat(cube.style.left), y: parseFloat(cube.style.top)};
+        if (!overlapsAny(position, span.width, span.height, accepted)) {
+            accepted.push({x: position.x, y: position.y, ...span});
+            continue;
+        }
+        const spot = findFreeSpot(span.width, span.height, accepted, box);
+        if (!spot.exact) {
+            stuck = true;
+            break;
+        }
+        cube.style.left = `${Math.round(spot.position.x)}px`;
+        cube.style.top = `${Math.round(spot.position.y)}px`;
+        accepted.push({x: spot.position.x, y: spot.position.y, ...span});
+        moved += 1;
+    }
+
+    if (stuck) {
+        repackLevel(cubes, {gapped: false});
+        return overlapPairs;
+    }
+    if (moved) saveVisibleLayouts();
+    return overlapPairs;
 }
 
 // Reposition rendered cubes after the brain container changes width or height.
@@ -874,72 +1057,31 @@ function createCube(interest, index, isSubCube = false, parentPosition = null, d
     // Otherwise, place randomly inside container using collision avoidance.
     // MobileRandom forces random placement on small screens too (fixes blank mobile result).
     if (savedLayout) {
-        // Restore the previous position so navigating away and back does not shuffle cubes.
-        const savedPosition = clampPositionToContainer(
-            { x: savedLayout.x, y: savedLayout.y },
+        // A remembered position is a hint, not an instruction: it was measured on whatever screen
+        // the level was first opened on, so restoring it unchecked is how cubes ended up stacked on
+        // a narrow one. Keep it when it is still free, otherwise place this cube properly.
+        const saved = clampPositionToContainer(
+            {x: savedLayout.x, y: savedLayout.y},
             cubeWidth,
             cubeHeight,
             containerRect
         );
-        cube.style.left = `${savedPosition.x}px`;
-        cube.style.top = `${savedPosition.y}px`;
-    } else if (isSubCube && parentPosition) {
-        // Convert parent position to pixels if it's in percentage or a string
-        const parentXPixels = typeof parentPosition.x === 'string' ? 
-            (parseFloat(parentPosition.x) / 100) * containerRect.width : parentPosition.x;
-        const parentYPixels = typeof parentPosition.y === 'string' ? 
-            (parseFloat(parentPosition.y) / 100) * containerRect.height : parentPosition.y;
-
-        // Attempt to place near parent with spiral fallback (re-uses your spiral helper)
-        let finalPosition;
-        let attempts = 0;
-        const maxAttempts = 300;
-        const existingPositions = getExistingCubePositionsPixels();
-
-        do {
-            // choose a random candidate in a hemisphere around parent for visual separation
-            const useLeft = Math.random() > 0.5;
-            const edgePadding = 10;
-            // pick random offset from parent
-            const offsetX = (Math.random() - 0.5) * containerRect.width * 0.3;
-            const offsetY = (Math.random() - 0.5) * containerRect.height * 0.3;
-            finalPosition = {
-                x: parentXPixels + offsetX,
-                y: parentYPixels + offsetY
-            };
-
-            // clamp to container
-            finalPosition.x = Math.max(edgePadding, Math.min(containerRect.width - edgePadding - cubeWidth, finalPosition.x));
-            finalPosition.y = Math.max(edgePadding, Math.min(containerRect.height - edgePadding - cubeHeight, finalPosition.y));
-
-            // collision?
-            const hasCollision = checkRectangleCollisionPixels(finalPosition, cubeWidth, cubeHeight, existingPositions);
-            attempts++;
-
-            if (!hasCollision) break;
-
-            if (attempts >= maxAttempts) {
-                // spiral fallback: this function already returns a safe pixel position or a random fallback
-                finalPosition = getRandomNonOverlappingPosition(
-                    cubeWidth,
-                    cubeHeight,
-                    containerRect,
-                    existingPositions
-                );
-                break;
-            }
-        } while (attempts < maxAttempts);
-
-        // Clamp the final result in case the container changed during placement.
-        finalPosition = clampPositionToContainer(finalPosition, cubeWidth, cubeHeight, containerRect);
-        cube.style.left = `${finalPosition.x}px`;
-        cube.style.top = `${finalPosition.y}px`;
+        const free = !checkRectangleCollisionPixels(saved, cubeWidth, cubeHeight, getExistingCubePositionsPixels());
+        if (free) {
+            cube.style.left = `${saved.x}px`;
+            cube.style.top = `${saved.y}px`;
+        } else {
+            const spot = getRandomNonOverlappingPosition(cubeWidth, cubeHeight, containerRect);
+            cube.style.left = `${spot.x}px`;
+            cube.style.top = `${spot.y}px`;
+        }
     } else {
-        // Not a sub-cube (root or normal). Use random non-overlapping placement for both desktop and mobileRandom.
-        // This ensures root cubes are randomly placed on mobile as you requested.
-        const pos = getRandomNonOverlappingPosition(cubeWidth, cubeHeight, containerRect);
-        cube.style.left = `${pos.x}px`;
-        cube.style.top = `${pos.y}px`;
+        // Root cubes, and sub-cubes that carry no remembered position, are scattered with the
+        // collision test on. The parent no longer matters for placement: a cube placed close to its
+        // parent but on top of a sibling is worse than one placed across the board.
+        const spot = getRandomNonOverlappingPosition(cubeWidth, cubeHeight, containerRect);
+        cube.style.left = `${spot.x}px`;
+        cube.style.top = `${spot.y}px`;
     }
 
     // Remember the generated layout on the interest object for future visits.
@@ -1096,46 +1238,24 @@ function createBackCube(parentPosition, depth) {
     const backHeight = 30;
     
     let backPosition;
-    let attempts = 0;
-    const maxAttempts = 100;
-    
+
     // Convert parent position to pixels if needed
     const parentXPixels = typeof parentPosition.x === 'string' ? 
         (parseFloat(parentPosition.x) / 100) * containerRect.width : parentPosition.x;
     const parentYPixels = typeof parentPosition.y === 'string' ? 
         (parseFloat(parentPosition.y) / 100) * containerRect.height : parentPosition.y;
     
-    // Try to position back cube away from other cubes
-    do {
-        // Position back cube in a ring around parent
-        const angle = (attempts / maxAttempts) * 2 * Math.PI;
-        const radius = 30 + (attempts * 2); // Larger radius in pixels
-        
-        backPosition = {
-            x: parentXPixels + radius * Math.cos(angle),
-            y: parentYPixels + radius * Math.sin(angle)
-        };
-        
-        // Ensure within bounds in PIXELS
-        backPosition.x = Math.max(10, Math.min(containerRect.width - 10 - backWidth, backPosition.x));
-        backPosition.y = Math.max(10, Math.min(containerRect.height - 10 - backHeight, backPosition.y));
-        
-        attempts++;
-        
-        if (attempts >= maxAttempts) {
-            // Scan the container for a guaranteed bounded fallback that avoids every visible cube.
-            backPosition = getRandomNonOverlappingPosition(
-                backWidth,
-                backHeight,
-                {
-                    width: container.clientWidth,
-                    height: container.clientHeight
-                },
-                existingPositions
-            );
-            break;
-        }
-    } while (checkRectangleCollisionPixels(backPosition, backWidth, backHeight, existingPositions));
+    // BACK is placed by the same engine as everything else. Its old ring-around-the-parent search
+    // walked itself into a corner and then took whatever position it had reached, which on a full
+    // board meant sitting on a cube; a control that hides another cube is worse than one placed far
+    // from the parent.
+    const backSpot = getRandomNonOverlappingPosition(
+        backWidth,
+        backHeight,
+        {width: container.clientWidth, height: container.clientHeight},
+        existingPositions
+    );
+    backPosition = backSpot;
     
     backCube.style.left = `${backPosition.x}px`;
     backCube.style.top = `${backPosition.y}px`;
@@ -1152,6 +1272,127 @@ function createBackCube(parentPosition, depth) {
     });
     
     return backCube;
+}
+
+// ── Shake the phone, mix the board ───────────────────────────────────────────────────────
+// On a phone the board is a scatter, and a scatter the reader cannot rearrange is a lottery: the
+// one cube they want can end up under the thumb. A shake now repacks the level with a fresh
+// arrangement — the same engine, so nothing overlaps afterwards.
+//
+// Android and desktop browsers hand out `devicemotion` without asking. iOS 13+ requires
+// `DeviceMotionEvent.requestPermission()`, which only works inside a user gesture, so the request
+// is made on the first touch or click and the feature simply starts working once it is granted; if
+// it is refused, nothing is broken and nothing is nagged about.
+const shakeState = {last: 0, hits: [], enabled: false, cooldownMs: 1200};
+const SHAKE_THRESHOLD = 22;        // m/s² of acceleration change, well above handling the phone
+const SHAKE_HITS_REQUIRED = 2;     // a deliberate shake, not one bump against a table
+const SHAKE_WINDOW_MS = 700;
+
+function boardCubes() {
+    return Array.from(boardLayer().querySelectorAll('.cube'));
+}
+
+// Mix the current level: forget where these cubes were, then place them again.
+function mixCubes({save = true} = {}) {
+    const cubes = boardCubes();
+    if (!cubes.length) return 0;
+    for (const cube of cubes) {
+        const id = cube.dataset.id;
+        if (!id) continue;
+        const interest = findInterestById(currentInterests, id)
+            || findInterestById(interestsData.mainInterests, id);
+        if (interest && interest.cubeLayout) delete interest.cubeLayout;
+    }
+    // Scatter first, exactly as a fresh level is placed; a level too crowded to scatter is packed.
+    const placed = [];
+    const box = boardBox();
+    for (const cube of cubes) {
+        const span = cubeSpan(cube);
+        const spot = findFreeSpot(span.width, span.height, placed, box);
+        if (!spot.exact) {
+            repackLevel(cubes, {gapped: true});
+            if (save) saveVisibleLayouts();
+            return cubes.length;
+        }
+        cube.style.left = `${Math.round(spot.position.x)}px`;
+        cube.style.top = `${Math.round(spot.position.y)}px`;
+        placed.push({x: spot.position.x, y: spot.position.y, ...span});
+    }
+    if (save) saveVisibleLayouts();
+    return cubes.length;
+}
+
+function shakeMagnitude(event) {
+    const acceleration = event.acceleration || event.accelerationIncludingGravity;
+    if (!acceleration) return 0;
+    const {x = 0, y = 0, z = 0} = acceleration;
+    // gravity is included on some devices; the magnitude of the change is what a shake looks like
+    return Math.hypot(x, y, z);
+}
+
+function handleMotion(event) {
+    if (!shakeState.enabled) return;
+    const magnitude = shakeMagnitude(event);
+    if (magnitude < SHAKE_THRESHOLD) return;
+    const now = Date.now();
+    if (now - shakeState.last < shakeState.cooldownMs) return;
+    shakeState.hits = shakeState.hits.filter(stamp => now - stamp <= SHAKE_WINDOW_MS);
+    shakeState.hits.push(now);
+    if (shakeState.hits.length < SHAKE_HITS_REQUIRED) return;
+    shakeState.hits = [];
+    shakeState.last = now;
+    if (mixCubes() > 0) flashBoard();
+}
+
+// A short nudge so the reader knows the shake was heard and not merely survived.
+function flashBoard() {
+    const layer = boardLayer();
+    layer.classList.remove('is-mixed');
+    // restart the animation even when two shakes arrive inside one animation
+    void layer.offsetWidth;
+    layer.classList.add('is-mixed');
+    window.setTimeout(() => layer.classList.remove('is-mixed'), 420);
+}
+
+async function requestShakePermission() {
+    if (shakeState.enabled) return true;
+    const api = window.DeviceMotionEvent;
+    if (!api) return false;
+    if (typeof api.requestPermission === 'function') {
+        try {
+            const answer = await api.requestPermission();
+            shakeState.enabled = answer === 'granted';
+        } catch {
+            shakeState.enabled = false;
+        }
+        return shakeState.enabled;
+    }
+    shakeState.enabled = true;
+    return true;
+}
+
+// Reachable for tests and for a desktop check: the shake is the phone's door to it, not the only
+// one. `boardShuffle.mix()` mixes the level on screen and returns how many cubes moved.
+window.boardShuffle = {
+    mix: mixCubes,
+    heading: () => Array.from(boardLayer().querySelectorAll('.cube'))
+        .map(cube => ({id: cube.dataset.id, x: parseFloat(cube.style.left), y: parseFloat(cube.style.top)})),
+    overlaps: () => overlappingPairs(boardCubes())
+};
+
+function initShakeToMix() {
+    if (!window.DeviceMotionEvent) return;
+    window.addEventListener('devicemotion', handleMotion, {passive: true});
+    // Android and most desktop browsers need no permission at all.
+    requestShakePermission();
+    // iOS: the request has to sit inside a gesture, so it is attached to the first one.
+    const ask = () => {
+        requestShakePermission().then(granted => {
+            if (granted) window.removeEventListener('touchend', ask);
+        });
+    };
+    window.addEventListener('touchend', ask, {once: false, passive: true});
+    window.addEventListener('click', ask, {passive: true});
 }
 
 // Handle cube clicks with depth tracking
@@ -1211,6 +1452,7 @@ function navigateToSubInterests(interest, parentPosition, parentDepth) {
     // Place BACK only after all interest cubes participate in its collision check.
     const backCube = createBackCube(parentPosition, parentDepth);
     boardLayer().appendChild(backCube);
+    ensureNoOverlaps();
 }
 
 // Go back to previous level
@@ -1307,6 +1549,7 @@ function goBack() {
                 const cube = createCube(interest, index, false, null, 0);
                 boardLayer().appendChild(cube);
                             });
+            ensureNoOverlaps();
             // Hide info panel when back at root level
             hideInfoPanel();
         } else {
@@ -1329,6 +1572,7 @@ function goBack() {
                 previousState.depth
             );
             boardLayer().appendChild(backCube);
+            ensureNoOverlaps();
             
             // Update info panel for the parent interest
             if (navigationStack.length > 0) {

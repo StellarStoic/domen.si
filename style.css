@@ -851,3 +851,15 @@ font-weight: bold;
         right: 1rem;
     }
 }
+
+/* The board was shaken and mixed: a short nudge so the reader knows the shake was heard. */
+.board-layer.is-mixed {
+    animation: board-mixed 0.42s ease-out;
+}
+
+@keyframes board-mixed {
+    0% { opacity: 0.55; }
+    45% { opacity: 1; }
+    70% { opacity: 0.85; }
+    100% { opacity: 1; }
+}

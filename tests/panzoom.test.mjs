@@ -103,6 +103,9 @@ test('a touch or wheel on a view is not the board\'s business', () => {
 });
 
 test('the changed assets carry new versions', () => {
-    assert.match(index, /style\.css\?v=11/);
-    assert.match(index, /script\.js\?v=16/);
+    // The numbers move with every deploy that touches these files; assert a version exists and is
+    // at least the one this feature needs, so a legitimate bump does not read as a regression.
+    const version = asset => Number((index.match(new RegExp(asset.replace('.', '\\.') + '\\?v=(\\d+)')) || [])[1] || 0);
+    assert.ok(version('style.css') >= 12, `style.css is at ${version('style.css')}`);
+    assert.ok(version('script.js') >= 17, `script.js is at ${version('script.js')}`);
 });
