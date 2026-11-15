@@ -76,6 +76,17 @@ test('the drawing follows the rules that make a code readable', () => {
     assert.match(canvasRule[0], /max-width: 100%/, 'only a ceiling, so it cannot overflow');
 });
 
+test('a generated key is wiped with everything else when the view closes', () => {
+    const closeFn = VIEW.match(/function closeView\(\) \{[\s\S]{0,600}/);
+    assert.match(closeFn[0], /generated = null/);
+    assert.match(closeFn[0], /generateOut\.textContent = ''/);
+});
+
+test('the generator refuses to invent a key without a cryptographic source', () => {
+    assert.match(VIEW, /source\?\.getRandomValues/);
+    assert.match(VIEW, /no cryptographic random source/);
+});
+
 test('a code of a private key is only offered once the value is on screen', () => {
     assert.match(VIEW, /const canQr = !row\.secret \|\| revealed\.has\(row\.value\);/);
 });

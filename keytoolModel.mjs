@@ -360,6 +360,35 @@ export function describe(input) {
     }
 }
 
+// ── making a new key ────────────────────────────────────────────────────────────────────────────────
+// A generated key is only worth anything if the randomness is real, so the bytes come from the
+// platform's CSPRNG (`crypto.getRandomValues`) and never from `Math.random`. The scalar also has to land
+// inside the curve order: a number outside it is not a private key at all, and the fix is a fresh draw
+// rather than a modulo, because reducing would bias the output.
+
+export function randomPrivateKey(randomBytes) {
+    if (typeof randomBytes !== 'function') throw new Error('a source of random bytes is required');
+    for (let attempt = 0; attempt < 64; attempt += 1) {
+        const bytes = randomBytes(32);
+        if (!bytes || bytes.length !== 32) throw new Error('the random source returned the wrong length');
+        const scalar = BigInt(`0x${bytesToHex(Array.from(bytes))}`);
+        if (scalar > 0n && scalar < N) return bytesToHex(Array.from(bytes));
+    }
+    throw new Error('the random source did not produce a usable key');
+}
+
+/** A whole new key pair, in every form the panel shows it. */
+export function newKeypair(randomBytes) {
+    const privateHex = randomPrivateKey(randomBytes);
+    const publicHex = publicKeyOf(privateHex);
+    return {
+        privateHex,
+        publicHex,
+        nsec: encodeBare('nsec', privateHex),
+        npub: encodeBare('npub', publicHex),
+    };
+}
+
 /** What kind of thing the reader typed, for choosing the input's own styling. */
 export function kindOf(input) {
     const raw = stripScheme(input);

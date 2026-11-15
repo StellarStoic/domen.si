@@ -9,7 +9,7 @@
 
 import {
     describe, kindOf, decodeEntity, encodeBare, encodeNprofile, encodeNevent, encodeNaddr, publicKeyOf,
-    stripScheme, isHexKey,
+    stripScheme, isHexKey, newKeypair,
 } from './keytoolModel.mjs';
 import { encodeQr } from './qrModel.mjs';
 
@@ -35,6 +35,8 @@ import { encodeQr } from './qrModel.mjs';
     let buildFields = null;
     let buildOut = null;
     let buildKind = 'nprofile';
+    let generateOut = null;
+    let generated = null;
     let buildValues = { key: '', id: '', identifier: '', kind: '30023', relays: '' };
     let state = { open: false, kind: 'empty' };
 
@@ -145,6 +147,28 @@ import { encodeQr } from './qrModel.mjs';
         buildOut = element('div', 'keytool-build__out');
         build.appendChild(buildOut);
         root.appendChild(build);
+
+        // ── making a new key ──
+        const make = element('div', 'keytool-build keytool-make');
+        make.appendChild(element('div', 'keytool-build__title', 'Make a brand new key'));
+
+        const makeBtn = element('button', 'keytool-make__go', 'Generate a key pair');
+        makeBtn.type = 'button';
+        makeBtn.addEventListener('click', () => {
+            generate();
+            makeBtn.textContent = 'Generate another';
+        });
+        make.appendChild(makeBtn);
+
+        make.appendChild(element('p', 'keytool-build__text',
+            'The randomness is the browser’s own cryptographic source. The key exists only in this tab: '
+            + 'this page stores nothing, so if you close it without copying the nsec, that key is gone '
+            + 'and so is anything sent to it. For real money, generate the key inside a signer that never '
+            + 'touches a browser.'));
+
+        generateOut = element('div', 'keytool-build__out');
+        make.appendChild(generateOut);
+        root.appendChild(make);
 
         root.hidden = true;
         container.appendChild(root);
@@ -354,6 +378,69 @@ import { encodeQr } from './qrModel.mjs';
         buildOut.appendChild(line);
     }
 
+    function generate() {
+        if (!generateOut) return;
+        const source = global.crypto || global.msCrypto;
+        if (!source?.getRandomValues) {
+            generateOut.textContent = '';
+            generateOut.appendChild(element('div', 'keytool-error',
+                'This browser has no cryptographic random source, so no key was made.'));
+            return;
+        }
+        // one draw of 32 bytes, straight from the platform's CSPRNG — never Math.random
+        generated = newKeypair(length => source.getRandomValues(new Uint8Array(length)));
+        paintGenerate();
+    }
+
+    function paintGenerate() {
+        if (!generateOut) return;
+        generateOut.textContent = '';
+        if (!generated) return;
+        const rows = [
+            { label: 'nsec — the private key, keep it', value: generated.nsec, secret: true },
+            { label: 'npub — the public key, share this', value: generated.npub },
+            { label: 'private key, hex', value: generated.privateHex, secret: true },
+            { label: 'public key, hex', value: generated.publicHex },
+        ];
+        for (const row of rows) {
+            const line = element('div', 'keytool-row');
+            if (row.secret) line.dataset.secret = 'true';
+            line.appendChild(element('div', 'keytool-row__label', row.label));
+            const valueEl = element('div', 'keytool-row__value');
+            valueEl.textContent = row.secret && !revealed.has(row.value) ? mask(row.value) : row.value;
+            line.appendChild(valueEl);
+
+            const actions = element('div', 'keytool-row__actions');
+            if (row.secret) {
+                const reveal = element('button', 'keytool-row__reveal',
+                    revealed.has(row.value) ? 'hide' : 'show');
+                reveal.type = 'button';
+                reveal.addEventListener('click', () => {
+                    if (revealed.has(row.value)) revealed.delete(row.value);
+                    else revealed.add(row.value);
+                    paintGenerate();
+                });
+                actions.appendChild(reveal);
+            }
+            const copy = element('button', 'keytool-row__copy', 'copy');
+            copy.type = 'button';
+            copy.addEventListener('click', () => copyValue(row.value, copy));
+            actions.appendChild(copy);
+            if (!row.secret || revealed.has(row.value)) {
+                const qr = element('button', 'keytool-row__qr', 'qr');
+                qr.type = 'button';
+                qr.addEventListener('click', () => {
+                    const existing = line.querySelector('.keytool-qr');
+                    if (existing) existing.remove();
+                    else line.appendChild(qrBlock(row.value));
+                });
+                actions.appendChild(qr);
+            }
+            line.appendChild(actions);
+            generateOut.appendChild(line);
+        }
+    }
+
     function paint() {
         if (!root) return;
         const raw = inputEl?.value || '';
@@ -438,6 +525,8 @@ import { encodeQr } from './qrModel.mjs';
         if (inputEl) inputEl.value = '';
         revealed = new Set();
         if (rowsEl) rowsEl.textContent = '';
+        generated = null;
+        if (generateOut) generateOut.textContent = '';
         container = container || document.getElementById('brain-container');
         container?.classList.remove('has-keytool');
         if (root) root.hidden = true;

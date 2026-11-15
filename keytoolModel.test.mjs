@@ -10,6 +10,7 @@ import assert from 'node:assert/strict';
 import {
   bech32Encode, bech32Decode, bytesToHex, hexToBytes, isHexKey, publicKeyOf,
   encodeBare, encodeNprofile, encodeNevent, encodeNaddr, decodeEntity, describe, kindOf, stripScheme,
+  newKeypair, randomPrivateKey,
 } from './keytoolModel.mjs';
 
 // ── NIP-19's own examples ───────────────────────────────────────────────────────────────────────────
@@ -154,4 +155,41 @@ test('unknown TLV types are ignored rather than treated as an error', () => {
     const text = bech32Encode('nprofile', bytes);
     const entity = decodeEntity(text);
     assert.equal(entity.pubkey, NPUB_HEX);
+});
+
+// ── making a new key ────────────────────────────────────────────────────────────────────────────────
+test('a generated pair is self-consistent and matches OpenSSL for the same bytes', () => {
+    // 32 bytes of 0x11: the public key was derived independently with python-cryptography
+    const pair = newKeypair(() => new Uint8Array(32).fill(0x11));
+    assert.equal(pair.privateHex, '11'.repeat(32));
+    assert.equal(pair.publicHex, '4f355bdcb7cc0af728ef3cceb9615d90684bb5b2ca5f859ab0f0b704075871aa');
+    assert.equal(decodeEntity(pair.nsec).hex, pair.privateHex);
+    assert.equal(decodeEntity(pair.npub).hex, pair.publicHex);
+});
+
+test('a scalar outside the curve order is drawn again, never reduced', () => {
+    let calls = 0;
+    const source = () => {
+        calls += 1;
+        return calls === 1 ? new Uint8Array(32) : new Uint8Array(32).fill(0x22);
+    };
+    const pair = newKeypair(source);
+    assert.equal(calls, 2, 'the invalid first draw has to be thrown away');
+    assert.equal(pair.privateHex, '22'.repeat(32));
+});
+
+test('a source that never yields a usable scalar is refused rather than looping', () => {
+    assert.throws(() => randomPrivateKey(() => new Uint8Array(32)), /did not produce a usable key/);
+    assert.throws(() => randomPrivateKey(() => new Uint8Array(31)), /wrong length/);
+    assert.throws(() => randomPrivateKey(null), /source of random bytes/);
+});
+
+test('the generator cannot be backed by Math.random', async () => {
+    // a predictable key is worse than no key: this asserts the source is the platform CSPRNG
+    const { readFileSync } = await import('node:fs');
+    const model = readFileSync(new URL('./keytoolModel.mjs', import.meta.url), 'utf8');
+    const view = readFileSync(new URL('./keytool.js', import.meta.url), 'utf8');
+    assert.doesNotMatch(model, /Math\.random\s*\(/);
+    assert.doesNotMatch(view, /Math\.random\s*\(/);
+    assert.match(view, /crypto\.getRandomValues|getRandomValues\(new Uint8Array/);
 });

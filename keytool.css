@@ -390,3 +390,25 @@
     color: var(--page);
     outline: none;
 }
+
+/* ── making a new key ─────────────────────────────────────────────────────────────────────────────── */
+
+.keytool-make__go {
+    margin: 0.4rem 0;
+    background: var(--accent);
+    color: var(--accent-ink);
+    border: 1px solid var(--accent);
+    border-radius: 0;
+    font-family: inherit;
+    font-size: 0.82rem;
+    padding: 0.5rem 0.8rem;
+    cursor: pointer;
+}
+
+.keytool-make__go:hover,
+.keytool-make__go:focus-visible {
+    background: var(--active);
+    color: var(--page);
+    border-color: var(--active);
+    outline: none;
+}
