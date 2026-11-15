@@ -1,16 +1,16 @@
-﻿{
-  "id": "about",
-  "name": "ABOUT?",
-  "description": "I <span class=\"small-text\">(over)</span>-think<br>I vibecode,<br>I build shit!<br><br>Two dozen things around Bitcoin, Nostr and Telegram, plus ferments, mountains and photographs. Every cube on this board is one of them.",
-  "visible": true,
-  "subInterests": [
-    {
-      "id": "about-gate",
-      "name": "THE GATE",
-      "description": "Tic-tac-toe. Win three rounds and my email address appears — no account, nothing sent anywhere.",
-      "stats": "contactGate",
-      "contactEmail": "chunk-very-cameo@duck.com",
-      "visible": true
-    }
-  ]
+{
+    "id": "about",
+    "name": "ABOUT?",
+    "description": "I <span class=\"small-text\">(over)</span>-think<br>I vibecode,<br>I build shit!<br><br>Two dozen things around Bitcoin, Nostr and Telegram, plus ferments, mountains and photographs. Every cube on this board is one of them.",
+    "visible": true,
+    "subInterests": [
+        {
+            "id": "about-gate",
+            "name": "CONTACT",
+            "description": "Tic-tac-toe. Win three rounds and my email address appears — no account, nothing sent anywhere. The game is there so the address is not just printed for every harvester to read.",
+            "stats": "contactGate",
+            "contactEmail": "chunk-very-cameo@duck.com",
+            "visible": true
+        }
+    ]
 }

@@ -152,6 +152,8 @@ test('the cube carries the address, and an empty one is not printed', () => {
   const gate = (about.subInterests || []).find(child => child.stats === 'contactGate');
   assert.ok(gate, 'the gate cell must exist');
   assert.equal(gate.id, 'about-gate');
+  // the cube says what a visitor is looking for: it stays inside ABOUT? but it is not a riddle
+  assert.match(gate.name, /CONTACT/i, 'the cell is named for the contact route, not for the game');
   assert.ok('contactEmail' in gate, 'the address lives in the site data, not in the view');
   // The address is published deliberately, so it may not appear anywhere *else*: one cell, one value.
   const address = gate.contactEmail;
