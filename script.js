@@ -718,6 +718,7 @@ function renderBrain() {
     window.polistatView?.close?.();
     window.day86400View?.close?.();
     window.podInspectorView?.close?.();
+    window.contactGateView?.close?.();
     podcastBoardContext = null;
     container.innerHTML = ''; // Clear container
     resetBoardView();
@@ -1126,7 +1127,8 @@ function createCube(interest, index, isSubCube = false, parentPosition = null, d
         const opensBoardView = (Array.isArray(interest.podcastList) && interest.podcastList.length > 0)
             || interest.stats === 'polistat'
             || interest.stats === 'day86400'
-            || interest.stats === 'podInspector';
+            || interest.stats === 'podInspector'
+            || interest.stats === 'contactGate';
 
         if (opensBoardView || getVisibleInterests(interest.subInterests).length > 0) {
             // Get current position in pixels for navigation (if not set this will produce NaN)
@@ -1427,6 +1429,12 @@ function handleCubeClick(interest, position, depth) {
         return;
     }
 
+    // THE GATE: a small game whose prize is the contact address, which the cube carries.
+    if (interest.stats === 'contactGate') {
+        window.contactGateView?.open?.(interest);
+        return;
+    }
+
     // If the interest has sub-interests, navigate deeper
     if (getVisibleInterests(interest.subInterests).length > 0) {
         navigateToSubInterests(interest, position, depth);
@@ -1483,6 +1491,16 @@ function ensurePodcastListOnBoard() {
 }
 
 function goBack() {
+    // THE GATE covers the container like the other views, so BACK leaves it first.
+    if (window.contactGateView?.isOpen?.()) {
+        const shell = document.querySelector('#brain-container .contact-gate-view');
+        const wasOnScreen = !!shell && !shell.hidden;
+        window.contactGateView.close();
+        if (wasOnScreen) {
+            return;
+        }
+    }
+
     // The Pod Inspector covers the container like the other views, so BACK leaves it first.
     if (window.podInspectorView?.isOpen?.()) {
         const shell = document.querySelector('#brain-container .pod-inspector-view');

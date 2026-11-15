@@ -133,8 +133,11 @@ test('the inspector is an overlay the board treats like the others', () => {
     const close = SCRIPT.match(/window\.podcastFeedView\?\.close\?\.\(\);[\s\S]{0,260}container\.innerHTML/);
     assert.ok(close);
     assert.match(close[0], /podInspectorView\?\.close\?\.\(\)/);
-    const back = SCRIPT.match(/function goBack\(\) \{[\s\S]{0,400}/);
+    // wide enough to hold every overlay branch: the assertion is that BACK leaves each one, not
+    // that a particular branch sits within a fixed number of bytes of the function's opening brace
+    const back = SCRIPT.match(/function goBack\(\) \{[\s\S]{0,2000}/);
     assert.match(back[0], /podInspectorView\?\.isOpen\?\.\(\)/);
+    assert.match(back[0], /contactGateView\?\.isOpen\?\.\(\)/, 'and the gate too');
 });
 
 test('the page loads the tool, versioned, and the stylesheet names no literal colour', () => {

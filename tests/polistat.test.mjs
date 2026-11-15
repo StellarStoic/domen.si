@@ -213,7 +213,7 @@ test('pressing the cube draws the chart: no button to press first', () => {
     assert.match(script, /if \(interest\.stats === 'polistat'\) \{\s*\n\s*window\.polistatView\?\.open\?\.\(\);/);
     // and BACK has to leave the view before it can mean anything else
     // 86400's own branch sits above this one, so the window has to reach past it
-    assert.match(script, /function goBack\(\)[\s\S]{0,1200}polistatView\?\.isOpen/);
+    assert.match(script, /function goBack\(\)[\s\S]{0,2200}polistatView\?\.isOpen/);
     // the panel carries no leftover control
     assert.doesNotMatch(script, /stats-open/);
 });

@@ -1,0 +1,195 @@
+/* THE GATE — a small board game standing in front of an email address.
+
+   Same rules as the rest of the site: no library, nothing leaves the page, and every colour is a
+   palette role so the white theme inverts it with everything else. A test refuses any literal colour
+   in this file. */
+
+.brain-container.has-contact-gate {
+    position: relative;
+}
+
+.contact-gate-view {
+    position: absolute;
+    inset: 0;
+    /* above the cubes, which set z-index 50 inline on the BACK cube */
+    z-index: 60;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.9rem 1rem 1.2rem;
+    background: var(--page);
+    border: 2px solid var(--rule);
+    color: var(--ink);
+    overflow-y: auto;
+    overscroll-behavior: auto;
+    font-family: 'Courier New', monospace;
+}
+
+.contact-gate-view[hidden],
+.contact-gate-view [hidden] {
+    display: none !important;
+}
+
+.contact-gate-view__head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1rem;
+    width: 100%;
+}
+
+.contact-gate-view__title {
+    font-size: 1.05rem;
+    font-weight: bold;
+    letter-spacing: 0.14em;
+    color: var(--accent-text);
+}
+
+.contact-gate-view__sub {
+    margin-top: 0.25rem;
+    font-size: 0.78rem;
+    line-height: 1.45;
+    color: var(--muted);
+    max-width: 46ch;
+}
+
+.contact-gate-view__close {
+    flex: 0 0 auto;
+    width: 2rem;
+    height: 2rem;
+    font-size: 1.1rem;
+    line-height: 1;
+    color: var(--ink);
+    background: var(--surface);
+    border: 1px solid var(--rule);
+    cursor: pointer;
+}
+
+.contact-gate-view__close:hover,
+.contact-gate-view__close:focus-visible {
+    border-color: var(--accent);
+    color: var(--accent-text);
+}
+
+/* the progress counter: the one number the reader is chasing */
+.contact-gate-view__wins {
+    font-size: 0.78rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--muted);
+}
+
+.contact-gate-view__board {
+    display: grid;
+    grid-template-columns: repeat(3, 4.4rem);
+    grid-template-rows: repeat(3, 4.4rem);
+    gap: 0.4rem;
+}
+
+.contact-gate-view__cell {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: inherit;
+    font-size: 1.9rem;
+    color: var(--cube-ink);
+    background: var(--cube);
+    border: 1px solid var(--cube-edge);
+    cursor: pointer;
+    transition: background 0.12s ease, border-color 0.12s ease;
+}
+
+.contact-gate-view__cell:hover:not(:disabled),
+.contact-gate-view__cell:focus-visible:not(:disabled) {
+    border-color: var(--accent);
+}
+
+/* The reader's mark is an accent chip with the ink role on it, never `--accent-text` on the cube:
+   in the dark palette the cube is white and #ff6600 on white measures 2.94:1 — the pairing this site
+   has been caught by twice. Black on orange is 7.15:1 in both palettes. The house's mark stays in the
+   cube's own ink, so fill-versus-no-fill is what tells the two apart. */
+.contact-gate-view__cell[data-mark="X"] {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: var(--accent-ink);
+}
+
+.contact-gate-view__cell[data-mark="O"] {
+    color: var(--cube-ink);
+}
+
+/* a completed line is marked on the board, not only in the status sentence: border to the active
+   colour and thicker, which is visible in both palettes without washing the cell out */
+.contact-gate-view__cell.is-winning {
+    border-color: var(--active);
+    border-width: 3px;
+}
+
+.contact-gate-view__cell:disabled {
+    cursor: default;
+    opacity: 0.85;
+}
+
+.contact-gate-view__status {
+    font-size: 0.85rem;
+    line-height: 1.5;
+    text-align: center;
+    color: var(--ink);
+    max-width: 40ch;
+}
+
+.contact-gate-view__reveal {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.6rem;
+    margin-top: 0.4rem;
+    padding: 0.9rem 1.1rem;
+    border: 1px solid var(--accent);
+    background: var(--surface);
+    text-align: center;
+}
+
+.contact-gate-view__reveal-note {
+    font-size: 0.8rem;
+    line-height: 1.5;
+    color: var(--muted);
+    max-width: 40ch;
+}
+
+.contact-gate-view__email {
+    font-size: 1rem;
+    letter-spacing: 0.04em;
+    color: var(--accent-text);
+    word-break: break-all;
+}
+
+.contact-gate-view__copy {
+    font-family: inherit;
+    font-size: 0.72rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    padding: 0.3rem 0.7rem;
+    color: var(--ink);
+    background: var(--page);
+    border: 1px solid var(--rule);
+    cursor: pointer;
+}
+
+.contact-gate-view__copy:hover,
+.contact-gate-view__copy:focus-visible {
+    border-color: var(--accent);
+    color: var(--accent-text);
+}
+
+@media (max-width: 420px) {
+    .contact-gate-view__board {
+        grid-template-columns: repeat(3, 3.6rem);
+        grid-template-rows: repeat(3, 3.6rem);
+    }
+
+    .contact-gate-view__cell {
+        font-size: 1.6rem;
+    }
+}

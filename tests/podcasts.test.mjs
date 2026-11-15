@@ -189,7 +189,7 @@ test('every subscription in the OPML can produce a named row', () => {
 test('BACK decides what is open by looking, not by reading an id prefix', () => {
   // The OPML cell's id used to start with `podcast-`, which the old `startsWith('podcast-')` test
   // read as "a podcast from the list is open" — so BACK from the list redrew the list forever.
-  const back = SCRIPT.match(/function goBack\(\) \{[\s\S]{0,3200}/);
+  const back = SCRIPT.match(/function goBack\(\) \{[\s\S]{0,4200}/);
   assert.ok(back, 'goBack not found');
   assert.doesNotMatch(back[0], /shownInterestId\.startsWith\('podcast-'\)/,
     'a prefix test is what broke it');
