@@ -153,8 +153,11 @@ test('the cube carries the address, and an empty one is not printed', () => {
   assert.ok(gate, 'the gate cell must exist');
   assert.equal(gate.id, 'about-gate');
   assert.ok('contactEmail' in gate, 'the address lives in the site data, not in the view');
-  assert.doesNotMatch(JSON.stringify(about), /[a-z0-9._%-]+@[a-z0-9.-]+\.[a-z]{2,}/i,
-    'no address may be committed by accident');
+  // The address is published deliberately, so it may not appear anywhere *else*: one cell, one value.
+  const address = gate.contactEmail;
+  assert.ok(address === '' || /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(address), `odd address: ${address}`);
+  const mentions = (JSON.stringify(about).match(new RegExp(String(address).replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g')) || []).length;
+  assert.ok(address === '' || mentions === 1, 'the address belongs in exactly one place');
   const js = read('contactGate.js');
   assert.match(js, /The address is not published yet/,
     'an empty address must say so rather than show a broken mailto');

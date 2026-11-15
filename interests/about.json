@@ -9,7 +9,7 @@
       "name": "THE GATE",
       "description": "Tic-tac-toe. Win three rounds and my email address appears — no account, nothing sent anywhere.",
       "stats": "contactGate",
-      "contactEmail": "",
+      "contactEmail": "chunk-very-cameo@duck.com",
       "visible": true
     }
   ]
