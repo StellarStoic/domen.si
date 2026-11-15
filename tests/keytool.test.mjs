@@ -17,6 +17,7 @@ const HTML = read('index.html');
 const SCRIPT = read('script.js');
 const VIEW = read('keytool.js');
 const MODEL = read('keytoolModel.mjs');
+const QR = read('qrModel.mjs');
 const STYLE = read('keytool.css');
 const BUILDS = read('interests/builds.json');
 
@@ -48,7 +49,7 @@ test('the board does not pan or press cubes through the overlay', () => {
 });
 
 test('nothing in the view or the model can talk to a network', () => {
-    for (const [name, source] of [['keytool.js', VIEW], ['keytoolModel.mjs', MODEL]]) {
+    for (const [name, source] of [['keytool.js', VIEW], ['keytoolModel.mjs', MODEL], ['qrModel.mjs', QR]]) {
         assert.doesNotMatch(source, /\bfetch\s*\(/, `${name} must not fetch`);
         assert.doesNotMatch(source, /XMLHttpRequest/, `${name} must not use XHR`);
         assert.doesNotMatch(source, /sendBeacon/, `${name} must not beacon`);
@@ -56,6 +57,27 @@ test('nothing in the view or the model can talk to a network', () => {
         assert.doesNotMatch(source, /new Image\(|<img|srcset=/, `${name} must not ping with an image`);
         assert.doesNotMatch(source, /https?:\/\/(?!x\.com|relay|r\.x\.com)/, `${name} must not carry an endpoint`);
     }
+});
+
+test('the code is drawn without a library and without a CDN', () => {
+    // no third-party script, and no remote anything: the encoder is a local module
+    assert.match(VIEW, /from '\.\/qrModel\.mjs'/);
+    assert.doesNotMatch(HTML, /cdn\.|unpkg|jsdelivr|googleapis/i);
+});
+
+test('the drawing follows the rules that make a code readable', () => {
+    // quiet zone of four modules, whole device pixels, and no CSS sizing of the canvas
+    assert.match(VIEW, /const side = \(modules \+ 8\) \* cell;/);
+    assert.match(VIEW, /canvas\.style\.width = `\$\{side \/ ratio\}px`;/);
+    assert.match(VIEW, /budget - \(budget % ratio\)/);
+    const canvasRule = STYLE.match(/\.keytool-qr__canvas \{[\s\S]*?\}/);
+    assert.ok(canvasRule, 'the canvas needs a rule');
+    assert.doesNotMatch(canvasRule[0], /(?<![a-z-])width:\s*\d/, 'the canvas is never CSS-sized');
+    assert.match(canvasRule[0], /max-width: 100%/, 'only a ceiling, so it cannot overflow');
+});
+
+test('a code of a private key is only offered once the value is on screen', () => {
+    assert.match(VIEW, /const canQr = !row\.secret \|\| revealed\.has\(row\.value\);/);
 });
 
 test('a private key is never stored, logged, or put in the address bar', () => {

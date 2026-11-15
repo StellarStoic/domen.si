@@ -251,3 +251,142 @@
         justify-content: flex-start;
     }
 }
+
+/* ── the builder ─────────────────────────────────────────────────────────────────────────────── */
+
+.keytool-build__kinds {
+    display: flex;
+    gap: 0.4rem;
+    flex-wrap: wrap;
+    margin: 0.35rem 0;
+}
+
+.keytool-kind {
+    background: var(--surface);
+    color: var(--muted);
+    border: 1px solid var(--cube-edge);
+    border-radius: 0;
+    font-family: inherit;
+    font-size: 0.74rem;
+    padding: 0.3rem 0.55rem;
+    cursor: pointer;
+}
+
+/* green marks what is chosen, as everywhere else on this site */
+.keytool-kind.is-active {
+    background: var(--active);
+    color: var(--page);
+    border-color: var(--active);
+}
+
+.keytool-kind:hover,
+.keytool-kind:focus-visible {
+    background: var(--active);
+    color: var(--page);
+    outline: none;
+}
+
+.keytool-build__fields {
+    display: flex;
+    flex-direction: column;
+    gap: 0.45rem;
+    margin: 0.5rem 0;
+}
+
+.keytool-field {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+}
+
+.keytool-field__label {
+    color: var(--accent-text);
+    font-size: 0.72rem;
+    letter-spacing: 0.05em;
+}
+
+.keytool-field__input {
+    background: var(--surface);
+    color: var(--ink);
+    border: 1px solid var(--cube-edge);
+    border-radius: 0;
+    font-family: 'Courier New', monospace;
+    font-size: 0.78rem;
+    padding: 0.35rem 0.45rem;
+    width: 100%;
+    resize: vertical;
+}
+
+.keytool-field__input:focus-visible {
+    outline: 1px solid var(--accent);
+    outline-offset: 1px;
+}
+
+.keytool-build__out {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.keytool-row__qr {
+    background: none;
+    color: var(--accent-text);
+    border: 1px solid var(--cube-edge);
+    border-radius: 0;
+    font-family: inherit;
+    font-size: 0.72rem;
+    padding: 0.2rem 0.4rem;
+    cursor: pointer;
+    white-space: nowrap;
+}
+
+.keytool-row__qr:hover,
+.keytool-row__qr:focus-visible {
+    background: var(--active);
+    color: var(--page);
+    outline: none;
+}
+
+/* ── the code itself ──────────────────────────────────────────────────────────────────────────────
+   The canvas knows its own size from its backing store; it is never given a CSS width, because
+   scaling a module grid by a non-integer factor is what makes a code unreadable. max-width lets it
+   fit a narrow screen only if the module budget ever overflows, which the drawing code avoids. */
+
+.keytool-qr {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.35rem;
+    padding: 0.5rem;
+    background: var(--surface);
+    border: 1px solid var(--cube-edge);
+    grid-column: 1 / -1;
+}
+
+.keytool-qr__canvas {
+    max-width: 100%;
+    height: auto;
+    background: var(--page);
+}
+
+.keytool-qr__caption {
+    color: var(--muted);
+    font-size: 0.72rem;
+}
+
+.keytool-qr__close {
+    background: none;
+    color: var(--muted);
+    border: 1px solid var(--cube-edge);
+    font-family: inherit;
+    font-size: 0.72rem;
+    padding: 0.2rem 0.4rem;
+    cursor: pointer;
+}
+
+.keytool-qr__close:hover,
+.keytool-qr__close:focus-visible {
+    background: var(--active);
+    color: var(--page);
+    outline: none;
+}

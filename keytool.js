@@ -9,8 +9,9 @@
 
 import {
     describe, kindOf, decodeEntity, encodeBare, encodeNprofile, encodeNevent, encodeNaddr, publicKeyOf,
-    stripScheme,
+    stripScheme, isHexKey,
 } from './keytoolModel.mjs';
+import { encodeQr } from './qrModel.mjs';
 
 (function initKeyTool(global) {
     const HINTS = {
@@ -31,6 +32,10 @@ import {
     let rowsEl = null;
     let hintEl = null;
     let revealed = new Set();          // values the reader explicitly asked to see
+    let buildFields = null;
+    let buildOut = null;
+    let buildKind = 'nprofile';
+    let buildValues = { key: '', id: '', identifier: '', kind: '30023', relays: '' };
     let state = { open: false, kind: 'empty' };
 
     function element(tag, className, text) {
@@ -117,13 +122,28 @@ import {
         actions.appendChild(revealAll);
         root.appendChild(actions);
 
+        // ── building one, with relays of the reader's choosing ──
         const build = element('div', 'keytool-build');
-        build.appendChild(element('div', 'keytool-build__title', 'Going the other way'));
-        build.appendChild(element('p', 'keytool-build__text',
-            'The rows above already give you both directions. To build an nprofile, nevent or naddr that '
-            + 'carries relays, the relays have to come from somewhere: the tool puts an npub into an '
-            + 'nprofile with no relays, a note id into a plain nevent, and reads back whatever a pasted '
-            + 'one carries.'));
+        build.appendChild(element('div', 'keytool-build__title', 'Build one, with relays'));
+
+        const kindRow = element('div', 'keytool-build__kinds');
+        for (const kind of ['nprofile', 'nevent', 'naddr']) {
+            const button = element('button', 'keytool-kind', kind);
+            button.type = 'button';
+            button.dataset.kind = kind;
+            button.addEventListener('click', () => {
+                buildKind = kind;
+                paintBuild();
+            });
+            kindRow.appendChild(button);
+        }
+        build.appendChild(kindRow);
+
+        buildFields = element('div', 'keytool-build__fields');
+        build.appendChild(buildFields);
+
+        buildOut = element('div', 'keytool-build__out');
+        build.appendChild(buildOut);
         root.appendChild(build);
 
         root.hidden = true;
@@ -153,6 +173,185 @@ import {
             }
             button.textContent = 'press Ctrl+C';
         });
+    }
+
+    // ── QR ─────────────────────────────────────────────────────────────────────────────────────
+    // The rules that make a code readable are drawing rules, not payload rules: a four-module quiet
+    // zone, one module per whole device pixel, and no CSS scaling of the canvas. A code that fails
+    // those looks perfect on screen and reads as nothing.
+
+    function drawQr(canvas, text) {
+        let matrix;
+        try {
+            matrix = encodeQr(text);
+        } catch (error) {
+            return false;
+        }
+        const modules = matrix.size;
+        const ratio = Math.max(1, Math.round(global.devicePixelRatio || 1));
+        const room = Math.max(160, Math.floor((canvas.parentElement?.clientWidth || 300) - 24));
+        const budget = Math.floor((room * ratio) / (modules + 8));
+        const cell = Math.max(ratio, budget - (budget % ratio));
+        const side = (modules + 8) * cell;
+
+        canvas.width = side;
+        canvas.height = side;
+        // displayed at exactly its backing store divided by the ratio, never scaled by CSS
+        canvas.style.width = `${side / ratio}px`;
+        canvas.style.height = `${side / ratio}px`;
+
+        const context = canvas.getContext('2d');
+        if (!context) return false;
+        context.fillStyle = '#ffffff';                    // the white field is part of the symbol
+        context.fillRect(0, 0, side, side);
+        context.fillStyle = '#000000';
+        for (let y = 0; y < modules; y += 1) {
+            for (let x = 0; x < modules; x += 1) {
+                if (!matrix.modules[y][x]) continue;
+                context.fillRect((x + 4) * cell, (y + 4) * cell, cell, cell);
+            }
+        }
+        return true;
+    }
+
+    function qrBlock(text) {
+        const wrap = element('div', 'keytool-qr');
+        const canvas = element('canvas', 'keytool-qr__canvas');
+        if (!drawQr(canvas, text)) {
+            wrap.textContent = 'That string is too long for a QR code.';
+            return wrap;
+        }
+        wrap.appendChild(canvas);
+        wrap.appendChild(element('div', 'keytool-qr__caption',
+            'Scan it with a signer or a client. It carries exactly the string beside it.'));
+        const close = element('button', 'keytool-qr__close', 'hide the code');
+        close.type = 'button';
+        close.addEventListener('click', () => wrap.remove());
+        wrap.appendChild(close);
+        return wrap;
+    }
+
+    // ── the builder ────────────────────────────────────────────────────────────────────────────
+
+    function relayList() {
+        return buildValues.relays.split(/[\s,]+/).map(entry => entry.trim()).filter(Boolean)
+            .filter(entry => /^wss?:\/\//i.test(entry));
+    }
+
+    function keyAsHex(value) {
+        const raw = stripScheme(value);
+        if (!raw) return '';
+        if (isHexKey(raw)) return raw.toLowerCase();
+        const entity = decodeEntity(raw);
+        if (entity.hrp === 'npub' || entity.hrp === 'nsec') return entity.hex;
+        if (entity.pubkey) return entity.pubkey;
+        throw new Error('that is not a public key');
+    }
+
+    function idAsHex(value) {
+        const raw = stripScheme(value);
+        if (!raw) return '';
+        if (isHexKey(raw)) return raw.toLowerCase();
+        const entity = decodeEntity(raw);
+        if (entity.hrp === 'note' || entity.hrp === 'nevent') return entity.hex || entity.id;
+        throw new Error('that is not an event id');
+    }
+
+    function buildEntity() {
+        const relays = relayList();
+        if (buildKind === 'nprofile') {
+            return encodeNprofile({ pubkey: keyAsHex(buildValues.key), relays });
+        }
+        if (buildKind === 'nevent') {
+            return encodeNevent({
+                id: idAsHex(buildValues.id),
+                relays,
+                author: buildValues.key ? keyAsHex(buildValues.key) : undefined,
+                kind: buildValues.kind === '' ? undefined : Number(buildValues.kind),
+            });
+        }
+        return encodeNaddr({
+            identifier: buildValues.identifier,
+            pubkey: keyAsHex(buildValues.key),
+            kind: Number(buildValues.kind || 0),
+            relays,
+        });
+    }
+
+    function field(caption, value, onInput, options = {}) {
+        const wrap = element('label', 'keytool-field');
+        wrap.appendChild(element('span', 'keytool-field__label', caption));
+        const input = element(options.multiline ? 'textarea' : 'input', 'keytool-field__input');
+        if (!options.multiline) input.type = 'text';
+        else input.rows = 2;
+        input.spellcheck = false;
+        input.value = value;
+        input.placeholder = options.placeholder || '';
+        input.addEventListener('input', () => {
+            onInput(input.value);
+            paintBuildOut();
+        });
+        wrap.appendChild(input);
+        return wrap;
+    }
+
+    function paintBuild() {
+        if (!buildFields) return;
+        buildFields.textContent = '';
+        for (const button of root.querySelectorAll('.keytool-kind')) {
+            button.classList.toggle('is-active', button.dataset.kind === buildKind);
+        }
+
+        buildFields.appendChild(field('Public key — npub or hex', buildValues.key,
+            value => { buildValues.key = value; }));
+        if (buildKind === 'nevent') {
+            buildFields.appendChild(field('Event id — note or hex', buildValues.id,
+                value => { buildValues.id = value; }));
+        }
+        if (buildKind === 'naddr') {
+            buildFields.appendChild(field('Identifier — the d tag, may be empty', buildValues.identifier,
+                value => { buildValues.identifier = value; }));
+        }
+        if (buildKind !== 'nprofile') {
+            buildFields.appendChild(field('Kind', buildValues.kind,
+                value => { buildValues.kind = value; }, { placeholder: '30023' }));
+        }
+        buildFields.appendChild(field('Relays — one per line, optional', buildValues.relays,
+            value => { buildValues.relays = value; }, { multiline: true, placeholder: 'wss://relay.damus.io' }));
+
+        paintBuildOut();
+    }
+
+    function paintBuildOut() {
+        if (!buildOut) return;
+        buildOut.textContent = '';
+        let built = '';
+        try {
+            built = buildEntity();
+        } catch (error) {
+            buildOut.appendChild(element('div', 'keytool-error', error.message));
+            return;
+        }
+        if (!built) return;
+
+        const line = element('div', 'keytool-row');
+        line.appendChild(element('div', 'keytool-row__label', buildKind));
+        line.appendChild(element('div', 'keytool-row__value', built));
+        const actions = element('div', 'keytool-row__actions');
+        const copy = element('button', 'keytool-row__copy', 'copy');
+        copy.type = 'button';
+        copy.addEventListener('click', () => copyValue(built, copy));
+        actions.appendChild(copy);
+        const qr = element('button', 'keytool-row__qr', 'qr');
+        qr.type = 'button';
+        qr.addEventListener('click', () => {
+            const existing = buildOut.querySelector('.keytool-qr');
+            if (existing) existing.remove();
+            else buildOut.appendChild(qrBlock(built));
+        });
+        actions.appendChild(qr);
+        line.appendChild(actions);
+        buildOut.appendChild(line);
     }
 
     function paint() {
@@ -203,6 +402,20 @@ import {
             copy.type = 'button';
             copy.addEventListener('click', () => copyValue(row.value, copy));
             actions.appendChild(copy);
+
+            // A code of a private key is a photograph of a private key: only offer it once the
+            // reader has asked to see the value.
+            const canQr = !row.secret || revealed.has(row.value);
+            if (canQr) {
+                const qr = element('button', 'keytool-row__qr', 'qr');
+                qr.type = 'button';
+                qr.addEventListener('click', () => {
+                    const existing = line.querySelector('.keytool-qr');
+                    if (existing) existing.remove();
+                    else line.appendChild(qrBlock(row.value));
+                });
+                actions.appendChild(qr);
+            }
             line.appendChild(actions);
 
             rowsEl.appendChild(line);
@@ -216,6 +429,7 @@ import {
         container.classList.add('has-keytool');
         state.open = true;
         paint();
+        paintBuild();
         inputEl?.focus?.();
     }
 
