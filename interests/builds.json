@@ -79,6 +79,12 @@
             "visible": true,
             "subInterests": [
                 {
+                    "id": "keytool",
+                    "name": "KEYTOOL",
+                    "description": "Convert Nostr keys and identifiers in the page: hex to npub, nsec and note, nprofile, nevent and naddr back to their parts, and an nsec to the npub it belongs to. It reads a private key, so it has no network code and keeps nothing.",
+                    "stats": "keytool"
+                },
+                {
                     "id": "apod",
                     "name": "APOD",
                     "description": "Astronomy Picture of the Day, posted to Nostr.",

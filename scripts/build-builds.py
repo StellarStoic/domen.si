@@ -55,6 +55,10 @@ WEB = [
 ]
 
 NOSTR = [
+    project("keytool", "KEYTOOL", "Convert Nostr keys and identifiers in the page: hex to npub, nsec "
+            "and note, nprofile, nevent and naddr back to their parts, and an nsec to the npub it "
+            "belongs to. It reads a private key, so it has no network code and keeps nothing.",
+            stats="keytool"),
     project("apod", "APOD", "Astronomy Picture of the Day, posted to Nostr.", 
             "https://ditto.pub/npub1ap0dw55xedm5w4mkcyq8m7xyluwfc680lywrvfe50vr9ckl5m3uqtf5l75"),
     project("scitechdaily", "SCITECHDAILY", "Science and technology news, posted to Nostr.",

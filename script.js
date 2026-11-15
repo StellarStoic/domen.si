@@ -131,7 +131,7 @@ function setupBoardPanZoom() {
     const onTouchStart = event => {
         if (!event.touches.length) return;
         // A touch that starts on a view or the panel is not the board's business.
-        if (event.target.closest('.polistat-view, .feed-view, .day86400-view, .pod-inspector-view, .xdeleter-view')) return;
+        if (event.target.closest('.polistat-view, .feed-view, .day86400-view, .pod-inspector-view, .xdeleter-view, .keytool-view')) return;
         if (event.touches.length === 1) {
             touchMode = 'pan';
             start = { point: point(event.touches[0]), x: boardView.x, y: boardView.y };
@@ -189,7 +189,7 @@ function setupBoardPanZoom() {
 
     const onMouseDown = event => {
         if (event.button !== 0) return;
-        if (event.target.closest('.polistat-view, .feed-view, .day86400-view, .pod-inspector-view, .xdeleter-view, .podcast-board')) return;
+        if (event.target.closest('.polistat-view, .feed-view, .day86400-view, .pod-inspector-view, .xdeleter-view, .keytool-view, .podcast-board')) return;
         start = { point: { x: event.clientX, y: event.clientY }, x: boardView.x, y: boardView.y };
         boardView.dragging = false;
         const onMove = moveEvent => {
@@ -293,7 +293,7 @@ function setupBoardPanZoom() {
     container.addEventListener('wheel', onWheel, { passive: false });
     // a double click on empty board space is the quick way back out
     container.addEventListener('dblclick', event => {
-        if (event.target.closest('.cube, .back-button, .polistat-view, .feed-view, .day86400-view, .pod-inspector-view, .xdeleter-view, .day86400-view')) return;
+        if (event.target.closest('.cube, .back-button, .polistat-view, .feed-view, .day86400-view, .pod-inspector-view, .xdeleter-view, .keytool-view, .day86400-view')) return;
         resetBoardView();
     });
     window.addEventListener('resize', applyBoardView);
@@ -715,6 +715,7 @@ function renderBrain() {
     // leave the dimming class behind — the cubes came back at 8 % opacity with nothing on top of them.
     // Closing here means the state always matches the board, whichever door the reader left by.
     window.xdeleterView?.close?.();
+    window.keytoolView?.close?.();
     window.podcastFeedView?.close?.();
     window.polistatView?.close?.();
     window.day86400View?.close?.();
@@ -1130,7 +1131,8 @@ function createCube(interest, index, isSubCube = false, parentPosition = null, d
             || interest.stats === 'day86400'
             || interest.stats === 'podInspector'
             || interest.stats === 'contactGate'
-            || interest.stats === 'xdeleter';
+            || interest.stats === 'xdeleter'
+            || interest.stats === 'keytool';
 
         if (opensBoardView || getVisibleInterests(interest.subInterests).length > 0) {
             // Get current position in pixels for navigation (if not set this will produce NaN)
@@ -1443,6 +1445,12 @@ function handleCubeClick(interest, position, depth) {
         return;
     }
 
+    // KEYTOOL: the key converter. It is the one view that handles a secret, so it clears itself on close.
+    if (interest.stats === 'keytool') {
+        window.keytoolView?.open?.(interest);
+        return;
+    }
+
     // If the interest has sub-interests, navigate deeper
     if (getVisibleInterests(interest.subInterests).length > 0) {
         navigateToSubInterests(interest, position, depth);
@@ -1536,6 +1544,16 @@ function goBack() {
         const shell = document.querySelector('#brain-container .polistat-view');
         const wasOnScreen = !!shell && !shell.hidden;
         window.polistatView.close();
+        if (wasOnScreen) {
+            return;
+        }
+    }
+
+    // KEYTOOL covers the container like the other views, so BACK leaves it first.
+    if (window.keytoolView?.isOpen?.()) {
+        const shell = document.querySelector('#brain-container .keytool-view');
+        const wasOnScreen = !!shell && !shell.hidden;
+        window.keytoolView.close();
         if (wasOnScreen) {
             return;
         }
