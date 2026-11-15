@@ -1,0 +1,493 @@
+/* XDELETER — the planning view: drop zone, inventory, selection, and the A–Q tutorial.
+
+   Same rules as the rest of the site: no library, nothing leaves the page, and every colour is a
+   palette role so the white theme inverts it with everything else. A test refuses any literal colour
+   in this file.
+
+   The tutorial is long on purpose: the reader may have never opened a browser console, so the panel
+   has to be readable at phone width and scrollable without trapping the page behind it. */
+
+.brain-container.has-xdeleter {
+    position: relative;
+}
+
+.xdeleter-view {
+    position: absolute;
+    inset: 0;
+    /* above the cubes, which set z-index 50 inline on the BACK cube */
+    z-index: 60;
+    display: flex;
+    flex-direction: column;
+    gap: 0.9rem;
+    padding: 0.9rem 1rem 2rem;
+    background: var(--page);
+    border: 2px solid var(--rule);
+    color: var(--ink);
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    font-family: 'Courier New', monospace;
+    font-size: 0.86rem;
+    line-height: 1.5;
+    text-align: left;
+}
+
+.xdeleter-view[hidden],
+.xdeleter-view [hidden] {
+    display: none !important;
+}
+
+.xdeleter-view__head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 0.75rem;
+    border-bottom: 1px solid var(--rule);
+    padding-bottom: 0.6rem;
+}
+
+.xdeleter-view__title {
+    font-size: 1.05rem;
+    letter-spacing: 0.16em;
+    color: var(--accent-text);
+}
+
+.xdeleter-view__sub {
+    color: var(--muted);
+    font-size: 0.78rem;
+}
+
+.xdeleter-view__close {
+    background: var(--surface);
+    color: var(--ink);
+    border: 1px solid var(--cube-edge);
+    border-radius: 0;
+    font-family: inherit;
+    font-size: 1rem;
+    line-height: 1;
+    padding: 0.25rem 0.55rem;
+    cursor: pointer;
+}
+
+.xdeleter-view__close:hover,
+.xdeleter-view__close:focus-visible {
+    background: var(--active);
+    color: var(--page);
+    outline: none;
+}
+
+/* ── the lettered steps ───────────────────────────────────────────────── */
+
+.xdeleter-step {
+    border-left: 2px solid var(--rule);
+    padding-left: 0.7rem;
+}
+
+.xdeleter-step__head {
+    display: flex;
+    align-items: baseline;
+    gap: 0.5rem;
+    margin-bottom: 0.35rem;
+}
+
+.xdeleter-step__letter {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 1.35rem;
+    height: 1.35rem;
+    background: var(--accent);
+    color: var(--accent-ink);
+    font-size: 0.78rem;
+    font-weight: bold;
+}
+
+.xdeleter-step__title {
+    color: var(--ink);
+    font-size: 0.9rem;
+    letter-spacing: 0.04em;
+}
+
+.xdeleter-step__text {
+    margin: 0.35rem 0;
+    color: var(--muted);
+}
+
+.xdeleter-step__list {
+    margin: 0.35rem 0 0.35rem 1.1rem;
+    padding: 0;
+    color: var(--muted);
+}
+
+.xdeleter-step__list li {
+    margin: 0.25rem 0;
+}
+
+.xdeleter-keys {
+    margin: 0.4rem 0 0;
+    display: grid;
+    grid-template-columns: minmax(9rem, auto) 1fr;
+    gap: 0.3rem 0.7rem;
+    color: var(--muted);
+}
+
+.xdeleter-keys dt {
+    color: var(--accent-text);
+}
+
+.xdeleter-keys dd {
+    margin: 0;
+}
+
+/* ── step D: the drop zone ────────────────────────────────────────────── */
+
+.xdeleter-drop {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.3rem;
+    padding: 1.1rem 0.9rem;
+    border: 2px dashed var(--cube-edge);
+    background: var(--surface);
+    cursor: pointer;
+    text-align: center;
+}
+
+.xdeleter-drop:hover,
+.xdeleter-drop:focus-visible,
+.xdeleter-drop.is-over {
+    border-color: var(--accent);
+    background: var(--active);
+    color: var(--page);
+    outline: none;
+}
+
+.xdeleter-drop__icon {
+    font-size: 1.4rem;
+    color: var(--accent-text);
+}
+
+.xdeleter-drop__label {
+    color: var(--ink);
+}
+
+.xdeleter-drop__hint {
+    color: var(--muted);
+    font-size: 0.74rem;
+}
+
+/* the real input sits under the zone, invisible but clickable by the label */
+.xdeleter-file {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    cursor: pointer;
+    font-size: 0;
+}
+
+.xdeleter-demo {
+    margin-top: 0.5rem;
+    background: none;
+    border: 1px solid var(--cube-edge);
+    color: var(--muted);
+    font-family: inherit;
+    font-size: 0.76rem;
+    padding: 0.35rem 0.6rem;
+    cursor: pointer;
+}
+
+.xdeleter-demo:hover,
+.xdeleter-demo:focus-visible {
+    background: var(--active);
+    color: var(--page);
+    outline: none;
+}
+
+.xdeleter-status {
+    min-height: 1.2rem;
+    color: var(--muted);
+    font-size: 0.78rem;
+}
+
+.xdeleter-status[data-tone='good'] {
+    color: var(--accent-text);
+}
+
+.xdeleter-status[data-tone='bad'] {
+    color: var(--ink);
+    border-left: 2px solid var(--accent);
+    padding-left: 0.5rem;
+}
+
+/* ── step E: inventory ────────────────────────────────────────────────── */
+
+.xdeleter-empty {
+    color: var(--muted);
+    font-size: 0.78rem;
+    padding: 0.35rem 0;
+}
+
+.xdeleter-counts {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(5.4rem, 1fr));
+    gap: 0.5rem;
+}
+
+.xdeleter-count {
+    display: flex;
+    flex-direction: column;
+    gap: 0.1rem;
+    padding: 0.5rem 0.6rem;
+    background: var(--surface);
+    border: 1px solid var(--cube-edge);
+}
+
+.xdeleter-count__n {
+    font-size: 1.15rem;
+    color: var(--accent-text);
+}
+
+.xdeleter-count__label {
+    color: var(--muted);
+    font-size: 0.72rem;
+    letter-spacing: 0.08em;
+}
+
+.xdeleter-range-note {
+    margin-top: 0.45rem;
+    color: var(--muted);
+    font-size: 0.76rem;
+}
+
+/* ── step F: selection ────────────────────────────────────────────────── */
+
+.xdeleter-filters {
+    display: flex;
+    flex-direction: column;
+    gap: 0.55rem;
+}
+
+.xdeleter-types {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(7.5rem, 1fr));
+    gap: 0.4rem;
+}
+
+.xdeleter-type {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.45rem 0.55rem;
+    background: var(--surface);
+    border: 1px solid var(--cube-edge);
+    cursor: pointer;
+}
+
+.xdeleter-type input {
+    accent-color: var(--accent);
+    margin: 0;
+}
+
+.xdeleter-type__name {
+    color: var(--ink);
+}
+
+.xdeleter-type__count {
+    margin-left: auto;
+    color: var(--muted);
+    font-size: 0.76rem;
+}
+
+.xdeleter-type.is-empty {
+    opacity: 0.55;
+}
+
+.xdeleter-field {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+}
+
+.xdeleter-field__label {
+    color: var(--accent-text);
+    font-size: 0.74rem;
+    letter-spacing: 0.06em;
+}
+
+.xdeleter-field input,
+.xdeleter-field textarea {
+    background: var(--surface);
+    color: var(--ink);
+    border: 1px solid var(--cube-edge);
+    border-radius: 0;
+    font-family: inherit;
+    font-size: 0.8rem;
+    padding: 0.35rem 0.45rem;
+    width: 100%;
+    resize: vertical;
+}
+
+.xdeleter-field input:focus-visible,
+.xdeleter-field textarea:focus-visible {
+    outline: 1px solid var(--accent);
+    outline-offset: 1px;
+}
+
+.xdeleter-range {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(8rem, 1fr));
+    gap: 0.5rem;
+}
+
+.xdeleter-check {
+    display: flex;
+    align-items: center;
+    gap: 0.45rem;
+    color: var(--muted);
+    font-size: 0.8rem;
+    cursor: pointer;
+}
+
+.xdeleter-check input {
+    accent-color: var(--accent);
+    margin: 0;
+}
+
+.xdeleter-check--dry {
+    margin: 0.6rem 0 0.35rem;
+    color: var(--accent-text);
+}
+
+/* ── step G: the plan and the script ──────────────────────────────────── */
+
+.xdeleter-plan__line {
+    display: flex;
+    align-items: baseline;
+    gap: 0.45rem;
+    padding: 0.5rem 0.6rem;
+    background: var(--surface);
+    border: 1px solid var(--cube-edge);
+    border-left: 3px solid var(--accent);
+}
+
+.xdeleter-plan__n {
+    font-size: 1.2rem;
+    color: var(--accent-text);
+}
+
+.xdeleter-plan__what {
+    color: var(--ink);
+    font-size: 0.8rem;
+}
+
+.xdeleter-sample {
+    margin: 0.4rem 0 0 1.1rem;
+    padding: 0;
+    color: var(--muted);
+    font-size: 0.76rem;
+}
+
+.xdeleter-sample li {
+    margin: 0.2rem 0;
+    overflow-wrap: anywhere;
+}
+
+.xdeleter-sample__more {
+    color: var(--muted);
+}
+
+.xdeleter-warn {
+    margin-top: 0.5rem;
+    padding: 0.45rem 0.6rem;
+    border: 1px solid var(--accent);
+    color: var(--accent-text);
+    font-size: 0.76rem;
+}
+
+.xdeleter-script {
+    width: 100%;
+    background: var(--surface);
+    color: var(--muted);
+    border: 1px solid var(--cube-edge);
+    font-family: 'Courier New', monospace;
+    font-size: 0.7rem;
+    line-height: 1.35;
+    padding: 0.5rem;
+    resize: vertical;
+    white-space: pre;
+    overflow-x: auto;
+}
+
+.xdeleter-script:focus-visible {
+    outline: 1px solid var(--accent);
+    outline-offset: 1px;
+}
+
+.xdeleter-copy,
+.xdeleter-download {
+    margin-top: 0.5rem;
+    background: var(--accent);
+    color: var(--accent-ink);
+    border: 1px solid var(--accent);
+    border-radius: 0;
+    font-family: inherit;
+    font-size: 0.82rem;
+    padding: 0.5rem 0.8rem;
+    cursor: pointer;
+}
+
+.xdeleter-download {
+    display: block;
+    margin-top: 0.4rem;
+    background: none;
+    color: var(--accent-text);
+    font-size: 0.76rem;
+    padding: 0.35rem 0.6rem;
+}
+
+.xdeleter-copy:hover,
+.xdeleter-copy:focus-visible,
+.xdeleter-download:hover,
+.xdeleter-download:focus-visible {
+    background: var(--active);
+    color: var(--page);
+    outline: none;
+}
+
+.xdeleter-copy:disabled,
+.xdeleter-download:disabled {
+    opacity: 0.45;
+    cursor: default;
+}
+
+.xdeleter-link {
+    display: inline-block;
+    margin-top: 0.4rem;
+    color: var(--accent-text);
+    border-bottom: 1px solid var(--accent);
+    text-decoration: none;
+}
+
+.xdeleter-link:hover,
+.xdeleter-link:focus-visible {
+    background: var(--active);
+    color: var(--page);
+    outline: none;
+}
+
+/* A narrow phone is the normal case for this site; the key table is the first thing to fold. */
+@media (max-width: 30rem) {
+    .xdeleter-view {
+        font-size: 0.82rem;
+        padding: 0.7rem 0.6rem 1.6rem;
+    }
+
+    .xdeleter-keys {
+        grid-template-columns: 1fr;
+        gap: 0.15rem;
+    }
+
+    .xdeleter-keys dd {
+        margin-bottom: 0.35rem;
+    }
+}

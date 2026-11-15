@@ -103,6 +103,9 @@ TELEGRAM = [
 ]
 
 OTHER = [
+    project("xdeleter", "XDELETER", "Clean out an X account with your own data archive: drop the "
+            "files X sends you, choose what goes, and get a script to run in your own signed-in tab. "
+            "Nothing is uploaded, and the deleting happens where your session already is.", stats="xdeleter"),
     project("day86400", "86400", "One day of official reporting in one place: the CZ daily "
             "bulletin and the police press releases of the last 24 hours, searchable by keyword "
             "and filterable by section.", stats="day86400"),

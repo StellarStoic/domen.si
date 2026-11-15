@@ -175,6 +175,12 @@
             "visible": true,
             "subInterests": [
                 {
+                    "id": "xdeleter",
+                    "name": "XDELETER",
+                    "description": "Clean out an X account with your own data archive: drop the files X sends you, choose what goes, and get a script to run in your own signed-in tab. Nothing is uploaded, and the deleting happens where your session already is.",
+                    "stats": "xdeleter"
+                },
+                {
                     "id": "day86400",
                     "name": "86400",
                     "description": "One day of official reporting in one place: the CZ daily bulletin and the police press releases of the last 24 hours, searchable by keyword and filterable by section.",
