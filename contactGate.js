@@ -61,7 +61,8 @@ import {
 
         const head = element('div', 'contact-gate-view__head');
         const titles = element('div');
-        titles.appendChild(element('div', 'contact-gate-view__title', 'THE GATE'));
+        // the cube says CONTACT, so the panel it opens says CONTACT: one name for one thing
+        titles.appendChild(element('div', 'contact-gate-view__title', 'CONTACT'));
         titles.appendChild(element('div', 'contact-gate-view__sub',
             `win ${WINS_NEEDED} rounds and the address shows up — no account, nothing sent anywhere`));
         head.appendChild(titles);
