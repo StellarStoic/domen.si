@@ -131,7 +131,7 @@ function setupBoardPanZoom() {
     const onTouchStart = event => {
         if (!event.touches.length) return;
         // A touch that starts on a view or the panel is not the board's business.
-        if (event.target.closest('.polistat-view, .feed-view, .day86400-view, .pod-inspector-view, .xdeleter-view, .keytool-view')) return;
+        if (event.target.closest('.polistat-view, .feed-view, .day86400-view, .pod-inspector-view, .xdeleter-view, .keytool-view, .keymaker-view')) return;
         if (event.touches.length === 1) {
             touchMode = 'pan';
             start = { point: point(event.touches[0]), x: boardView.x, y: boardView.y };
@@ -189,7 +189,7 @@ function setupBoardPanZoom() {
 
     const onMouseDown = event => {
         if (event.button !== 0) return;
-        if (event.target.closest('.polistat-view, .feed-view, .day86400-view, .pod-inspector-view, .xdeleter-view, .keytool-view, .podcast-board')) return;
+        if (event.target.closest('.polistat-view, .feed-view, .day86400-view, .pod-inspector-view, .xdeleter-view, .keytool-view, .keymaker-view, .podcast-board')) return;
         start = { point: { x: event.clientX, y: event.clientY }, x: boardView.x, y: boardView.y };
         boardView.dragging = false;
         const onMove = moveEvent => {
@@ -293,7 +293,7 @@ function setupBoardPanZoom() {
     container.addEventListener('wheel', onWheel, { passive: false });
     // a double click on empty board space is the quick way back out
     container.addEventListener('dblclick', event => {
-        if (event.target.closest('.cube, .back-button, .polistat-view, .feed-view, .day86400-view, .pod-inspector-view, .xdeleter-view, .keytool-view, .day86400-view')) return;
+        if (event.target.closest('.cube, .back-button, .polistat-view, .feed-view, .day86400-view, .pod-inspector-view, .xdeleter-view, .keytool-view, .keymaker-view, .day86400-view')) return;
         resetBoardView();
     });
     window.addEventListener('resize', applyBoardView);
@@ -716,6 +716,7 @@ function renderBrain() {
     // Closing here means the state always matches the board, whichever door the reader left by.
     window.xdeleterView?.close?.();
     window.keytoolView?.close?.();
+    window.keymakerView?.close?.();
     window.podcastFeedView?.close?.();
     window.polistatView?.close?.();
     window.day86400View?.close?.();
@@ -1132,7 +1133,8 @@ function createCube(interest, index, isSubCube = false, parentPosition = null, d
             || interest.stats === 'podInspector'
             || interest.stats === 'contactGate'
             || interest.stats === 'xdeleter'
-            || interest.stats === 'keytool';
+            || interest.stats === 'keytool'
+            || interest.stats === 'keymaker';
 
         if (opensBoardView || getVisibleInterests(interest.subInterests).length > 0) {
             // Get current position in pixels for navigation (if not set this will produce NaN)
@@ -1451,6 +1453,12 @@ function handleCubeClick(interest, position, depth) {
         return;
     }
 
+    // KEY MAKER: create keys, optionally locked with a password. Nothing it makes outlives the panel.
+    if (interest.stats === 'keymaker') {
+        window.keymakerView?.open?.(interest);
+        return;
+    }
+
     // If the interest has sub-interests, navigate deeper
     if (getVisibleInterests(interest.subInterests).length > 0) {
         navigateToSubInterests(interest, position, depth);
@@ -1506,7 +1514,32 @@ function ensurePodcastListOnBoard() {
     return true;
 }
 
+/**
+ * The overlays added most recently. BACK leaves whichever is open before anything else happens, and
+ * keeping them in one place means goBack() stays short enough for the board tests to read it.
+ */
+function leaveNewestOverlays() {
+    for (const [view, selector] of [
+        ['keymakerView', '#brain-container .keymaker-view'],
+        ['keytoolView', '#brain-container .keytool-view'],
+        ['xdeleterView', '#brain-container .xdeleter-view'],
+    ]) {
+        const overlay = window[view];
+        if (!overlay?.isOpen?.()) continue;
+        const shell = document.querySelector(selector);
+        const wasOnScreen = !!shell && !shell.hidden;
+        overlay.close();
+        if (wasOnScreen) return true;
+    }
+    return false;
+}
+
 function goBack() {
+    // the two newest overlays first: BACK leaves whatever covers the container before it navigates
+    if (leaveNewestOverlays()) {
+        return;
+    }
+
     // THE GATE covers the container like the other views, so BACK leaves it first.
     if (window.contactGateView?.isOpen?.()) {
         const shell = document.querySelector('#brain-container .contact-gate-view');
@@ -1549,25 +1582,8 @@ function goBack() {
         }
     }
 
-    // KEYTOOL covers the container like the other views, so BACK leaves it first.
-    if (window.keytoolView?.isOpen?.()) {
-        const shell = document.querySelector('#brain-container .keytool-view');
-        const wasOnScreen = !!shell && !shell.hidden;
-        window.keytoolView.close();
-        if (wasOnScreen) {
-            return;
-        }
-    }
 
-    // XDELETER covers the container like the other views, so BACK leaves it before anything else.
-    if (window.xdeleterView?.isOpen?.()) {
-        const shell = document.querySelector('#brain-container .xdeleter-view');
-        const wasOnScreen = !!shell && !shell.hidden;
-        window.xdeleterView.close();
-        if (wasOnScreen) {
-            return;
-        }
-    }
+
 
     // The episode view is the topmost thing on the board. Stepping back closes it and leaves the list,
     // the panel and the scroll position where the reader left them — it used to pop the navigation

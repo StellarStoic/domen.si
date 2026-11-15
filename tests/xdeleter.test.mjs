@@ -40,9 +40,12 @@ test('pressing the cube opens the view, and the shell knows about it', () => {
     assert.ok(SCRIPT.indexOf('xdeleterView?.close') < SCRIPT.indexOf('container.innerHTML'),
         'the close has to precede the clear');
     // BACK leaves the overlay before it steps anywhere else
-    const back = SCRIPT.match(/function goBack\(\) \{[\s\S]{0,2400}/);
-    assert.match(back[0], /xdeleterView\?\.isOpen\?\.\(\)/);
-    assert.match(back[0], /xdeleterView\.close\(\)/);
+    const helper = SCRIPT.match(/function leaveNewestOverlays\(\) \{[\s\S]{0,1200}/);
+    assert.ok(helper, 'the overlay helper has to exist');
+    // a comment sits between the opening brace and the call, so allow it rather than pinning the prose
+    assert.match(SCRIPT, /function goBack\(\) \{[\s\S]{0,200}?if \(leaveNewestOverlays\(\)\) \{/,
+        'BACK has to try the overlays first');
+    assert.match(helper[0], /'xdeleterView'/);
 });
 
 test('the board does not pan or open cubes through the overlay', () => {

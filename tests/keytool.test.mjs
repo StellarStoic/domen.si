@@ -37,9 +37,13 @@ test('pressing the cube opens the view, BACK leaves it, and a rebuild closes it'
     assert.match(SCRIPT, /interest\.stats === 'keytool'[\s\S]{0,80}keytoolView\?\.open/);
     assert.ok(SCRIPT.indexOf('keytoolView?.close') < SCRIPT.indexOf('container.innerHTML'),
         'the close has to precede the container clear');
-    const back = SCRIPT.match(/function goBack\(\) \{[\s\S]{0,2600}/);
-    assert.match(back[0], /keytoolView\?\.isOpen\?\.\(\)/);
-    assert.match(back[0], /keytoolView\.close\(\)/);
+    // the newest overlays are left by one helper that BACK calls before anything else
+    const helper = SCRIPT.match(/function leaveNewestOverlays\(\) \{[\s\S]{0,1200}/);
+    assert.ok(helper, 'the overlay helper has to exist');
+    // a comment sits between the opening brace and the call, so allow it rather than pinning the prose
+    assert.match(SCRIPT, /function goBack\(\) \{[\s\S]{0,200}?if \(leaveNewestOverlays\(\)\) \{/,
+        'BACK has to try the overlays first');
+    assert.match(helper[0], /'keytoolView'/);
 });
 
 test('the board does not pan or press cubes through the overlay', () => {
