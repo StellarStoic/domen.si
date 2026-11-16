@@ -149,12 +149,46 @@ export function planAsJson(plan) {
 }
 
 /**
+ * Reads an operation's queryId out of one of X's client bundles.
+ *
+ * X ships a map of {queryId, operationName} pairs inside its JavaScript and rotates the ids without
+ * notice. The generated script carries this exact function (via toString), so the logic the tests
+ * exercise is the logic that runs in the browser — not a second copy that can drift.
+ */
+export function parseQueryId(text, operation) {
+  if (typeof text !== 'string' || text.indexOf(operation) === -1) return null;
+  const idPattern = /"?queryId"?\s*:\s*"([A-Za-z0-9_-]{10,40})"/g;
+  const marks = [];
+  let idMatch;
+  while ((idMatch = idPattern.exec(text)) !== null) marks.push({ at: idMatch.index, id: idMatch[1] });
+  if (!marks.length) return null;
+  // Every operation object holds exactly one queryId and one operationName, in either order. So the
+  // id that belongs to this operation is the nearest one to its name — which is also what keeps a
+  // neighbouring operation from lending its id to a name that is not its own.
+  const opPattern = new RegExp('"?operationName"?\\s*:\\s*"' + operation + '"', 'g');
+  let bestId = null;
+  let bestDistance = Infinity;
+  let opMatch;
+  while ((opMatch = opPattern.exec(text)) !== null) {
+    for (const mark of marks) {
+      const distance = Math.abs(opMatch.index - mark.at);
+      if (distance < bestDistance) {
+        bestDistance = distance;
+        bestId = mark.id;
+      }
+    }
+  }
+  return bestId;
+}
+
+/**
  * The console script.
  *
  * It runs in the reader's own x.com tab, so it reads the session from that page and holds no credential
- * of its own. The ids are the only thing carried over from here, and the endpoint choice is defensive:
- * the legacy v1.1 routes are tried first and the GraphQL route is kept as a fallback, because the
- * GraphQL operation ids X publishes rotate without notice while the v1.1 paths have been stable for years.
+ * of its own. The ids are the only thing carried over from here. Likes still go through the legacy
+ * v1.1 form route; posts must go through the GraphQL DeleteTweet mutation, because X retired the
+ * v1.1 statuses/destroy route and it now answers 404. The GraphQL queryId rotates, so the script
+ * reads it out of the bundles the page has already loaded rather than trusting a hard-coded one.
  */
 export function consoleScript(plan, options = {}) {
   const ids = plan.items.map(item => ({ id: String(item.id), type: item.type }));
@@ -166,11 +200,12 @@ export function consoleScript(plan, options = {}) {
 
    Paste into the console on x.com while logged in. DRY RUN is ${dryRun ? 'ON' : 'OFF'}.
    Nothing is deleted while it is ON — set it to false at the top when the preview looks right. */
-(async () => {
+void (async () => {
   const DRY_RUN = ${dryRun};
   const ITEMS = ${JSON.stringify(ids)};
   const GAP_MS = ${gap};
 
+  const parseQueryId = ${parseQueryId.toString()};
   const sleep = ms => new Promise(done => setTimeout(done, ms));
   const cookie = name => (document.cookie.match(new RegExp('(?:^|; )' + name + '=([^;]*)')) || [])[1];
   const ct0 = cookie('ct0');
@@ -204,11 +239,13 @@ export function consoleScript(plan, options = {}) {
     log.push({ id: item.id, type: item.type, result, note: note || '', at: new Date().toISOString() });
   }
 
-  async function call(url, init, item) {
+  async function call(url, init, item, validate) {
+    // GraphQL wants a JSON body, the legacy form routes want a form: the caller decides per request.
+    const requestHeaders = Object.assign({}, headers, (init && init.headers) || {});
     for (let attempt = 0; attempt < 6; attempt += 1) {
       let response;
       try {
-        response = await fetch(url, { ...init, headers, credentials: 'include' });
+        response = await fetch(url, Object.assign({}, init, { headers: requestHeaders, credentials: 'include' }));
       } catch (error) {
         await sleep(4000 * (attempt + 1));
         continue;
@@ -225,18 +262,84 @@ export function consoleScript(plan, options = {}) {
         console.error('The session refused this request (' + response.status + '). Sign in again on x.com and re-run.');
         return 'stop';
       }
-      return response.ok ? 'ok' : 'fail:' + response.status;
+      if (!response.ok) return 'fail:' + response.status;
+      if (!validate) return 'ok';
+      let payload;
+      try {
+        payload = await response.json();
+      } catch (error) {
+        return 'fail:unreadable';
+      }
+      return validate(payload);
     }
     return 'fail:rate-limited';
   }
 
+  // X retired the v1.1 write routes the first version of this script used: statuses/destroy answers
+  // 404 and only the GraphQL DeleteTweet mutation deletes a post. The queryId in that URL rotates,
+  // so it is read from the bundles this tab has already loaded, with a known id as a fallback.
+  const KNOWN_DELETE_QUERY_IDS = ['VaenaVgh5q5ih7kvyVjgtg'];
+  const queryIdCache = {};
+
+  function loadedBundles() {
+    try {
+      return performance.getEntriesByType('resource')
+        .map(entry => entry.name)
+        .filter(name => name.indexOf('abs.twimg.com/responsive-web/client-web') !== -1);
+    } catch (error) {
+      return [];
+    }
+  }
+
+  async function findQueryId(operation) {
+    if (queryIdCache[operation]) return queryIdCache[operation];
+    const bundles = loadedBundles();
+    for (const url of bundles) {
+      let text;
+      try {
+        const response = await fetch(url, { credentials: 'omit' });
+        if (!response.ok) continue;
+        text = await response.text();
+      } catch (error) {
+        continue;
+      }
+      const found = parseQueryId(text, operation);
+      if (found) {
+        queryIdCache[operation] = found;
+        return found;
+      }
+    }
+    return null;
+  }
+
   async function removePost(item) {
-    const legacy = await call('https://x.com/i/api/1.1/statuses/destroy/' + item.id + '.json',
-      { method: 'POST', body: '' }, item);
-    if (legacy === 'ok' || legacy === 'stop') return legacy;
-    // fall back to the GraphQL route the web app uses, in case the legacy path is retired
-    return call('https://x.com/i/api/graphql/VaenaVgh5q5ih7kvyVjgtg/DeleteTweet',
-      { method: 'POST', body: JSON.stringify({ variables: { tweet_id: item.id }, queryId: 'VaenaVgh5q5ih7kvyVjgtg' }) }, item);
+    const candidates = [];
+    const discovered = await findQueryId('DeleteTweet');
+    if (discovered) candidates.push(discovered);
+    KNOWN_DELETE_QUERY_IDS.forEach(queryId => {
+      if (candidates.indexOf(queryId) === -1) candidates.push(queryId);
+    });
+    let last = 'fail:no-route';
+    for (const queryId of candidates) {
+      const outcome = await call(
+        'https://x.com/i/api/graphql/' + queryId + '/DeleteTweet',
+        {
+          method: 'POST',
+          headers: { 'content-type': 'application/json' },
+          body: JSON.stringify({ variables: { tweet_id: item.id, dark_request: false }, queryId }),
+        },
+        item,
+        payload => {
+          if (payload && payload.data && payload.data.delete_tweet) return 'ok';
+          const errors = (payload && payload.errors) || [];
+          // 144 means the post is already gone, which is the outcome that was asked for.
+          if (errors.some(error => Number(error.code) === 144)) return 'ok';
+          return 'fail:graphql';
+        });
+      if (outcome === 'ok' || outcome === 'stop') return outcome;
+      last = outcome;
+    }
+    return last;
   }
 
   async function removeLike(item) {

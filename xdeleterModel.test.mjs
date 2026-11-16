@@ -6,7 +6,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import {
   arrayFromArchiveFile, readArchive, countsOf, dateRangeOf, classify,
-  selected, buildPlan, planAsJson, consoleScript,
+  selected, buildPlan, planAsJson, consoleScript, parseQueryId,
 } from './xdeleterModel.mjs';
 
 const tweetsJs = `window.YTD.tweets.part0 = [
@@ -115,11 +115,67 @@ test('the script reads the session from the page, honours rate limits, and refus
   assert.match(script, /status === 401 \|\| response\.status === 403/);
   assert.match(script, /domen:xdeleter:done/);          // resumes instead of restarting
   assert.match(script, /favorites\/destroy\.json/);      // likes have their own endpoint
-  assert.match(script, /statuses\/destroy\//);           // and posts theirs
+  // posts need the GraphQL mutation now: the legacy destroy route answers 404
+  assert.match(script, /\/DeleteTweet/);
   assert.match(script, /link\.download/);                // the result log comes back to the reader
 });
 
 test('the gap between requests is configurable and defaults to a human pace', () => {
   assert.match(consoleScript(buildPlan(archive, { types: ['post'] })), /const GAP_MS = 1500;/);
   assert.match(consoleScript(buildPlan(archive, { types: ['post'] }), { gapMs: 3000 }), /const GAP_MS = 3000;/);
+});
+
+test('the queryId reader finds the delete operation inside a bundle, and not its neighbours', () => {
+    // X ships one object per operation; taking the nearest queryId blindly picks the wrong one,
+    // which is how a delete silently turns into a different mutation.
+    const fixture = 'e.exports={DeleteTweet:{queryId:"VaenaVgh5q5ih7kvyVjgtg",operationName:"DeleteTweet"},'
+        + 'DeleteRetweet:{queryId:"Zy6tfXy2AK6fWQ4PT0ZzSg",operationName:"DeleteRetweet"}};';
+    assert.equal(parseQueryId(fixture, 'DeleteTweet'), 'VaenaVgh5q5ih7kvyVjgtg');
+    assert.equal(parseQueryId(fixture, 'DeleteRetweet'), 'Zy6tfXy2AK6fWQ4PT0ZzSg');
+    // the order of the two keys is not guaranteed
+    assert.equal(parseQueryId('{"queryId":"VaenaVgh5q5ih7kvyVjgtg","operationName":"DeleteTweet"}',
+        'DeleteTweet'), 'VaenaVgh5q5ih7kvyVjgtg');
+    // mentioning the operation without an id beside it yields nothing, never a guess
+    // the operation name may sit before its id, and whitespace around the colon is irrelevant
+    assert.equal(parseQueryId('{"operationName":"DeleteTweet","queryId":"VaenaVgh5q5ih7kvyVjgtg"}',
+        'DeleteTweet'), 'VaenaVgh5q5ih7kvyVjgtg');
+    assert.equal(parseQueryId('{ queryId: "VaenaVgh5q5ih7kvyVjgtg", operationName: "DeleteTweet" }',
+        'DeleteTweet'), 'VaenaVgh5q5ih7kvyVjgtg');
+    // and a neighbouring operation must get its own id, not the delete one
+    assert.equal(parseQueryId(fixture, 'DeleteRetweet'), 'Zy6tfXy2AK6fWQ4PT0ZzSg');
+    assert.equal(parseQueryId('operationName:"DeleteTweet"', 'DeleteTweet'), null);
+    assert.equal(parseQueryId('{queryId:"VaenaVgh5q5ih7kvyVjgtg", operationName: "DeleteTweet"}',
+        'DeleteTweet'), 'VaenaVgh5q5ih7kvyVjgtg');
+    assert.equal(parseQueryId('nothing useful here', 'DeleteTweet'), null);
+    assert.equal(parseQueryId(undefined, 'DeleteTweet'), null);
+});
+
+test('posts go through the GraphQL mutation, because the legacy write route is retired', () => {
+    const script = consoleScript(buildPlan(archive, { types: ['post'] }), {});
+    // statuses/destroy answers 404 on x.com now; leaving it in means every post fails
+    assert.ok(!script.includes('/i/api/1.1/statuses/destroy'), 'the dead route must not be called');
+    assert.match(script, /\/i\/api\/graphql\/' \+ queryId \+ '\/DeleteTweet'/);
+    // a JSON body with the web app's own content type, or the mutation is rejected outright
+    assert.match(script, /'content-type': 'application\/json'/);
+    assert.match(script, /tweet_id: item\.id, dark_request: false/);
+    // the id is discovered at run time from the bundles this tab has already loaded
+    assert.match(script, /performance\.getEntriesByType\('resource'\)/);
+    assert.match(script, /const parseQueryId = function parseQueryId/);
+});
+
+test('a delete is only counted when the payload says the post was deleted', () => {
+    const script = consoleScript(buildPlan(archive, { types: ['post'] }), {});
+    // a 200 carrying an error body must not be recorded as a success
+    assert.match(script, /payload\.data\.delete_tweet/);
+    assert.match(script, /Number\(error\.code\) === 144/);
+});
+
+test('likes keep the form route that already works', () => {
+    const script = consoleScript(buildPlan(archive, { types: ['like'] }), {});
+    assert.match(script, /\/i\/api\/1\.1\/favorites\/destroy\.json/);
+    assert.match(script, /body: 'id=' \+ encodeURIComponent\(item\.id\)/);
+});
+
+test('the reader is not handed a pending promise they cannot read', () => {
+    assert.match(consoleScript(buildPlan(archive, { types: ['post'] }), {}), /void \(async \(\) => \{/);
 });
