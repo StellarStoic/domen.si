@@ -176,6 +176,66 @@
     font-size: 0.74rem;
 }
 
+/* ── what is loaded, removable one file at a time ─────────────────────── */
+
+.xdeleter-files {
+    margin-top: 0.5rem;
+}
+
+.xdeleter-files__list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.xdeleter-file-row {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.3rem 0.45rem;
+    border: 1px solid var(--cube-edge);
+    background: var(--surface);
+    font-size: 0.78rem;
+}
+
+.xdeleter-file-row__name {
+    color: var(--ink);
+    overflow-wrap: anywhere;
+}
+
+.xdeleter-file-row__kind {
+    margin-left: auto;
+    color: var(--muted);
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
+.xdeleter-file-row__remove,
+.xdeleter-clear {
+    font-family: inherit;
+    font-size: 0.72rem;
+    padding: 0.15rem 0.45rem;
+    background: none;
+    border: 1px solid var(--cube-edge);
+    color: var(--muted);
+    cursor: pointer;
+}
+
+.xdeleter-file-row__remove:hover,
+.xdeleter-file-row__remove:focus-visible,
+.xdeleter-clear:hover,
+.xdeleter-clear:focus-visible {
+    border-color: var(--accent);
+    background: var(--active);
+    color: var(--page);
+    outline: none;
+}
+
+.xdeleter-clear {
+    margin-top: 0.45rem;
+}
+
 /* the real input sits under the zone, invisible but clickable by the label */
 .xdeleter-file {
     position: absolute;

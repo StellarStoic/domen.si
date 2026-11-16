@@ -20,6 +20,7 @@ const SCRIPT = read('script.js');
 const VIEW = read('xdeleter.js');
 const STYLE = read('xdeleter.css');
 const BUILDS = read('interests/builds.json');
+const MODEL = read('xdeleterModel.mjs');
 
 test('the view is loaded by the page, with its stylesheet, and the shell is cache-bumped', () => {
     assert.match(HTML, /<link rel="stylesheet" href="xdeleter\.css\?v=\d+">/);
@@ -120,4 +121,30 @@ test('nothing is ticked before the reader ticks it', () => {
 test('the view never grows a network call of its own', () => {
     // The archive is the reader's whole public life; the planner does not get to send it anywhere.
     assert.doesNotMatch(VIEW, /fetch\(|XMLHttpRequest|navigator\.sendBeacon/);
+});
+
+test('both files loaded produce one script, not two runs', () => {
+    // the planner carries a type per item, and the generated script branches on it
+    assert.match(MODEL, /item\.type === 'like' \? await removeLike\(item\) : await removePost\(item\)/);
+    assert.match(VIEW, /One script removes both/);
+});
+
+test('each dropped file can be removed on its own, and all of them cleared', () => {
+    assert.match(VIEW, /rawFiles: \{\}/, 'the dropped text has to be kept to allow removal');
+    assert.match(VIEW, /function removeFile\(name\) \{[\s\S]{0,220}delete state\.rawFiles\[name\]/);
+    assert.match(VIEW, /function clearFiles\(\) \{/);
+    // a second drop adds to the first instead of silently replacing it
+    assert.match(VIEW, /state\.rawFiles = isDemo \? \{ \.\.\.files \} : \{ \.\.\.state\.rawFiles, \.\.\.files \}/);
+    // the buttons are real, and labelled for a screen reader
+    assert.match(VIEW, /'xdeleter-file-row__remove'/);
+    assert.match(VIEW, /aria-label', `remove \$\{name\} from the plan`/);
+    assert.match(VIEW, /'Remove all files and start over'/);
+});
+
+test('clearing unticks what was ticked, so the panel cannot claim work it will not do', () => {
+    const body = VIEW.match(/function clearFiles\(\) \{[\s\S]{0,700}/)[0];
+    assert.match(body, /state\.archive = null/);
+    assert.match(body, /state\.types\[type\] = false/);
+    assert.match(body, /typeBoxes\[type\]\.checked = false/);
+    assert.match(body, /paint\(\)/);
 });

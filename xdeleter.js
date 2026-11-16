@@ -46,11 +46,14 @@ import {
     let copyBtn = null;
     let dropEl = null;
     let fileInput = null;
+    let filesEl = null;
+    const typeBoxes = {};
 
     const state = {
         open: false,
         demo: false,
         archive: null,
+        rawFiles: {},       // name → text, kept so a single file can be removed or replaced
         types: Object.fromEntries(TYPES.map(type => [type, false])),
         keywords: '',
         urlOnly: false,
@@ -161,7 +164,8 @@ import {
             'tweets.js — every post you ever made, including your replies and reposts.',
             'like.js — every post you ever liked.',
         ]);
-        paragraph(c, 'You can drop either one or both. posts are the ones people think of first; likes '
+        paragraph(c, 'You can drop either one or both — with both loaded, a single script handles them '
+            + 'together, so there is nothing to run twice. posts are the ones people think of first; likes '
             + 'are a separate list and need their own removal, which this handles.');
         root.appendChild(c);
 
@@ -207,6 +211,11 @@ import {
         demoBtn.type = 'button';
         demoBtn.addEventListener('click', () => loadArchive(DEMO, true));
         d.appendChild(demoBtn);
+
+        // What is loaded right now, each file removable on its own: a reader who picked the wrong
+        // export should not have to reload the other file too.
+        filesEl = element('div', 'xdeleter-files');
+        d.appendChild(filesEl);
         root.appendChild(d);
 
         statusEl = element('div', 'xdeleter-status');
@@ -237,6 +246,7 @@ import {
                 state.types[type] = box.checked;
                 paint();
             });
+            typeBoxes[type] = box;
             label.appendChild(box);
             label.appendChild(element('span', 'xdeleter-type__name', TYPE_LABEL[type]));
             label.appendChild(element('span', 'xdeleter-type__count', '0'));
@@ -457,30 +467,94 @@ import {
                 return;
             }
         }
+        // Dropping like.js after tweets.js adds it; it does not silently replace what is loaded.
         loadArchive(gathered, false);
     }
 
     function loadArchive(files, isDemo) {
+        // Made-up data replaces whatever is loaded; a real drop adds to it.
+        state.rawFiles = isDemo ? { ...files } : { ...state.rawFiles, ...files };
+        state.demo = isDemo;
+        readCurrentFiles(isDemo ? 'Loaded made-up data. ' : '');
+    }
+
+    function readCurrentFiles(prefix) {
+        const names = Object.keys(state.rawFiles);
+        if (!names.length) {
+            state.archive = null;
+            state.demo = false;
+            setStatus(`${prefix}Nothing is loaded now — drop a file when you are ready.`);
+            paint();
+            return;
+        }
         let archive;
         try {
-            archive = readArchive(files);
+            archive = readArchive(state.rawFiles);
         } catch (error) {
-            setStatus(`${error.message} — make sure you picked tweets.js or like.js from the archive, `
-                + 'not the whole .zip file.', 'bad');
+            state.archive = null;
+            setStatus(`${prefix}${error.message} — make sure you picked tweets.js or like.js from the `
+                + 'archive, not the whole .zip file.', 'bad');
+            paint();
             return;
         }
         if (!archive.posts.length && !archive.likes.length) {
+            state.archive = null;
             setStatus('Those files held no posts and no likes. Is this the archive X sent you?', 'bad');
+            paint();
             return;
         }
         state.archive = archive;
-        state.demo = isDemo;
-        setStatus(isDemo
-                ? 'Loaded made-up data so you can look around. Nothing here can delete anything.'
-                : `Read ${archive.posts.length} post(s) and ${archive.likes.length} like(s) from `
-                  + `${archive.files} file(s). Nothing left this tab.`,
-            isDemo ? '' : 'good');
+        const both = archive.posts.length && archive.likes.length;
+        setStatus(`${prefix}Read ${archive.posts.length} post(s) and ${archive.likes.length} like(s) from `
+            + `${archive.files} file(s). `
+            + (both ? 'One script removes both — posts and likes together. ' : '')
+            + 'Nothing left this tab.',
+            state.demo ? '' : 'good');
         paint();
+    }
+
+    function removeFile(name) {
+        if (!(name in state.rawFiles)) return;
+        delete state.rawFiles[name];
+        readCurrentFiles(`Removed ${name}. `);
+    }
+
+    function clearFiles() {
+        state.rawFiles = {};
+        state.archive = null;
+        state.demo = false;
+        // nothing loaded means nothing to tick, and the boxes have to agree with the state
+        for (const type of TYPES) {
+            state.types[type] = false;
+            if (typeBoxes[type]) typeBoxes[type].checked = false;
+        }
+        setStatus('Files cleared. This tab kept nothing — drop the corrected file when you have it.');
+        paint();
+    }
+
+    function paintFiles() {
+        if (!filesEl) return;
+        filesEl.innerHTML = '';
+        const names = Object.keys(state.rawFiles).sort();
+        if (!names.length) return;
+        const list = element('div', 'xdeleter-files__list');
+        for (const name of names) {
+            const row = element('div', 'xdeleter-file-row');
+            row.appendChild(element('span', 'xdeleter-file-row__name', name));
+            const kind = /like/i.test(name) ? 'likes' : /tweet/i.test(name) ? 'posts' : 'archive';
+            row.appendChild(element('span', 'xdeleter-file-row__kind', kind));
+            const remove = element('button', 'xdeleter-file-row__remove', 'remove');
+            remove.type = 'button';
+            remove.setAttribute('aria-label', `remove ${name} from the plan`);
+            remove.addEventListener('click', () => removeFile(name));
+            row.appendChild(remove);
+            list.appendChild(row);
+        }
+        filesEl.appendChild(list);
+        const clear = element('button', 'xdeleter-clear', 'Remove all files and start over');
+        clear.type = 'button';
+        clear.addEventListener('click', clearFiles);
+        filesEl.appendChild(clear);
     }
 
     function setStatus(text, tone) {
@@ -567,6 +641,7 @@ import {
 
     function paint() {
         if (!root) return;
+        paintFiles();
         paintInventory();
 
         const counts = state.archive ? countsOf(state.archive) : { post: 0, reply: 0, repost: 0, like: 0 };
