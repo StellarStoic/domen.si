@@ -148,3 +148,32 @@ test('clearing unticks what was ticked, so the panel cannot claim work it will n
     assert.match(body, /typeBoxes\[type\]\.checked = false/);
     assert.match(body, /paint\(\)/);
 });
+
+test('a "not found" answer is not counted as a deletion', () => {
+    // This is what hid the replies and reposts: 144 means the request removed nothing, and the
+    // first version recorded it as success, so the run looked clean and the posts stayed.
+    const script = MODEL;
+    assert.match(script, /Number\(error\.code\) === 144\)\) return 'not-found'/);
+    assert.match(script, /tally\.alreadyGone \+= 1/);
+    assert.match(script, /remember\(item, 'already-gone'\)/);
+    // and the summary has to name the kinds, so a silent kind cannot hide behind a total
+    assert.match(script, /byType\[type\] = \{ removed: 0, alreadyGone: 0, failed: 0 \}/);
+    assert.match(script, /Nothing of this kind was removed/);
+});
+
+test('a repost gets one attempt as an un-retweet when the plain delete finds nothing', () => {
+    assert.match(MODEL, /item\.type === 'repost' && item\.retweetOf/);
+    assert.match(MODEL, /\/DeleteRetweet/);
+    assert.match(MODEL, /source_tweet_id: String\(item\.retweetOf\), tweet_id: String\(item\.id\)/);
+    // the plan carries the repeated post only when the archive gave it
+    assert.match(MODEL, /retweetOf: tweet\.retweeted_status_id_str \? String\(tweet\.retweeted_status_id_str\) : null/);
+});
+
+test('the panel can forget what a buggy run recorded as done', () => {
+    assert.match(VIEW, /xdeleter-done__forget/);
+    assert.match(VIEW, /localStorage\.removeItem\(DONE_KEY\)/);
+    assert.match(VIEW, /Earlier runs recorded \$\{remembered\.length\}/);
+    // and it says what is present but not ticked, instead of letting it be assumed removed
+    assert.match(VIEW, /Not selected: \$\{parts\.join/);
+    assert.match(VIEW, /these stay on the profile/);
+});

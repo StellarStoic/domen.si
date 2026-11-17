@@ -10,7 +10,7 @@
 // and how to stop. Nothing is uploaded, stored or remembered — the archive never leaves this tab.
 
 import {
-    readArchive, countsOf, dateRangeOf, buildPlan, planAsJson, consoleScript, TYPES, missingPartsHint } from './xdeleterModel.mjs';
+    readArchive, countsOf, dateRangeOf, buildPlan, planAsJson, consoleScript, TYPES, missingPartsHint, DONE_KEY } from './xdeleterModel.mjs?v=7';
 
 (function initXDeleter(global) {
     const TYPE_LABEL = { post: 'Posts', reply: 'Replies', repost: 'Reposts', like: 'Likes' };
@@ -46,6 +46,8 @@ import {
     let dropEl = null;
     let fileInput = null;
     let filesEl = null;
+    let doneEl = null;
+    let unselectedEl = null;
     const typeBoxes = {};
 
     const state = {
@@ -256,6 +258,8 @@ import {
             typeRow.appendChild(label);
         }
         filtersEl.appendChild(typeRow);
+        unselectedEl = element('div', 'xdeleter-unselected');
+        filtersEl.appendChild(unselectedEl);
 
         const field = (caption, node) => {
             const wrap = element('label', 'xdeleter-field');
@@ -320,6 +324,7 @@ import {
         planEl = element('div', 'xdeleter-plan');
         g.appendChild(planEl);
 
+        const doneElHolder = null;   // the container is created below, beside the dry-run box
         const dryLabel = element('label', 'xdeleter-check xdeleter-check--dry');
         const dry = element('input');
         dry.type = 'checkbox';
@@ -332,6 +337,11 @@ import {
         dryLabel.appendChild(element('span', undefined,
             'Dry run — the script prints what it would remove and deletes nothing'));
         g.appendChild(dryLabel);
+
+        // What an earlier run claims to have finished — and a way to disagree with it. A run that
+        // mistook "not found" for "deleted" left ids here that are still on the profile.
+        doneEl = element('div', 'xdeleter-done');
+        g.appendChild(doneEl);
 
         scriptEl = element('textarea', 'xdeleter-script');
         scriptEl.readOnly = true;
@@ -535,6 +545,43 @@ import {
         paint();
     }
 
+    function paintDone() {
+        if (!doneEl) return;
+        doneEl.innerHTML = '';
+        let remembered = [];
+        try {
+            remembered = JSON.parse(localStorage.getItem(DONE_KEY) || '[]');
+        } catch (error) {
+            remembered = [];
+        }
+        if (!Array.isArray(remembered) || !remembered.length) return;
+        doneEl.appendChild(element('div', 'xdeleter-done__count',
+            `Earlier runs recorded ${remembered.length} item(s) as finished.`));
+        doneEl.appendChild(element('div', 'xdeleter-done__hint',
+            'If something was reported removed and is still on your profile, forget that list and run '
+            + 'again — nothing is removed twice.'));
+        const forget = element('button', 'xdeleter-done__forget', 'Forget what earlier runs did');
+        forget.type = 'button';
+        forget.addEventListener('click', () => {
+            try {
+                localStorage.removeItem(DONE_KEY);
+            } catch (error) {}
+            setStatus('The resume list is empty. Everything in the plan will be attempted again.');
+            paint();
+        });
+        doneEl.appendChild(forget);
+    }
+
+    function paintUnselected(counts) {
+        if (!unselectedEl) return;
+        unselectedEl.textContent = '';
+        if (!state.archive) return;
+        const left = TYPES.filter(type => counts[type] && !state.types[type]);
+        if (!left.length) return;
+        const parts = left.map(type => `${counts[type]} ${TYPE_LABEL[type].toLowerCase()}${counts[type] === 1 ? '' : 's'}`);
+        unselectedEl.textContent = `Not selected: ${parts.join(', ')} — these stay on the profile.`;
+    }
+
     function paintFiles() {
         if (!filesEl) return;
         filesEl.innerHTML = '';
@@ -654,6 +701,7 @@ import {
     function paint() {
         if (!root) return;
         paintFiles();
+        paintDone();
         paintInventory();
 
         const counts = state.archive ? countsOf(state.archive) : { post: 0, reply: 0, repost: 0, like: 0 };
@@ -664,6 +712,7 @@ import {
             box.classList.toggle('is-empty', !counts[type]);
         }
 
+        paintUnselected(counts);
         const plan = currentPlan();
         paintPlan(plan);
         if (scriptEl) {

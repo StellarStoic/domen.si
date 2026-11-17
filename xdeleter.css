@@ -176,6 +176,52 @@
     font-size: 0.74rem;
 }
 
+/* ── what an earlier run claims to have finished ──────────────────────── */
+
+.xdeleter-done {
+    margin: 0.5rem 0 0.2rem;
+}
+
+.xdeleter-done__count {
+    color: var(--ink);
+    font-size: 0.78rem;
+}
+
+.xdeleter-done__hint {
+    color: var(--muted);
+    font-size: 0.74rem;
+    margin: 0.15rem 0 0.35rem;
+}
+
+.xdeleter-done__forget {
+    font-family: inherit;
+    font-size: 0.74rem;
+    padding: 0.2rem 0.5rem;
+    background: none;
+    border: 1px solid var(--cube-edge);
+    color: var(--muted);
+    cursor: pointer;
+}
+
+.xdeleter-done__forget:hover,
+.xdeleter-done__forget:focus-visible {
+    border-color: var(--accent);
+    background: var(--active);
+    color: var(--page);
+    outline: none;
+}
+
+/* what is present but not ticked stays on the profile — say it, do not let it be assumed */
+.xdeleter-unselected {
+    margin-top: 0.4rem;
+    color: var(--muted);
+    font-size: 0.76rem;
+}
+
+.xdeleter-unselected:empty {
+    display: none;
+}
+
 /* ── what is loaded, removable one file at a time ─────────────────────── */
 
 .xdeleter-files {
