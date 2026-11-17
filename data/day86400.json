@@ -1,23 +1,23 @@
 {
- "builtAt": "2026-11-17T06:20:14.050872+00:00",
+ "builtAt": "2026-11-17T16:20:13.615303+00:00",
  "window": {
   "hours": 24,
-  "from": "2026-11-16T06:20:14.050872+00:00",
-  "to": "2026-11-17T06:20:14.050872+00:00"
+  "from": "2026-11-16T16:20:13.615303+00:00",
+  "to": "2026-11-17T16:20:13.615303+00:00"
  },
  "counts": {
-  "total": 13,
-  "cz": 8,
-  "policija": 5
+  "total": 10,
+  "cz": 7,
+  "policija": 3
  },
  "bulletin": {
-  "day": "16. 11. 2026",
-  "url": "https://www.gov.si/novice/2026-11-16-dnevni-informativni-bilten-centra-za-obvescanje/"
+  "day": "17. 11. 2026",
+  "url": "https://www.gov.si/novice/2026-11-17-dnevni-informativni-bilten-centra-za-obvescanje/"
  },
  "sources": {
   "cz": {
    "label": "CZ — dnevni informativni bilten",
-   "url": "https://www.gov.si/novice/2026-11-16-dnevni-informativni-bilten-centra-za-obvescanje/"
+   "url": "https://www.gov.si/novice/2026-11-17-dnevni-informativni-bilten-centra-za-obvescanje/"
   },
   "policija": {
    "label": "Policija — sporočila in dogodki",
@@ -26,14 +26,14 @@
  },
  "failures": [],
  "categories": [
+  "Delovne in rudniške nesreče",
   "Generalna policijska uprava",
-  "Nesreče pri športnih, rekreativnih in drugih aktivnostih",
   "Nesreče v cestnem prometu",
-  "Ogrožanja ali napad živali na ljudi in stvari",
+  "PU Ljubljana",
   "Policija",
   "Požari na prometnih sredstvih",
-  "Požari v komunalnih in drugih zabojnikih",
   "Požari v objektih",
+  "Reševanja obolelih oseb",
   "Tehnična in druga pomoč",
   "Uvod"
  ],
@@ -43,72 +43,81 @@
    "topic": "bilten",
    "category": "Uvod",
    "title": "Uvod",
-   "text": "Pomembnejši dogodki s področja sistema varstva pred naravnimi in drugimi nesrečami dne 15. novembra 2026.",
-   "url": "https://www.gov.si/novice/2026-11-16-dnevni-informativni-bilten-centra-za-obvescanje/",
-   "published": "2026-11-16T05:00:00+00:00"
+   "text": "Pomembnejši dogodki s področja sistema varstva pred naravnimi in drugimi nesrečami dne 16. novembra 2026.",
+   "url": "https://www.gov.si/novice/2026-11-17-dnevni-informativni-bilten-centra-za-obvescanje/",
+   "published": "2026-11-17T05:00:00+00:00"
   },
   {
    "source": "cz",
    "topic": "bilten",
-   "category": "Ogrožanja ali napad živali na ljudi in stvari",
-   "title": "Ogrožanja ali napad živali na ljudi in stvari",
-   "text": "Regijski center za obveščanje Kranj Ob 15.03 je na planinski poti na Tolsti vrh, občina Kranj, oven napadal tuja pohodnika. Reševalci GRS Kranj so nepoškodovana planinca pospremili v dolino.",
-   "url": "https://www.gov.si/novice/2026-11-16-dnevni-informativni-bilten-centra-za-obvescanje/",
-   "published": "2026-11-16T05:00:00+00:00"
+   "category": "Delovne in rudniške nesreče",
+   "title": "Delovne in rudniške nesreče",
+   "text": "Regijski center za obveščanje Celje Ob 14.20 se je v gozdu v naselju Zahomce, občina Vransko, pri spravilu lesa poškodoval delavec. Gasilci PGE Celje in PGD Teševa, Vransko, Prekopa-Čeplje-Stopnik in Ločica pri Vranskem so zavarovali kraj dogodka, rešili delavca izpod podrtega drevesa, nudili pomoč reševalcem NMP Žalec in Celje pri oskrbi in prenosu le tega v reševalno vozilo. Prepeljan je bil v SB Celje.",
+   "url": "https://www.gov.si/novice/2026-11-17-dnevni-informativni-bilten-centra-za-obvescanje/",
+   "published": "2026-11-17T05:00:00+00:00"
   },
   {
    "source": "cz",
    "topic": "bilten",
-   "category": "Nesreče pri športnih, rekreativnih in drugih aktivnostih",
-   "title": "Nesreče pri športnih, rekreativnih in drugih aktivnostih",
-   "text": "Regijski center za obveščanje Kranj Ob 10.38 je na vzletišču jadralnih padalcev v Gozdu, občina Tržič, padalec po ponesrečenem vzletu pristal s padalom na bližnjem drevesu. Reševalci GRS Tržič so ga s pomočjo vrvne tehnike spustili na tla in sneli padalo.",
-   "url": "https://www.gov.si/novice/2026-11-16-dnevni-informativni-bilten-centra-za-obvescanje/",
-   "published": "2026-11-16T05:00:00+00:00"
+   "category": "Reševanja obolelih oseb",
+   "title": "Reševanja obolelih oseb",
+   "text": "Regijski center za obveščanje Kranj Ob 16.06 so v Čevljarski ulici v Žireh gasilci PGD Dobračeva nudili pomoč oboleli osebi do prihoda reševalcev NMP.",
+   "url": "https://www.gov.si/novice/2026-11-17-dnevni-informativni-bilten-centra-za-obvescanje/",
+   "published": "2026-11-17T05:00:00+00:00"
   },
   {
    "source": "cz",
    "topic": "bilten",
    "category": "Nesreče v cestnem prometu",
    "title": "Nesreče v cestnem prometu",
-   "text": "Regijski center za obveščanje Celje Ob 4.08 je na Levstikovi cesti v Celju prišlo do prometne nesreče z udeležbo enega osebnega vozila. Gasilci PGE Celje so zavarovali kraja dogodka, nevtralizirali razlite motorne tekočine, odklopili akumulator in osvetljevali kraj nesreče. Poškodovanih oseb ni bilo. Regijski center za obveščanje Kranj Ob 0.57 je na Ljubljanski cesti na Bledu osebno vozilo trčilo v drevo. Gasilci PGD Bled so zavarovali kraj dogodka, vozilo dvignili s cestišča in pomagali pri njegovem nalaganju na vlečno vozilo. Voznik se je iz vozila rešil sam. Regijski center za obveščanje Slovenj Gradec Ob 4.04 je na Šolski cesti v Mislinji osebno vozilo zapeljalo s cestišča in se prevrnilo na streho. Gasilci PGD Slovenj Gradec so zavarovali kraj dogodka, odklopili akumulator, nevtralizirali razlite motorne tekočine ter s pomočjo avtodvigala prevrnjeno vozilo postavili nazaj na kolesa. Reševalci NMP so poškodovano osebo oskrbeli na kraju dogodka.",
-   "url": "https://www.gov.si/novice/2026-11-16-dnevni-informativni-bilten-centra-za-obvescanje/",
-   "published": "2026-11-16T05:00:00+00:00"
+   "text": "Regijski center za obveščanje Celje Ob 14.35 sta na cesti Celje–Laško v občini Celje trčili osebni vozili. Gasilci PGE Celje so zavarovali kraj dogodka, stabilizirali vozili, iz njiju rešili osebi, odklopili akumulatorja in nevtralizirali razlite motorne tekočine. Skupaj z reševalci NMP so oskrbeli poškodovani osebi, ki sta bili nato prepeljani v SB Celje. Regijski center za obveščanje Koper Ob 22.29 je na cesti med Valeto in Lucijo v občini Piran osebno vozilo zapeljalo s cestišča in se prevrnilo na streho. Gasilci JZ GB Koper so zavarovali in osvetljevali kraj dogodka, nudili pomoč vozniku, ki je sam prišel iz vozila, pregledali okolico ter odklopili akumulator. Reševalci NMP so poškodovanega voznika prepeljali v SB Izola. Regijski center za obveščanje Kranj Ob 17.48 je na gorenjski avtocesti med izvozom Naklo in uvozom Kranj–Zahod v smeri Ljubljane trčilo šest osebnih vozil. Gasilci GARS Kranj so zavarovali in osvetljevali kraj dogodka, nudili pomoč hudo poškodovani osebi do prihoda reševalcev NMP, nevtralizirali iztekle motorne tekočine in odklopili akumulatorje. Poškodovano osebo so reševalci prepeljali v UKC Ljubljana. Regijski center za obveščanje Ljubljana Ob 20.58 je v naselju Podhruška v občini Kamnik kombinirano vozilo zapeljalo s ceste in se prevrnilo na bok. Gasilci PGD Kamnik in policisti so zavarovali kraj dogodka, odklopili akumulator ter s tehničnim posegom iz vozila rešili ukleščeno osebo. Iz zadnjega dela vozila so gasilci odstranili potencialno nevarne predmete. Reševalci NMP so poškodovano osebo prepeljali v UKC Ljubljana. Regijski center za obveščanje Nova Gorica Ob 8.47 se je pri naselju Godovič v občini Idrija prevrnilo osebno vozilo in obstalo na boku, voznica pa je poškodovana ostala ujeta v vozilu. Gasilci PGD Idrija so zavarovali kraj dogodka, odklopili akumulator, rešili poškodovano osebo iz vozila, nudili pomoč reševalcem NMP Idrija pri oskrbi in prenosu poškodovane osebe, vozilo odmaknili z vozišča in počistili cestišče. Regijski center za obveščanje Ptuj Ob 14.44 je na avtocesti v Zgornji Hajdini v občini Hajdina, v smeri proti Hrvaški, osebno vozilo zapeljalo na rob cestišča in se prevrnilo na streho. Gasilci PGD Ptuj so zavarovali kraj dogodka, odklopili akumulator, pomagali poškodovani osebi do prihoda reševalcev NMP in vozilo postavili nazaj na kolesa. V nesreči se je poškodovala ena oseba.",
+   "url": "https://www.gov.si/novice/2026-11-17-dnevni-informativni-bilten-centra-za-obvescanje/",
+   "published": "2026-11-17T05:00:00+00:00"
   },
   {
    "source": "cz",
    "topic": "bilten",
    "category": "Požari v objektih",
    "title": "Požari v objektih",
-   "text": "Regijski center za obveščanje Kranj Ob 13.14 se je na Cesti Borisa Kidriča na Koroški Beli, občina Jesenice, sprožil avtomatski javljalnik požara v objektu. Gasilci GARS Jesenice so na kraju ugotovili, da je vzrok za sprožitev prejetega signala zadimljenost prostorov v objektu RTP Jeklarna. Na enem izmed stikališč je zaradi poškodbe izolacije na vodniku zagorelo. Požar na visoko napetostnem vodniku 35kV je ugasnil sam. Objekt so prezračili in z merilnikom plina preverili prisotnost morebitnih nevarnih plinov, ki pa jih ni bilo zaznati. Regijski center za obveščanje Ptuj Ob 17.14 so v naselju Zgornja Sveča, občina Majšperk, gorele saje v dimniku stanovanjskega objekta. Gasilci PGD Stoperce in Majšperk so zavarovali kraj dogodka, zaprli dovod zraka, očistili ter ohladili dimniško tuljavo, okolico dimnika pregledali s termovizijsko kamero in lastniku odsvetovali nadaljnje kurjenje.",
-   "url": "https://www.gov.si/novice/2026-11-16-dnevni-informativni-bilten-centra-za-obvescanje/",
-   "published": "2026-11-16T05:00:00+00:00"
+   "text": "Regijski center za obveščanje Brežice Ob 11.06 je v naselju Spodnja Libna, občina Krško, gorelo v kuhinji in jedilnici stanovanjskega objekta. Gasilci PGE Krško in PGD Dolenja vas so do prihoda reševalcev NMP nudili pomoč osebi, ki se je nadihala dima, požar pogasili, prezračili prostore, odstranili plinsko jeklenko in opravili pregled s termovizijsko kamero. Dežurni elektro podjetja je odklopil elektro napajanje, reševalci NMP Krško so osebo oskrbeli in odpeljali v SB Brežice. Regijski center za obveščanje Celje Ob 12.48 je v naselju Škofja vas v občini Celje gorelo zaradi delovnega procesa v industrijskem objektu. Požar so pogasili zaposleni. Gasilci PGE Celje in PGD Škofja vas so zavarovali kraj dogodka, opravili meritve prisotnosti nevarnih snovi, opravili pregled s termovizijsko kamero in prezračili objekt ter izvajali gasilsko stražo. Regijski center za obveščanje Maribor Ob 5.51 je v Partizanski ulici v Slovenski Bistrici v laboratoriju zdravstvenega doma gorela električna napeljava. Gasilci PGD Zgornja Bistrica in Slovenska Bistrica so požar pogasili. Ob 7.06 so v naselju Mostečno, občina Makole, gorele saje v dimniku stanovanjske hiše. Gasilci PGD Makole so pogasili goreče saje, očistili dimniško tuljavo in hišo pregledali s termovizijsko kamero. Stanovalcem so odsvetovali kurjenje do prihoda ustrezne službe. Regijski center za obveščanje Novo mesto Ob 4.17 je v ulici Pot v gaj v Novem mestu gorelo ostrešje stanovanjske hiše. Gasilci GRC Novo mesto in PGD Šmihel pri Novem mestu so razkrili streho in požar pogasili.",
+   "url": "https://www.gov.si/novice/2026-11-17-dnevni-informativni-bilten-centra-za-obvescanje/",
+   "published": "2026-11-17T05:00:00+00:00"
   },
   {
    "source": "cz",
    "topic": "bilten",
    "category": "Požari na prometnih sredstvih",
    "title": "Požari na prometnih sredstvih",
-   "text": "Regijski center za obveščanje Ljubljana Ob 19.05 je na avtocesti med izvozoma Bič in Ivančna Gorica, občina Ivančna Gorica, gorel alternator na osebnem vozilu. Požar je lastnik pogasil sam. Gasilci PGD Trebnje in Stična so pregledali vozilo s termovizijsko kamero in odklopili akumulator. Regijski center za obveščanje Novo mesto Ob 4.31 je na Mirnopeški cesti v Novem mestu gorelo tovorno vozilo. Gasilci GRC Novo mesto in PGD Kamence so zavarovali kraj dogodka in pogasili požar. Vozilo je bilo uničeno.",
-   "url": "https://www.gov.si/novice/2026-11-16-dnevni-informativni-bilten-centra-za-obvescanje/",
-   "published": "2026-11-16T05:00:00+00:00"
-  },
-  {
-   "source": "cz",
-   "topic": "bilten",
-   "category": "Požari v komunalnih in drugih zabojnikih",
-   "title": "Požari v komunalnih in drugih zabojnikih",
-   "text": "Regijski center za obveščanje Ljubljana Ob 1.24 sta v Hrašah v občini Medvode ob stanovanjski hiši gorela dva komunalna zabojnika za odpadke. Gasilci PGD Smlednik so pogasili goreča zabojnika in okolico ter s termovizijsko kamero pregledali zid stanovanjske hiše. Ob 16.05 je v Kumrovški ulici v Ljubljani gorel smetnjak za papir. Požar so pred prihodom gasilcev že gasili mimoidoči. Gasilci GB Ljubljana so zabojnik preventivno prelili z vodo.",
-   "url": "https://www.gov.si/novice/2026-11-16-dnevni-informativni-bilten-centra-za-obvescanje/",
-   "published": "2026-11-16T05:00:00+00:00"
+   "text": "Regijski center za obveščanje Koper Ob 10.07 je v naselju Sveti Anton, občina Koper, gorelo osebno vozilo. Gasilci JZ GB Koper in PGD Pobegi Čežarji so požar pogasili.",
+   "url": "https://www.gov.si/novice/2026-11-17-dnevni-informativni-bilten-centra-za-obvescanje/",
+   "published": "2026-11-17T05:00:00+00:00"
   },
   {
    "source": "cz",
    "topic": "bilten",
    "category": "Tehnična in druga pomoč",
    "title": "Tehnična in druga pomoč",
-   "text": "Regijski center za obveščanje Celje Ob 1.52 je v Kraigherjevi ulici v Celju zaradi napake na ogrevalnem sistemu iztekala voda na ventilu radiatorja. Gasilci PGE Celje so zavarovali kraj dogodka in preprečili nadaljnje iztekanje vode. Ob 14.05 so v naselju Stopnik, občina Vransko, gasilci PGD Prekopa prekrili z zaščitno folijo območje plazu na površini okoli 400 kvadratnih metrov. Nadaljnje sanacijske ukrepe bo izvedla občina Vransko. Regijski center za obveščanje Koper Ob 15.26 so na Koprski cesti v Portorožu, občina Piran, gasilci JZ GB Koper odstranili dve veji, ki sta nevarno viseli nad cesto. Regijski center za obveščanje Ljubljana Ob 21.45 je v Rojčevi ulici v Ljubljani v večstanovanjskem objektu iz okvarjenega vodovodnega ventila iztekala voda. Gasilci GB Ljubljana so poškodovan ventil in preprečili nadaljnjo iztekanje vode. Regijski center za obveščanje Maribor Ob 9.55 so na Mariborski cesti v Sveti Trojici v Slovenskih Goricah gasilci PGD Sveta Trojica s pomočjo lestve odstranili strešnike, ki so nevarno obviseli na robu strehe. Ob 11.34 je Ob gozdu v Mariboru iztekala voda v stanovanju in pričela zamakati v spodnje stanovanje. Gasilci JZ GB Maribor so ob prisotnosti policistov s tehničnim posegom odprli vrata stanovanja in zaprli ventil za vodo. Ob 16.31 so v Ulici Roberta Hvalca v Mariboru gasilci JZ GB Maribor rešili dve osebi iz okvarjenega dvigala. Ob 19.39 so na cesti Lenart–Jurovski Dol, občina Lenart, gasilci PGD Lenart in Sveti Jurij nudili pomoč dežurnemu upravljavcu ceste pri čiščenju cestišča v dolžini okoli šest kilometrov in zavarovanju kraja dogodka. Regijski center za obveščanje Trbovlje Ob 10.41 so na Cesti zmage v Zagorju ob Savi gasilci PGD Zagorje mesto rešili eno osebo iz okvarjenega dvigala.",
-   "url": "https://www.gov.si/novice/2026-11-16-dnevni-informativni-bilten-centra-za-obvescanje/",
-   "published": "2026-11-16T05:00:00+00:00"
+   "text": "Regijski center za obveščanje Celje Ob 11.57 so v naselju Dekmanca v občini Bistrica ob Sotli gasilci PGD Bistrica ob Sotli odprli vhodna vrata objekta, reševalcem NMP Šmarje pri Jelšah omogočili dostop do obolele osebe in pomagali pri njenem prenosu v reševalno vozilo. Ob 17.37 so na Opekarniški cesti v Celju gasilci PGE Celje nudili pomoč reševalcem NMP pri prenosu obolele osebe. Regijski center za obveščanje Kranj Ob 7.20 je na Cesti Revolucije na Jesenicah v okvarjenem dvigalu večstanovanjskega objekta ostala ujeta oseba. Gasilci GARS Jesenice so s tehničnim posegom osebo rešili iz dvigala, dvigalo odklopili iz obratovanja in obvestili pristojnega serviserja. Ob 12.40 so v naselju Mlaka pri Kranju v občini Kranj gasilci GARS Kranj odprli vrata hladilnice in rešili ujeto osebo. Ob 17.57 so v ulici Trnovlje v Cerkljah na Gorenjskem gasilci PGD Cerklje nudili pomoč reševalcem NMP pri oskrbi obolele osebe. Regijski center za obveščanje Ljubljana Ob 10.54 so v Partizanski ulici v Ljubljana gasilci GB Ljubljana odprli vrata stanovanja in reševalcem NMP omogočili dostop do onemogle osebe. Ob 16.37 so v ulici Pot Rdečega križa v Ljubljani gasilci GB Ljubljana s tehničnim posegom odprli vrata stanovanja v večstanovanjskem objektu in reševalcem NMP omogočili dostop do onemogle osebe. Regijski center za obveščanje Murska Sobota Ob 11.10 so v naselju Pušča v občini Murska Sobota gasilci PGD Murska Sobota odstranili smreki, ki sta bili nagnjeni na cesto in ogrožali promet. Regijski center za obveščanje Novo mesto Ob 7.57 so v naselju Hudeje, občina Trebnje, gasilci PGD Trebnje odprli vrata stanovanjske hiše in pomagali reševalcem NMP pri prenosu obolele sebe do reševalnega vozila. Regijski center za obveščanje Postojna Ob 11.57 so v ulici Videm v Cerknici gasilci PGD Cerknica odprli vrata stanovanja, reševalcem NMP omogočili dostop do obolele osebe in pomagali pri njenem prenosu v reševalno vozilo.",
+   "url": "https://www.gov.si/novice/2026-11-17-dnevni-informativni-bilten-centra-za-obvescanje/",
+   "published": "2026-11-17T05:00:00+00:00"
+  },
+  {
+   "source": "policija",
+   "topic": "sporocila",
+   "category": "Generalna policijska uprava",
+   "title": "Mozaik 2026, mednarodna kriminalistična preiskava spolnih zlorab otrok prek interneta – vabilo medijem",
+   "text": "Na novinarski konferenci Generalne policijske uprave bomo v sredo, 18. novembra 2026 , predstavili usklajeno mednarodno kriminalistično operacijo na področju preiskovanja spolnih zlorab otrok prek interneta, poimenovano Mozaik 2026, ki je potekala v okviru Evropske multisdisciplinarne platforme za boj proti kriminalnim grožnjam (EMPACT).",
+   "url": "https://www.policija.si/medijsko-sredisce/sporocila-za-javnost/sporocila-za-javnost-gpue/129500-mozaik-2026-mednarodna-kriminalisticna-preiskava-spolnih-zlorab-otrok-prek-interneta-vabilo-medijem",
+   "published": "2026-11-17T14:20:31+00:00"
+  },
+  {
+   "source": "policija",
+   "topic": "sporocila",
+   "category": "PU Ljubljana",
+   "title": "Policista Policijske postaje Ljubljana Moste iz narasle in deroče Ljubljanice rešila hudo poškodovanega moškega",
+   "text": "Požrtvovalna ljubljanska policista sta minuli konec tedna iz deroče Ljubljanice rešila moškega, ki ga je narasla reka že odnašala proti zapornicam. Hudo poškodovanemu sta do prihoda reševalcev nudila tudi prvo pomoč in mu tako rešila življenje.",
+   "url": "https://www.policija.si/medijsko-sredisce/sporocila-za-javnost/sporocila-za-javnost-pu-ljubljana/129497-policista-policijske-postaje-ljubljana-moste-iz-deroce-ljubljanice-resila-hudo-poskodovanega-moskega",
+   "published": "2026-11-17T11:11:53+00:00"
   },
   {
    "source": "policija",
@@ -118,42 +127,6 @@
    "text": "V zadnjih 24 urah je bilo na interventni številki policije '113' zabeleženih 2022 klicev. Med 542 interventnimi dogodki smo policisti med drugim obravnavali 156 prometnih nesreč, 27 kršitev javnega reda in miru ter 62 kaznivih dejanj. V 143 prometnih nesrečah je nastala premoženjska škoda, v 10 nesrečah so bili udeleženci lažje in v 3 nesrečah huje telesno poškodovani. Zaradi storitve hujših prekrškov v cestnem prometu smo 9 voznikom zasegli vozilo. Zaradi kršitve javnega reda in miru smo opravili 20 intervencij na javnem kraju, 7 pa v zasebnih prostorih. 2 kršitelja, ki sta kljub opozorilu nadaljevala s prekrškom, smo pridržali. Da bi zaščitili žrtve nasilja v družini smo 3 osebam izrekli ukrep prepovedi približevanja. Med kaznivimi dejanji smo zabeležili 21 vlomov, 17 tatvin, 8 poškodovanj tuje stvari, 5 kaznivih dejanj nasilja v družini, 3 povzročitve telesne poškodbe, 3 grožnje, 2 kaznivi dejanji v zvezi s prepovedanimi drogami, 2 ponarejanji denarja in 1 rop. V zadnjih 24 urah je bilo obravnavanih 42 oseb zaradi nezakonitega vstopa na meji z Republiko Hrvaško in sicer 27 na območju PU Novo mesto, 4 na območju PU Koper, 4 na območju PU Ljubljana, 4 na območju PU Murska Sobota in 3 na območju PU Maribor. Med njimi smo obravnavali največ državljanov Afganistana (18), Bangladeša (14) in Pakistana (6).",
    "url": "https://www.policija.si/medijsko-sredisce/dogodki-v-zadnjih-24-urah/129494-kratek-statisticni-pregled-dogodkov-v-zadnjih-24-urah-1932",
    "published": "2026-11-17T04:21:09+00:00"
-  },
-  {
-   "source": "policija",
-   "topic": "dogodki",
-   "category": "Policija",
-   "title": "Stanje prometne varnosti 2026 od 9. do 15. novembra",
-   "text": "V preteklem tednu se je na slovenskih cestah zgodila 1 smrtna prometna nesreča, v kateri je umrla 1 oseba. V letošnjem letu so slovenske ceste terjale 80 smrtnih žrtev, v enakem obdobju lanskega leta pa 85 smrtnih žrtev.",
-   "url": "https://www.policija.si/medijsko-sredisce/dogodki-v-zadnjih-24-urah/129491-stanje-prometne-varnosti-2026-od-9-do-15-novembra",
-   "published": "2026-11-16T10:44:28+00:00"
-  },
-  {
-   "source": "policija",
-   "topic": "sporocila",
-   "category": "Generalna policijska uprava",
-   "title": "Akcija Poklicni vozniki. V tem tednu smo poostrili nadzor nad vozniki tovornih vozil in avtobusov",
-   "text": "Policisti ta teden, od 16. do 22. novembra 2026 , skupaj z Javno agencijo RS za varnost prometa (AVP) izvajamo nacionalno preventivno akcijo Poklicni voznik, namenjeno večji varnosti voznikov tovornih vozil in avtobusov. V tem času bo potekal tudi evropsko usklajen poostren nadzor Truck & Bus, ko bomo še več pozornosti kot običajno namenili preverjanju te kategorije voznikov.",
-   "url": "https://www.policija.si/medijsko-sredisce/sporocila-za-javnost/sporocila-za-javnost-gpue/129488-akcija-poklicni-vozniki-v-tem-tednu-smo-poostrili-nadzor-nad-vozniki-tovornih-vozil-in-avtobusov",
-   "published": "2026-11-16T09:59:54+00:00"
-  },
-  {
-   "source": "policija",
-   "topic": "sporocila",
-   "category": "Generalna policijska uprava",
-   "title": "Na Policijski akademiji gostuje razstava Zločin in sadež",
-   "text": "V dnevnem prostoru Policijske akademije v Tacnu je bila v sredo, 11. novembra 2026, postavljena gostujoča razstava Zločin in sadež Notranjskega muzeja Postojna, ki obiskovalce vabi k razmisleku o grafitih, njihovi vlogi v javnem prostoru in sodobni družbi ter meji med umetniškim izražanjem in vandalizmom.",
-   "url": "https://www.policija.si/medijsko-sredisce/sporocila-za-javnost/sporocila-za-javnost-gpue/129485-na-policijski-akademiji-gostuje-razstava-zlocin-in-sadez",
-   "published": "2026-11-16T08:50:52+00:00"
-  },
-  {
-   "source": "policija",
-   "topic": "sporocila",
-   "category": "Generalna policijska uprava",
-   "title": "Skupaj začasno odvzetih 413 vozniških dovoljenj. Znani rezultati akcije Slovenija piha 0,0",
-   "text": "Policisti skupaj z Ministrstvom za zdravje že enajsto leto združujemo moči v akciji Slovenija piha 0,0, s katero spodbujamo odgovorno ravnanje v prometu in opozarjamo na škodljive posledice pitja alkohola na zdravje.",
-   "url": "https://www.policija.si/medijsko-sredisce/sporocila-za-javnost/sporocila-za-javnost-gpue/129482-skupaj-zacasno-odvzetih-413-vozniskih-dovoljenj-znani-rezultati-akcije-slovenija-piha-0-0",
-   "published": "2026-11-16T08:22:47+00:00"
   }
  ]
 }
