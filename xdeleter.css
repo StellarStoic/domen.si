@@ -211,6 +211,21 @@
     letter-spacing: 0.04em;
 }
 
+.xdeleter-files__parts {
+    margin-top: 0.35rem;
+    color: var(--muted);
+    font-size: 0.72rem;
+}
+
+.xdeleter-files__hint {
+    margin-top: 0.3rem;
+    padding: 0.35rem 0.45rem;
+    border-left: 2px solid var(--accent);
+    background: var(--surface);
+    color: var(--accent-text);
+    font-size: 0.74rem;
+}
+
 .xdeleter-file-row__remove,
 .xdeleter-clear {
     font-family: inherit;

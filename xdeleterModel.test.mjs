@@ -6,7 +6,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import {
   arrayFromArchiveFile, readArchive, countsOf, dateRangeOf, classify,
-  selected, buildPlan, planAsJson, consoleScript, parseQueryId,
+  selected, buildPlan, planAsJson, consoleScript, parseQueryId, partOfFile, missingPartsHint,
 } from './xdeleterModel.mjs';
 
 const tweetsJs = `window.YTD.tweets.part0 = [
@@ -178,4 +178,42 @@ test('likes keep the form route that already works', () => {
 
 test('the reader is not handed a pending promise they cannot read', () => {
     assert.match(consoleScript(buildPlan(archive, { types: ['post'] }), {}), /void \(async \(\) => \{/);
+});
+
+test('a split archive is read whole: part1 adds to part0 instead of being ignored', () => {
+  const part1 = 'window.YTD.tweets.part1 = ['
+    + '{"tweet":{"id_str":"777","created_at":"2021-01-02T10:00:00.000Z","full_text":"from part one"}}]';
+  const likePart1 = 'window.YTD.like.part1 = ['
+    + '{"like":{"tweetId":"888","fullText":"liked in part one","expandedUrl":"https://x.com/i/web/status/888"}}]';
+  const split = readArchive({
+    'tweets.js': tweetsJs,
+    'tweets-part1.js': part1,
+    'like.js': likeJs,
+    'like-part1.js': likePart1,
+  });
+  assert.equal(split.posts.length, 5, 'four from part0 plus one from part1');
+  assert.equal(split.likes.length, 3);
+  assert.deepEqual(split.parts.tweets, [0, 1]);
+  assert.deepEqual(split.parts.like, [0, 1]);
+  // nothing was dropped on the floor: every id from every part is in the plan
+  const ids = buildPlan(split, { types: ['post', 'reply', 'repost', 'like'] }).items.map(item => item.id);
+  for (const id of ['111', '222', '333', '444', '777', '555', '666', '888']) {
+    assert.ok(ids.includes(id), `missing ${id}`);
+  }
+});
+
+test('a lone part 0 is called out, because that is what looks like deletion failing', () => {
+  const hint = missingPartsHint(archive);
+  assert.match(hint, /tweets-part1\.js/);
+  // once several files are loaded the reader already knows, and the hint would be noise
+  const many = readArchive({
+    'tweets.js': tweetsJs, 'tweets-part1.js': tweetsJs, 'like.js': likeJs, 'like-part1.js': likeJs,
+  });
+  assert.equal(missingPartsHint(many), '');
+});
+
+test('the file is identified by what it declares, not by its name', () => {
+  assert.deepEqual(partOfFile('renamed-by-hand.js', tweetsJs), { family: 'tweets', part: 0 });
+  assert.deepEqual(partOfFile('tweets-part2.js', ''), { family: 'tweets', part: 2 });
+  assert.deepEqual(partOfFile('like.js', ''), { family: 'like', part: 0 });
 });

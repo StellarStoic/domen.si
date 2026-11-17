@@ -27,6 +27,23 @@ export function arrayFromArchiveFile(text) {
   }
 }
 
+/**
+ * Which family and which part a dropped file is.
+ *
+ * A big archive is not one file: X splits it into `tweets.js` (part0), `tweets-part1.js`,
+ * `tweets-part2.js` … and the same for likes. Reading only part0 silently halves the plan, which
+ * looks exactly like deletion failing.
+ */
+export function partOfFile(name, text) {
+  const source = String(text || '').slice(0, 400);
+  const declared = source.match(/window\.YTD\.([a-zA-Z_]+)\.part(\d+)/);
+  if (declared) return { family: declared[1], part: Number(declared[2]) };
+  const fileName = String(name || '');
+  const byName = fileName.match(/^([a-zA-Z_]+?)(?:-part(\d+))?\.(?:js|json|txt)$/i);
+  if (byName) return { family: byName[1].toLowerCase(), part: byName[2] ? Number(byName[2]) : 0 };
+  return { family: 'other', part: 0 };
+}
+
 function textOf(tweet) {
   return String(tweet?.full_text || tweet?.text || '');
 }
@@ -63,7 +80,12 @@ export function whenOf(entry) {
 export function readArchive(files) {
   const posts = [];
   const likes = [];
+  const parts = {};
   for (const [name, text] of Object.entries(files || {})) {
+    const where = partOfFile(name, text);
+    const family = /^like/i.test(where.family) ? 'like' : /^tweet/i.test(where.family) ? 'tweets' : where.family;
+    if (!parts[family]) parts[family] = [];
+    if (!parts[family].includes(where.part)) parts[family].push(where.part);
     const entries = arrayFromArchiveFile(text);
     for (const entry of entries) {
       if (entry?.tweet && entry.tweet.id_str) {
@@ -86,7 +108,30 @@ export function readArchive(files) {
       }
     }
   }
-  return { posts, likes, files: Object.keys(files || {}).length };
+  for (const family of Object.keys(parts)) parts[family].sort((a, b) => a - b);
+  return { posts, likes, files: Object.keys(files || {}).length, parts };
+}
+
+/**
+ * Files that are probably left in the archive folder.
+ *
+ * Only part0 of a family is loaded, and a split export always starts at part0, so this cannot be
+ * certain — but it is the difference between "it deleted 369 of my posts" and "it deleted all of them".
+ */
+export function missingPartsHint(archive) {
+  const parts = archive?.parts || {};
+  // Two files is the naive case (tweets.js + like.js). Someone dropping four files already knows
+  // about the parts, and repeating the hint there is noise.
+  if ((archive?.files || 0) > 2) return '';
+  const lonely = [];
+  for (const family of ['tweets', 'like']) {
+    const seen = parts[family];
+    if (seen && seen.length && !seen.some(part => part > 0)) lonely.push(family);
+  }
+  if (!lonely.length) return '';
+  const names = lonely.map(family => (family === 'tweets' ? 'tweets-part1.js' : 'like-part1.js'));
+  return 'Only part 0 is loaded. A bigger archive is split into more files (' + names.join(', ')
+    + ', …) — if your archive folder has them, drop them too or the older items stay.';
 }
 
 export function countsOf(archive) {

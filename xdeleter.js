@@ -10,8 +10,7 @@
 // and how to stop. Nothing is uploaded, stored or remembered — the archive never leaves this tab.
 
 import {
-    readArchive, countsOf, dateRangeOf, buildPlan, planAsJson, consoleScript, TYPES,
-} from './xdeleterModel.mjs';
+    readArchive, countsOf, dateRangeOf, buildPlan, planAsJson, consoleScript, TYPES, missingPartsHint } from './xdeleterModel.mjs';
 
 (function initXDeleter(global) {
     const TYPE_LABEL = { post: 'Posts', reply: 'Replies', repost: 'Reposts', like: 'Likes' };
@@ -164,6 +163,10 @@ import {
             'tweets.js — every post you ever made, including your replies and reposts.',
             'like.js — every post you ever liked.',
         ]);
+        paragraph(c, 'A bigger archive is not just two files: X splits it up, so the folder may also '
+            + 'hold tweets-part1.js, tweets-part2.js, like-part1.js and so on. Drop every one of them — '
+            + 'the panel merges them and tells you which parts it read. A part you leave out is a batch '
+            + 'of posts that never gets deleted, which looks exactly like the script failing.');
         paragraph(c, 'You can drop either one or both — with both loaded, a single script handles them '
             + 'together, so there is nothing to run twice. posts are the ones people think of first; likes '
             + 'are a separate list and need their own removal, which this handles.');
@@ -551,6 +554,15 @@ import {
             list.appendChild(row);
         }
         filesEl.appendChild(list);
+        if (state.archive?.parts) {
+            const summary = ['tweets', 'like']
+                .filter(family => state.archive.parts[family]?.length)
+                .map(family => `${family === 'like' ? 'likes' : 'posts'} part ${state.archive.parts[family].join(', ')}`)
+                .join(' · ');
+            if (summary) filesEl.appendChild(element('div', 'xdeleter-files__parts', `read ${summary}`));
+        }
+        const hint = missingPartsHint(state.archive);
+        if (hint) filesEl.appendChild(element('div', 'xdeleter-files__hint', hint));
         const clear = element('button', 'xdeleter-clear', 'Remove all files and start over');
         clear.type = 'button';
         clear.addEventListener('click', clearFiles);
