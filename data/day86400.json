@@ -1,9 +1,9 @@
 {
- "builtAt": "2026-11-17T16:20:13.615303+00:00",
+ "builtAt": "2026-11-18T06:20:14.031892+00:00",
  "window": {
   "hours": 24,
-  "from": "2026-11-16T16:20:13.615303+00:00",
-  "to": "2026-11-17T16:20:13.615303+00:00"
+  "from": "2026-11-17T06:20:14.031892+00:00",
+  "to": "2026-11-18T06:20:14.031892+00:00"
  },
  "counts": {
   "total": 10,
@@ -103,6 +103,15 @@
   },
   {
    "source": "policija",
+   "topic": "dogodki",
+   "category": "Policija",
+   "title": "Kratek statistični pregled dogodkov v zadnjih 24 urah",
+   "text": "V zadnjih 24 urah je bilo na interventni številki policije '113' zabeleženih 1991 klicev. Med 570 interventnimi dogodki smo policisti med drugim obravnavali 142 prometnih nesreč, 37 kršitev javnega reda in miru ter 57 kaznivih dejanj. V 131 prometnih nesrečah je nastala premoženjska škoda, v 9 nesrečah so bili udeleženci lažje, v 2 nesrečah pa huje telesno poškodovani. Zaradi storitve hujših prekrškov v cestnem prometu smo 5 voznikom zasegli vozilo, zaradi vožnje pod vplivom alkohola pa smo pridržali 1 voznika. Zaradi kršitve javnega reda in miru smo opravili 23 intervencij na javnem kraju, 14 pa v zasebnih prostorih. 3 kršitelje, ki so kljub opozorilu nadaljevali s prekrškom, smo pridržali. Da bi zaščitili žrtve nasilja v družini smo 1 osebi izrekli ukrep prepovedi približevanja. Med kaznivimi dejanji smo zabeležili 16 vlomov, 16 tatvin, 12 poškodovanj tuje stvari, 3 kazniva dejanja v zvezi s prepovedanimi drogami, 3 ponarejanja denarja, 2 povzročitvi telesne poškodbe, 2 drzni tatvini, 1 preprečitev uradnega dejanja oz. napada na pooblaščeno osebo, 1 kaznivo dejanje nasilja v družini in 1 grožnjo. V zadnjih 24 urah je bilo obravnavanih 33 oseb zaradi nezakonitega vstopa na meji z Republiko Hrvaško in sicer 20 na območju PU Novo mesto, 5 na območju PU Maribor, 4 na območju PU Koper, 4 na območju PU Ljubljana. Med njimi smo obravnavali največ državljanov Nepala (7), Bangladeša …",
+   "url": "https://www.policija.si/medijsko-sredisce/dogodki-v-zadnjih-24-urah/129503-kratek-statisticni-pregled-dogodkov-v-zadnjih-24-urah-1933",
+   "published": "2026-11-18T04:29:50+00:00"
+  },
+  {
+   "source": "policija",
    "topic": "sporocila",
    "category": "Generalna policijska uprava",
    "title": "Mozaik 2026, mednarodna kriminalistična preiskava spolnih zlorab otrok prek interneta – vabilo medijem",
@@ -118,15 +127,6 @@
    "text": "Požrtvovalna ljubljanska policista sta minuli konec tedna iz deroče Ljubljanice rešila moškega, ki ga je narasla reka že odnašala proti zapornicam. Hudo poškodovanemu sta do prihoda reševalcev nudila tudi prvo pomoč in mu tako rešila življenje.",
    "url": "https://www.policija.si/medijsko-sredisce/sporocila-za-javnost/sporocila-za-javnost-pu-ljubljana/129497-policista-policijske-postaje-ljubljana-moste-iz-deroce-ljubljanice-resila-hudo-poskodovanega-moskega",
    "published": "2026-11-17T11:11:53+00:00"
-  },
-  {
-   "source": "policija",
-   "topic": "dogodki",
-   "category": "Policija",
-   "title": "Kratek statistični pregled dogodkov v zadnjih 24 urah",
-   "text": "V zadnjih 24 urah je bilo na interventni številki policije '113' zabeleženih 2022 klicev. Med 542 interventnimi dogodki smo policisti med drugim obravnavali 156 prometnih nesreč, 27 kršitev javnega reda in miru ter 62 kaznivih dejanj. V 143 prometnih nesrečah je nastala premoženjska škoda, v 10 nesrečah so bili udeleženci lažje in v 3 nesrečah huje telesno poškodovani. Zaradi storitve hujših prekrškov v cestnem prometu smo 9 voznikom zasegli vozilo. Zaradi kršitve javnega reda in miru smo opravili 20 intervencij na javnem kraju, 7 pa v zasebnih prostorih. 2 kršitelja, ki sta kljub opozorilu nadaljevala s prekrškom, smo pridržali. Da bi zaščitili žrtve nasilja v družini smo 3 osebam izrekli ukrep prepovedi približevanja. Med kaznivimi dejanji smo zabeležili 21 vlomov, 17 tatvin, 8 poškodovanj tuje stvari, 5 kaznivih dejanj nasilja v družini, 3 povzročitve telesne poškodbe, 3 grožnje, 2 kaznivi dejanji v zvezi s prepovedanimi drogami, 2 ponarejanji denarja in 1 rop. V zadnjih 24 urah je bilo obravnavanih 42 oseb zaradi nezakonitega vstopa na meji z Republiko Hrvaško in sicer 27 na območju PU Novo mesto, 4 na območju PU Koper, 4 na območju PU Ljubljana, 4 na območju PU Murska Sobota in 3 na območju PU Maribor. Med njimi smo obravnavali največ državljanov Afganistana (18), Bangladeša (14) in Pakistana (6).",
-   "url": "https://www.policija.si/medijsko-sredisce/dogodki-v-zadnjih-24-urah/129494-kratek-statisticni-pregled-dogodkov-v-zadnjih-24-urah-1932",
-   "published": "2026-11-17T04:21:09+00:00"
   }
  ]
 }
