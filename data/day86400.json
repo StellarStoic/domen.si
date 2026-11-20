@@ -1,9 +1,9 @@
 {
- "builtAt": "2026-11-19T16:20:13.897102+00:00",
+ "builtAt": "2026-11-20T06:20:15.502964+00:00",
  "window": {
   "hours": 24,
-  "from": "2026-11-18T16:20:13.897102+00:00",
-  "to": "2026-11-19T16:20:13.897102+00:00"
+  "from": "2026-11-19T06:20:15.502964+00:00",
+  "to": "2026-11-20T06:20:15.502964+00:00"
  },
  "counts": {
   "total": 11,
@@ -122,21 +122,21 @@
   },
   {
    "source": "policija",
+   "topic": "dogodki",
+   "category": "Policija",
+   "title": "Kratek statistični pregled dogodkov v zadnjih 24 urah",
+   "text": "V zadnjih 24 urah je bilo na interventni številki policije '113' zabeleženih 2130 klicev. Med 563 interventnimi dogodki smo policisti med drugim obravnavali 132 prometnih nesreč, 46 kršitev javnega reda in miru ter 43 kaznivih dejanj. V 120 prometnih nesrečah je nastala premoženjska škoda, v 11 nesrečah so bili udeleženci lažje, v 1 nesreči pa huje telesno poškodovani. Zaradi storitve hujših prekrškov v cestnem prometu smo 6 voznikom zasegli vozilo, zaradi vožnje pod vplivom alkohola pa smo pridržali 1 voznika. Zaradi kršitve javnega reda in miru smo opravili 35 intervencij na javnem kraju, 11 pa v zasebnih prostorih. 3 kršitelje, ki so kljub opozorilu nadaljevali s prekrškom, smo pridržali. Da bi zaščitili žrtve nasilja v družini smo 1 osebi izrekli ukrep prepovedi približevanja. Med kaznivimi dejanji smo zabeležili 16 vlomov, 10 tatvin, 5 ponarejanj denarja, 4 poškodovanja tuje stvari, 3 grožnje, 2 kaznivi dejanji nasilja v družini, 1 ponarejanje listin, 1 rop, 1 kaznivo dejanje v zvezi s prepovedanimi drogami. V zadnjih 24 urah je bilo obravnavanih 95 oseb zaradi nezakonitega vstopa na meji z Republiko Hrvaško in sicer 88 na območju PU Novo mesto, 4 na območju PU Ljubljana, 2 na območju PU Kranj in 1 na območju PU Koper. Med njimi smo obravnavali največ državljanov Afganistana (40), Maroka (19), Bangladeša (7).",
+   "url": "https://www.policija.si/medijsko-sredisce/dogodki-v-zadnjih-24-urah/129521-kratek-statisticni-pregled-dogodkov-v-zadnjih-24-urah-1935",
+   "published": "2026-11-20T04:38:06+00:00"
+  },
+  {
+   "source": "policija",
    "topic": "sporocila",
    "category": "Generalna policijska uprava",
    "title": "Dvojni uspeh naših tekmovalk na evropskem prvenstvu v kickboksu: Tina Baloh prvakinja, Larisa Žagar Slemenšek pa podprvakinja!",
    "text": "V Skopju (Severna Makedonija) je med 6. in 15. novembrom 2026 potekalo evropsko prvenstvo v kickboksu, na katerem sta naši vrhunski športnici, zaposleni v policiji, dosegli izjemen uspeh.",
    "url": "https://www.policija.si/medijsko-sredisce/sporocila-za-javnost/sporocila-za-javnost-gpue/129518-dvojni-uspeh-nasih-tekmovalk-na-evropskem-prvenstvu-v-kickboksu-tina-baloh-prvakinja-larisa-zagar-slemensek-pa-podprvakinja",
    "published": "2026-11-19T14:22:47+00:00"
-  },
-  {
-   "source": "policija",
-   "topic": "dogodki",
-   "category": "Policija",
-   "title": "Kratek statistični pregled dogodkov v zadnjih 24 urah",
-   "text": "V zadnjih 24 urah je bilo na interventni številki policije '113' zabeleženih 2222 klicev. Med 603 interventnimi dogodki smo policisti med drugim obravnavali 146 prometnih nesreč, 44 kršitev javnega reda in miru ter 78 kaznivih dejanj. V 135 prometnih nesrečah je nastala premoženjska škoda, v 9 nesrečah so bili udeleženci lažje, v 2 nesrečah huje telesno poškodovani. Zaradi storitve hujših prekrškov v cestnem prometu smo 6 voznikom zasegli vozilo. Zaradi kršitve javnega reda in miru smo opravili 35 intervencij na javnem kraju in 9 v zasebnih prostorih. 4 kršitelje, ki so kljub opozorilu nadaljevali s prekrškom, smo pridržali. Da bi zaščitili žrtve nasilja v družini smo 3 osebam izrekli ukrep prepovedi približevanja. Med kaznivimi dejanji smo zabeležili 25 vlomov, 22 tatvin, 9 poškodovanj tuje stvari, 7 povzročitev telesne poškodbe, 4 ponarejanja denarja, 4 grožnje, 2 ponarejanji listin, 2 preprečitvi uradnega dejanja oz. napada na pooblaščeno osebo, 2 kaznivi dejanji nasilja v družini, 1 drzno tatvino. V zadnjih 24 urah je bilo obravnavanih 88 oseb zaradi nezakonitega vstopa na meji z Republiko Hrvaško in sicer 57 na območju PU Novo mesto, 30 na območju PU Maribor, 1 na območju PU Koper. Med njimi smo obravnavali največ državljanov Bangladeša (34), Afganistana (13), Pakistana (13).",
-   "url": "https://www.policija.si/medijsko-sredisce/dogodki-v-zadnjih-24-urah/129515-kratek-statisticni-pregled-dogodkov-v-zadnjih-24-urah-1934",
-   "published": "2026-11-19T04:25:18+00:00"
   }
  ]
 }
