@@ -138,15 +138,8 @@ import {videoCountLabel, embedUrl, watchUrl, hostOf, sloveneDate, playableVideos
         back.type = 'button';
         back.addEventListener('click', () => backTo_(null));
         bar.appendChild(back);
-        if (watchUrl(video.video)) {
-            // The way out is named after the platform the recording actually lives on.
-            const there = providerOf(video.video) === 'rumble' ? 'odpri na Rumble ↗' : 'odpri v YouTubu ↗';
-            const out = el('a', 'open-eyes-player__out', there);
-            out.href = watchUrl(video.video);
-            out.target = '_blank';
-            out.rel = 'noopener noreferrer';
-            bar.appendChild(out);
-        }
+        // No direct link to the recording's own page: D wants the video watched here, in the frame,
+        // and the outbound address kept off the page. watchUrl() stays in the model for the data side.
         wrap.appendChild(bar);
 
         const src = embedUrl(video.video);

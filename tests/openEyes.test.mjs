@@ -194,7 +194,10 @@ test('the view declares the shell and gets out of its own way', () => {
     // Slovene wants the genitive: »z Rumbleja«, not »z Rumble«
     assert.equal(providerNote({provider: 'rumble', id: 'v7girrk'}), 'Predvajanje poteka z Rumbleja.');
     assert.match(providerNote({provider: 'youtube', id: 'VjcMoDFU1xg'}), /z YouTuba/);
-    assert.match(VIEW, /odpri na Rumble/);
+    // no direct link to the recording's own page — the video is watched in the frame, full stop
+    assert.doesNotMatch(VIEW, /open-eyes-player__out/);
+    assert.doesNotMatch(VIEW, /odpri na Rumble|odpri v YouTubu/);
+    assert.doesNotMatch(CSS, /open-eyes-player__out/);
     // the import is versioned: an ES module is cached under its own address
     assert.match(VIEW, /from '\.\/openEyesModel\.mjs\?v=\d+'/);
 });

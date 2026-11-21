@@ -163,17 +163,6 @@
     color: var(--accent-text);
 }
 
-.open-eyes-player__out {
-    color: var(--accent-text);
-    font-size: 0.76rem;
-    text-decoration: none;
-}
-
-.open-eyes-player__out:hover,
-.open-eyes-player__out:focus-visible {
-    text-decoration: underline;
-}
-
 .open-eyes-player__frame {
     position: relative;
     /* 16:9 that also fits a short screen: the WIDTH shrinks with the available height. A capped height
