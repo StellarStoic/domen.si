@@ -1,7 +1,8 @@
 ﻿{
     "id": "open-eyes",
     "name": "OPEN YOUR EYES",
-    "description": "Posnetki s slovenskimi podnapisi, ki jih v domačih medijih ne boš srečal.<br><br>Predavanja, pogovore in reportaže, ki jih prevajam v slovenščino, da bi tudi tisti, ki angleško ne berejo z lahkoto, dobili širšo sliko. Izvirnik in viri, na katere se govorec sklicuje, so vedno na voljo ob posnetku.",
+    "description": "Posnetki s slovenskimi podnapisi, ki jih v domačih slovenskih medijih ne boste srečali.<br><br>Predavanja, pogovori in reportaže, ki jih prevajam v slovenščino, da bi tudi tisti, ki angleško ne razumejo, lažje dobili širšo sliko, kako se svet vrti. Izvirnik in viri, na katere se govorec sklicuje, poskušam poiskati in dati na voljo ob posnetku.",
     "stats": "openEyes",
-    "visible": true
+    "visible": true,
+    "descriptionEn": "Recordings with Slovene subtitles that you will not come across in Slovenia's own media.<br><br>Lectures, conversations and reports that I translate into Slovene, so that even those who do not understand English can more easily get the wider picture of how the world turns. The original and the sources the speaker refers to I try to find and make available beside each recording."
 }

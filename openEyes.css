@@ -261,3 +261,35 @@
     color: var(--muted);
     font-size: 0.72rem;
 }
+
+/* ---- the description's language switch ---- */
+
+.open-eyes-lang {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    margin: 0.35rem 0 0.5rem;
+}
+
+.open-eyes-lang__btn {
+    background: transparent;
+    border: 1px solid var(--rule);
+    color: var(--muted);
+    font: inherit;
+    font-size: 0.72rem;
+    letter-spacing: 0.04em;
+    padding: 0.15rem 0.55rem;
+    cursor: pointer;
+}
+
+.open-eyes-lang__btn:hover,
+.open-eyes-lang__btn:focus-visible {
+    border-color: var(--accent);
+    color: var(--accent-text);
+}
+
+/* the chosen one is marked with the green, the way selected states are marked on the board */
+.open-eyes-lang__btn.is-active {
+    border-color: var(--active);
+    color: var(--active);
+}

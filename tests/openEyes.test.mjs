@@ -181,3 +181,23 @@ test('the stylesheet names no colour of its own and inverts with the theme', () 
     assert.match(CSS, /overscroll-behavior: auto/);
     assert.doesNotMatch(CSS, /overscroll-behavior: contain/);
 });
+
+test('the cell describes itself in both languages, and the reader can switch', () => {
+    // D's own wording, kept as he wrote it — only »Slovenskih« lowered and »katere« corrected to »ki jih«
+    assert.match(INTEREST.description, /domačih slovenskih medijih ne boste srečali/);
+    assert.match(INTEREST.description, /kako se svet vrti/);
+    assert.match(INTEREST.description, /poskušam poiskati in dati na voljo ob posnetku/);
+    assert.ok(INTEREST.descriptionEn.length > 150, 'the English twin has to exist');
+    assert.match(INTEREST.descriptionEn, /how the world turns/);
+    // the cube's file and the view's copy must not drift apart
+    assert.equal(DATA.series.description, INTEREST.description);
+    assert.equal(DATA.series.descriptionEn, INTEREST.descriptionEn);
+    // the switch, and the state that marks the chosen language
+    assert.match(VIEW, /open-eyes-lang__btn/);
+    assert.match(VIEW, /wireLanguageToggle/);
+    assert.match(VIEW, /data-lang="en"/);
+    assert.match(CSS, /\.open-eyes-lang__btn\.is-active/);
+    // the assets moved with the change
+    assert.ok(Number(HTML.match(/openEyes\.js\?v=(\d+)/)[1]) >= 2);
+    assert.ok(Number(HTML.match(/openEyes\.css\?v=(\d+)/)[1]) >= 2);
+});

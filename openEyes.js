@@ -183,18 +183,56 @@ import {videoCountLabel, embedUrl, watchUrl, hostOf, sloveneDate, playableVideos
         };
     }
 
+    // The panel's description language. Slovene unless the reader asks for English, and it survives a
+    // rebuild of the panel because it lives here rather than in the markup.
+    let panelLang = 'sl';
+
+    /**
+     * A description, and the switch to its English twin when one exists.
+     *
+     * Description text is D's own copy and may carry simple markup (`<br>` between paragraphs), so it is
+     * inserted as written — the escapED things on this panel are the source labels and addresses, which
+     * are someone else's text.
+     */
+    function languageBlock(slHtml, enHtml) {
+        if (!enHtml) return `<p class="description" data-lang="sl">${slHtml}</p>`;
+        return `
+            <p class="description" data-lang="sl"${panelLang === 'en' ? ' hidden' : ''}>${slHtml}</p>
+            <p class="description" data-lang="en"${panelLang === 'sl' ? ' hidden' : ''}>${enHtml}</p>
+            <div class="open-eyes-lang" role="group" aria-label="Jezik opisa">
+                <button type="button" class="open-eyes-lang__btn${panelLang === 'sl' ? ' is-active' : ''}" data-lang="sl">slovensko</button>
+                <button type="button" class="open-eyes-lang__btn${panelLang === 'en' ? ' is-active' : ''}" data-lang="en">english</button>
+            </div>`;
+    }
+
+    function wireLanguageToggle(content) {
+        const buttons = Array.from(content.querySelectorAll('.open-eyes-lang__btn'));
+        if (!buttons.length) return;
+        for (const button of buttons) {
+            button.addEventListener('click', () => {
+                panelLang = button.dataset.lang === 'en' ? 'en' : 'sl';
+                for (const paragraph of content.querySelectorAll('.description[data-lang]')) {
+                    paragraph.hidden = paragraph.dataset.lang !== panelLang;
+                }
+                for (const other of buttons) {
+                    other.classList.toggle('is-active', other.dataset.lang === panelLang);
+                }
+            });
+        }
+    }
+
     // The series panel is the cube's own panel, so it stays the one place that describes the cell.
     function showSeriesPanel() {
         const {panel: shell, content} = panel();
         if (!content) return;
-        if (state.interest) {
-            // script.js owns the panel's shape; reuse it rather than growing a second renderer.
-            global.showInfoPanel?.(state.interest, state.depth ?? 0);
-            return;
-        }
+        const series = state.series || {};
+        const sl = series.description || state.interest?.description || '';
         content.dataset.interestId = 'open-eyes';
-        content.innerHTML = `<h3>${state.series?.title || 'OPEN YOUR EYES'}</h3>
-            <p class="description">${state.series?.description || ''}</p>`;
+        content.innerHTML = `
+            <div class="breadcrumb"><span class="breadcrumb-item">ROOT</span></div>
+            <h3>${escapeHtml(series.title || state.interest?.name || 'OPEN YOUR EYES')}</h3>
+            ${languageBlock(sl, series.descriptionEn || state.interest?.descriptionEn || '')}`;
+        wireLanguageToggle(content);
         if (shell) shell.hidden = false;
     }
 
@@ -208,7 +246,7 @@ import {videoCountLabel, embedUrl, watchUrl, hostOf, sloveneDate, playableVideos
             <div class="breadcrumb"><span class="breadcrumb-item">ROOT</span> &gt;
                 <span class="breadcrumb-item">OPEN YOUR EYES</span></div>
             <h3>${escapeHtml(video.title || '')}</h3>
-            <p class="description">${escapeHtml(video.description || '')}</p>
+            ${languageBlock(video.description || '', video.descriptionEn || '')}
             ${sources.length ? `<div class="open-eyes-sources">
                 <strong>Viri</strong>
                 <ul>${sources.map(source => `<li>
@@ -219,6 +257,7 @@ import {videoCountLabel, embedUrl, watchUrl, hostOf, sloveneDate, playableVideos
             ${video.references ? `<p class="interest-metadata">${escapeHtml(video.references)}</p>` : ''}
             <p class="interest-metadata">Predvajanje poteka z YouTuba (youtube-nocookie), slovenski
                 podnapisi so vklopljeni v predvajalniku.</p>`;
+        wireLanguageToggle(content);
         if (shell) shell.hidden = false;
     }
 
