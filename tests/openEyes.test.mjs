@@ -152,8 +152,9 @@ test('the first recording carries a description and every source link', () => {
     // the recording points at the platform it is actually published on
     assert.equal(video.video.provider, 'rumble');
     assert.equal(video.video.pub, '48lg0b');
-    assert.equal(video.subtitlesOnPlatform, false,
-        'the panel must not claim captions that were never uploaded');
+    // the subtitles are burned into the picture, so the record says so and the panel speaks of that
+    assert.equal(video.subtitles, 'burned');
+    assert.equal('subtitlesOnPlatform' in video, false);
 });
 
 test('pressing the cube opens the view — all five wiring sites', () => {
@@ -191,6 +192,10 @@ test('the view declares the shell and gets out of its own way', () => {
     assert.match(VIEW, /Povezava do posnetka še ni vpisana/);
     // the panel names the platform it is actually standing in front of, and the way out follows it
     assert.match(VIEW, /providerNote\(video\.video\)/);
+    // burned-in subtitles get their own sentence; a CC hint only when a track was uploaded
+    assert.match(VIEW, /function subtitleNote\(video\)/);
+    assert.match(VIEW, /vgrajeni v sliko/);
+    assert.match(VIEW, /črko CC/);
     // Slovene wants the genitive: »z Rumbleja«, not »z Rumble«
     assert.equal(providerNote({provider: 'rumble', id: 'v7girrk'}), 'Predvajanje poteka z Rumbleja.');
     assert.match(providerNote({provider: 'youtube', id: 'VjcMoDFU1xg'}), /z YouTuba/);

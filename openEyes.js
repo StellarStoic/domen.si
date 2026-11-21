@@ -251,12 +251,24 @@ import {videoCountLabel, embedUrl, watchUrl, hostOf, sloveneDate, playableVideos
                 </li>`).join('')}</ul>
             </div>` : ''}
             ${video.references ? `<p class="interest-metadata">${escapeHtml(video.references)}</p>` : ''}
-            <p class="interest-metadata">${escapeHtml(providerNote(video.video))}${
-                video.subtitlesOnPlatform
-                    ? ' Slovenski podnapisi so naloženi k posnetku — vklopite jih s črko CC v predvajalniku.'
-                    : ''}</p>`;
+            <p class="interest-metadata">${escapeHtml(providerNote(video.video))}${escapeHtml(subtitleNote(video))}</p>`;
         wireLanguageToggle(content);
         if (shell) shell.hidden = false;
+    }
+
+
+    /**
+     * What to say about the subtitles, which depends on how they were made.
+     *
+     * "burned" is the usual case here: the Slovene text is already in the picture, so pointing at a CC
+     * button would send the reader looking for a control that does not exist.
+     */
+    function subtitleNote(video) {
+        if (video?.subtitles === 'burned') return ' Slovenski podnapisi so vgrajeni v sliko.';
+        if (video?.subtitles === 'track') {
+            return ' Slovenski podnapisi so naloženi k posnetku — vklopite jih s črko CC v predvajalniku.';
+        }
+        return '';
     }
 
     function escapeHtml(value) {
