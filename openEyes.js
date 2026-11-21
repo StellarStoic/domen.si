@@ -9,7 +9,8 @@
 // this before the container is cleared, goBack() asks back() first, and the stylesheet needs
 // `.open-eyes-view[hidden] { display: none !important }` because it sets display.
 
-import {videoCountLabel, embedUrl, watchUrl, hostOf, sloveneDate, playableVideos} from './openEyesModel.mjs?v=1';
+import {videoCountLabel, embedUrl, watchUrl, hostOf, sloveneDate, playableVideos, providerOf, providerNote}
+    from './openEyesModel.mjs?v=2';
 
 (function initOpenEyes(global) {
     const DATA_URL = 'data/openEyes.json';
@@ -138,7 +139,9 @@ import {videoCountLabel, embedUrl, watchUrl, hostOf, sloveneDate, playableVideos
         back.addEventListener('click', () => backTo_(null));
         bar.appendChild(back);
         if (watchUrl(video.video)) {
-            const out = el('a', 'open-eyes-player__out', 'odpri v YouTubu ↗');
+            // The way out is named after the platform the recording actually lives on.
+            const there = providerOf(video.video) === 'rumble' ? 'odpri na Rumble ↗' : 'odpri v YouTubu ↗';
+            const out = el('a', 'open-eyes-player__out', there);
             out.href = watchUrl(video.video);
             out.target = '_blank';
             out.rel = 'noopener noreferrer';
@@ -255,8 +258,10 @@ import {videoCountLabel, embedUrl, watchUrl, hostOf, sloveneDate, playableVideos
                 </li>`).join('')}</ul>
             </div>` : ''}
             ${video.references ? `<p class="interest-metadata">${escapeHtml(video.references)}</p>` : ''}
-            <p class="interest-metadata">Predvajanje poteka z YouTuba (youtube-nocookie), slovenski
-                podnapisi so vklopljeni v predvajalniku.</p>`;
+            <p class="interest-metadata">${escapeHtml(providerNote(video.video))}${
+                video.subtitlesOnPlatform
+                    ? ' Slovenski podnapisi so naloženi k posnetku — vklopite jih s črko CC v predvajalniku.'
+                    : ''}</p>`;
         wireLanguageToggle(content);
         if (shell) shell.hidden = false;
     }

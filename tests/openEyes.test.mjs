@@ -9,8 +9,8 @@ import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {fileURLToPath} from 'node:url';
 import {dirname, join} from 'node:path';
-import {youTubeId, embedUrl, watchUrl, hostOf, sloveneDate, videoCountLabel, playableVideos}
-    from '../openEyesModel.mjs';
+import {youTubeId, rumbleId, providerOf, providerLabel, providerNote, embedUrl, watchUrl, hostOf, sloveneDate,
+        videoCountLabel, playableVideos} from '../openEyesModel.mjs';
 
 const ROOT = dirname(dirname(fileURLToPath(import.meta.url)));
 const read = name => readFileSync(join(ROOT, name), 'utf8');
@@ -44,14 +44,44 @@ test('a YouTube address of any shape yields its id, and junk yields nothing', ()
     }
 });
 
-test('the frame comes from the privacy-enhanced host, never youtube.com', () => {
-    const url = embedUrl(DATA.videos[0].video);
-    assert.match(url, /^https:\/\/www\.youtube-nocookie\.com\/embed\/[A-Za-z0-9_-]{11}\?/);
-    assert.doesNotMatch(url, /youtube\.com\/embed/);
-    assert.equal(watchUrl(DATA.videos[0].video), 'https://www.youtube.com/watch?v=VjcMoDFU1xg');
+test('the frame follows the platform the recording actually lives on', () => {
+    // the first recording is on Rumble now, and the frame has to say so — with the publisher id, which
+    // is what attributes the view
+    const first = embedUrl(DATA.videos[0].video);
+    assert.match(first, /^https:\/\/rumble\.com\/embed\/v7girrk\/\?pub=48lg0b$/);
+    assert.equal(watchUrl(DATA.videos[0].video), 'https://rumble.com/v7girrk');
+    assert.equal(providerLabel(DATA.videos[0].video), 'Rumble');
+    // YouTube keeps its privacy-enhanced host and never the tracking one
+    const yt = embedUrl({provider: 'youtube', id: 'VjcMoDFU1xg'});
+    assert.match(yt, /^https:\/\/www\.youtube-nocookie\.com\/embed\/[A-Za-z0-9_-]{11}\?/);
+    assert.doesNotMatch(yt, /\/\/www\.youtube\.com\/embed/);
+    assert.equal(watchUrl({provider: 'youtube', id: 'VjcMoDFU1xg'}),
+                 'https://www.youtube.com/watch?v=VjcMoDFU1xg');
     // a provider this view cannot play returns nothing rather than a broken frame
     assert.equal(embedUrl({provider: 'vimeo', id: 'VjcMoDFU1xg'}), '');
     assert.equal(embedUrl(null), '');
+});
+
+test('a Rumble address of any shape yields its id, and junk yields nothing', () => {
+    const id = 'v7girrk';
+    for (const value of [
+        id,
+        'https://rumble.com/embed/v7girrk/?pub=48lg0b',
+        'https://rumble.com/embed/v7girrk/',
+        'https://rumble.com/v7girrk-some-video-title.html',
+        'https://www.rumble.com/v7girrk',
+    ]) {
+        assert.equal(rumbleId(value), id, `could not read ${value}`);
+    }
+    for (const value of ['', null, 'https://vimeo.com/12345', 'https://youtube.com/watch?v=x',
+                         'https://rumble.com/c/SomeChannel', 'not a url']) {
+        assert.equal(rumbleId(value), '', `should have refused ${String(value)}`);
+    }
+    // a bare id with no declared provider is still recognised as Rumble
+    assert.equal(providerOf({id: 'v7girrk'}), 'rumble');
+    assert.equal(providerOf({id: 'VjcMoDFU1xg'}), 'youtube');
+    // and the publisher id is optional: a record without one still gets a working frame
+    assert.equal(embedUrl({provider: 'rumble', id: 'v7girrk'}), 'https://rumble.com/embed/v7girrk/');
 });
 
 test('a source host is printed without www, and nothing for a malformed link', () => {
@@ -119,6 +149,11 @@ test('the first recording carries a description and every source link', () => {
     assert.ok(video.sources.some(source => source.url.includes('other-news.info')));
     assert.ok(video.sources.some(source => source.url.includes('nsarchive.gwu.edu')));
     assert.ok(video.sources.some(source => source.url.includes('rand.org')));
+    // the recording points at the platform it is actually published on
+    assert.equal(video.video.provider, 'rumble');
+    assert.equal(video.video.pub, '48lg0b');
+    assert.equal(video.subtitlesOnPlatform, false,
+        'the panel must not claim captions that were never uploaded');
 });
 
 test('pressing the cube opens the view — all five wiring sites', () => {
@@ -154,6 +189,12 @@ test('the view declares the shell and gets out of its own way', () => {
     assert.match(VIEW, /escapeHtml\(source\.url/);
     // a record with no address says so instead of drawing an empty frame
     assert.match(VIEW, /Povezava do posnetka še ni vpisana/);
+    // the panel names the platform it is actually standing in front of, and the way out follows it
+    assert.match(VIEW, /providerNote\(video\.video\)/);
+    // Slovene wants the genitive: »z Rumbleja«, not »z Rumble«
+    assert.equal(providerNote({provider: 'rumble', id: 'v7girrk'}), 'Predvajanje poteka z Rumbleja.');
+    assert.match(providerNote({provider: 'youtube', id: 'VjcMoDFU1xg'}), /z YouTuba/);
+    assert.match(VIEW, /odpri na Rumble/);
     // the import is versioned: an ES module is cached under its own address
     assert.match(VIEW, /from '\.\/openEyesModel\.mjs\?v=\d+'/);
 });

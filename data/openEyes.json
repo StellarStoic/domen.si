@@ -12,8 +12,9 @@
       "speaker": "Jeffrey D. Sachs",
       "date": "2025-02-19",
       "video": {
-        "provider": "youtube",
-        "id": "VjcMoDFU1xg"
+        "provider": "rumble",
+        "id": "v7girrk",
+        "pub": "48lg0b"
       },
       "description": "Govor ekonomista Jeffreyja D. Sachsa na dogodku »The Geopolitics of Peace« v Evropskem parlamentu, 19. februarja 2025. Dogodek je gostil Michael von der Schulenburg, nekdanji pomočnik generalnega sekretarja ZN in poslanec BSW. Sachs govori o ameriški zunanji politiki po letu 1991, o širitvi zveze NATO, o vojni v Ukrajini in o Bližnjem vzhodu, ter o tem, zakaj bi morala Evropa voditi svojo zunanjo politiko. Sledijo vprašanja poslancev in odgovori.",
       "sources": [
@@ -78,7 +79,8 @@
           "url": "https://www.aljazeera.com/opinions/2025/1/10/the-un-can-end-the-middle-east-conflict-by-welcoming-palestine-as-a-member"
         }
       ],
-      "references": "Opombe vira navajajo tudi knjige brez povezave: Window of Opportunity: The Grand Bargain for Democracy in the Soviet Union (Allison in Yavlinsky, Pantheon, 1991), Zbigniew Brzezinski: The Grand Chessboard (1997), Halford Mackinder: Democratic Ideals and Reality (1919) in The Geographical Pivot of History (1904), Lindsey O'Rourke: Covert Regime Change (2018)."
+      "references": "Opombe vira navajajo tudi knjige brez povezave: Window of Opportunity: The Grand Bargain for Democracy in the Soviet Union (Allison in Yavlinsky, Pantheon, 1991), Zbigniew Brzezinski: The Grand Chessboard (1997), Halford Mackinder: Democratic Ideals and Reality (1919) in The Geographical Pivot of History (1904), Lindsey O'Rourke: Covert Regime Change (2018).",
+      "subtitlesOnPlatform": false
     }
   ]
 }
