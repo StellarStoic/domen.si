@@ -131,7 +131,7 @@ function setupBoardPanZoom() {
     const onTouchStart = event => {
         if (!event.touches.length) return;
         // A touch that starts on a view or the panel is not the board's business.
-        if (event.target.closest('.polistat-view, .feed-view, .day86400-view, .pod-inspector-view, .xdeleter-view, .keytool-view, .keymaker-view')) return;
+        if (event.target.closest('.polistat-view, .feed-view, .day86400-view, .pod-inspector-view, .xdeleter-view, .keytool-view, .keymaker-view, .open-eyes-view')) return;
         if (event.touches.length === 1) {
             touchMode = 'pan';
             start = { point: point(event.touches[0]), x: boardView.x, y: boardView.y };
@@ -189,7 +189,7 @@ function setupBoardPanZoom() {
 
     const onMouseDown = event => {
         if (event.button !== 0) return;
-        if (event.target.closest('.polistat-view, .feed-view, .day86400-view, .pod-inspector-view, .xdeleter-view, .keytool-view, .keymaker-view, .podcast-board')) return;
+        if (event.target.closest('.polistat-view, .feed-view, .day86400-view, .pod-inspector-view, .xdeleter-view, .keytool-view, .keymaker-view, .open-eyes-view, .podcast-board')) return;
         start = { point: { x: event.clientX, y: event.clientY }, x: boardView.x, y: boardView.y };
         boardView.dragging = false;
         const onMove = moveEvent => {
@@ -293,7 +293,7 @@ function setupBoardPanZoom() {
     container.addEventListener('wheel', onWheel, { passive: false });
     // a double click on empty board space is the quick way back out
     container.addEventListener('dblclick', event => {
-        if (event.target.closest('.cube, .back-button, .polistat-view, .feed-view, .day86400-view, .pod-inspector-view, .xdeleter-view, .keytool-view, .keymaker-view, .day86400-view')) return;
+        if (event.target.closest('.cube, .back-button, .polistat-view, .feed-view, .day86400-view, .pod-inspector-view, .xdeleter-view, .keytool-view, .keymaker-view, .open-eyes-view, .day86400-view')) return;
         resetBoardView();
     });
     window.addEventListener('resize', applyBoardView);
@@ -717,6 +717,8 @@ function renderBrain() {
     window.xdeleterView?.close?.();
     window.keytoolView?.close?.();
     window.keymakerView?.close?.();
+    // OPEN YOUR EYES: the video view covers the container exactly as the others do.
+    window.openEyesView?.close?.();
     window.podcastFeedView?.close?.();
     window.polistatView?.close?.();
     window.day86400View?.close?.();
@@ -1134,7 +1136,8 @@ function createCube(interest, index, isSubCube = false, parentPosition = null, d
             || interest.stats === 'contactGate'
             || interest.stats === 'xdeleter'
             || interest.stats === 'keytool'
-            || interest.stats === 'keymaker';
+            || interest.stats === 'keymaker'
+            || interest.stats === 'openEyes';
 
         if (opensBoardView || getVisibleInterests(interest.subInterests).length > 0) {
             // Get current position in pixels for navigation (if not set this will produce NaN)
@@ -1459,6 +1462,12 @@ function handleCubeClick(interest, position, depth) {
         return;
     }
 
+    // OPEN YOUR EYES: the recordings list takes the board, and each recording plays in it.
+    if (interest.stats === 'openEyes') {
+        window.openEyesView?.open?.(interest, depth);
+        return;
+    }
+
     // If the interest has sub-interests, navigate deeper
     if (getVisibleInterests(interest.subInterests).length > 0) {
         navigateToSubInterests(interest, position, depth);
@@ -1519,6 +1528,18 @@ function ensurePodcastListOnBoard() {
  * keeping them in one place means goBack() stays short enough for the board tests to read it.
  */
 function leaveNewestOverlays() {
+    // OPEN YOUR EYES steps out of a recording before it steps out of the view, so it is the one overlay
+    // whose BACK can be spent without closing anything — the shell stays, showing the list again.
+    if (window.openEyesView?.isOpen?.()) {
+        const shell = document.querySelector('#brain-container .open-eyes-view');
+        const wasOnScreen = !!shell && !shell.hidden;
+        if (!wasOnScreen) {
+            window.openEyesView.close();
+        } else if (window.openEyesView.back()) {
+            return true;
+        }
+    }
+
     for (const [view, selector] of [
         ['keymakerView', '#brain-container .keymaker-view'],
         ['keytoolView', '#brain-container .keytool-view'],

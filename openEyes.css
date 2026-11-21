@@ -1,0 +1,263 @@
+/* OPEN YOUR EYES — the recordings, the player, and the sources panel.
+
+   Same rules as the rest of the site: every colour is a palette role so the white theme inverts with
+   everything else, and no hex literal appears here. `tests/openEyes.test.mjs` refuses one.
+   The frame is 16:9 and never taller than the board it sits in, because a phone in portrait would
+   otherwise give the video a box shorter than the play controls. */
+
+.brain-container.has-open-eyes {
+    position: relative;
+}
+
+.open-eyes-view {
+    position: absolute;
+    inset: 0;
+    /* above the cubes, which set z-index 50 inline on the BACK cube */
+    z-index: 60;
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+    padding: 0.9rem 1rem 1.2rem;
+    background: var(--page);
+    border: 2px solid var(--rule);
+    color: var(--ink);
+    overflow-y: auto;
+    /* NOT `contain`: a reader moving the page with one finger must be able to chain the drag out. */
+    overscroll-behavior: auto;
+    font-family: 'Courier New', monospace;
+}
+
+/* The shell sets display: flex, and an author declaration beats [hidden], so hiding needs its own rule. */
+.open-eyes-view[hidden],
+.open-eyes-view [hidden] {
+    display: none !important;
+}
+
+.open-eyes-view__head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 0.8rem;
+    border-bottom: 1px solid var(--rule);
+    padding-bottom: 0.5rem;
+}
+
+.open-eyes-view__title {
+    font-size: 1.05rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+}
+
+.open-eyes-view__sub {
+    color: var(--muted);
+    font-size: 0.78rem;
+    margin-top: 0.2rem;
+}
+
+.open-eyes-view__close {
+    background: transparent;
+    border: 1px solid var(--rule);
+    color: var(--ink);
+    font: inherit;
+    font-size: 1.1rem;
+    line-height: 1;
+    padding: 0.15rem 0.55rem;
+    cursor: pointer;
+}
+
+.open-eyes-view__close:hover,
+.open-eyes-view__close:focus-visible {
+    border-color: var(--accent);
+    color: var(--accent-text);
+}
+
+.open-eyes-view__body {
+    display: flex;
+    flex-direction: column;
+    gap: 0.7rem;
+    min-height: 0;
+}
+
+.open-eyes-view__loading,
+.open-eyes-view__empty,
+.open-eyes-view__error,
+.open-eyes-player__missing {
+    color: var(--muted);
+    font-size: 0.85rem;
+    margin: 0.4rem 0;
+}
+
+.open-eyes-view__error {
+    color: var(--accent-text);
+}
+
+/* ---- the list of recordings ---- */
+
+.open-eyes-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.45rem;
+}
+
+.open-eyes-list__item {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+    padding: 0.6rem 0.7rem;
+    background: var(--surface);
+    border: 1px solid var(--rule);
+    border-left: 3px solid var(--accent);
+    cursor: pointer;
+}
+
+.open-eyes-list__item:hover,
+.open-eyes-list__item:focus-visible {
+    border-left-color: var(--active);
+    background: var(--soft);
+    outline: none;
+}
+
+.open-eyes-list__title {
+    font-size: 0.92rem;
+    font-weight: 700;
+    color: var(--ink);
+}
+
+.open-eyes-list__meta {
+    font-size: 0.74rem;
+    color: var(--muted);
+}
+
+/* ---- the player ---- */
+
+.open-eyes-player {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    min-height: 0;
+}
+
+.open-eyes-player__bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.6rem;
+}
+
+.open-eyes-player__back {
+    background: transparent;
+    border: 1px solid var(--rule);
+    color: var(--ink);
+    font: inherit;
+    font-size: 0.78rem;
+    padding: 0.25rem 0.6rem;
+    cursor: pointer;
+}
+
+.open-eyes-player__back:hover,
+.open-eyes-player__back:focus-visible {
+    border-color: var(--accent);
+    color: var(--accent-text);
+}
+
+.open-eyes-player__out {
+    color: var(--accent-text);
+    font-size: 0.76rem;
+    text-decoration: none;
+}
+
+.open-eyes-player__out:hover,
+.open-eyes-player__out:focus-visible {
+    text-decoration: underline;
+}
+
+.open-eyes-player__frame {
+    position: relative;
+    /* 16:9 that also fits a short screen: the WIDTH shrinks with the available height. A capped height
+       under `width: 100%` breaks the ratio instead — measured 2.46:1 on a 578 px-tall viewport. */
+    width: min(100%, calc((100vh - 15rem) * 16 / 9));
+    aspect-ratio: 16 / 9;
+    background: var(--surface);
+    border: 1px solid var(--rule);
+}
+
+.open-eyes-player__frame iframe {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    border: 0;
+}
+
+.open-eyes-player__frame .open-eyes-player__missing {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0;
+    padding: 1rem;
+    text-align: center;
+}
+
+.open-eyes-player__caption {
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+}
+
+.open-eyes-player__name {
+    font-size: 0.86rem;
+    color: var(--ink);
+}
+
+.open-eyes-player__line {
+    font-size: 0.74rem;
+    color: var(--muted);
+}
+
+/* ---- the sources in the information panel ---- */
+
+.open-eyes-sources {
+    margin: 0.7rem 0;
+    font-size: 0.82rem;
+}
+
+.open-eyes-sources strong {
+    display: block;
+    margin-bottom: 0.35rem;
+}
+
+.open-eyes-sources ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+}
+
+.open-eyes-sources li {
+    border-left: 2px solid var(--rule);
+    padding-left: 0.55rem;
+}
+
+.open-eyes-sources a {
+    color: var(--accent-text);
+    text-decoration: none;
+    display: block;
+    line-height: 1.35;
+}
+
+.open-eyes-sources a:hover,
+.open-eyes-sources a:focus-visible {
+    text-decoration: underline;
+}
+
+.open-eyes-sources__host {
+    color: var(--muted);
+    font-size: 0.72rem;
+}

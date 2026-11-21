@@ -1,0 +1,83 @@
+{
+  "series": {
+    "title": "OPEN YOUR EYES",
+    "description": "Posnetki s slovenskimi podnapisi, ki jih v domačih medijih ne boš srečal.<br><br>Predavanja, pogovore in reportaže, ki jih prevajam v slovenščino, da bi tudi tisti, ki angleško ne berejo z lahkoto, dobili širšo sliko. Izvirnik in viri, na katere se govorec sklicuje, so vedno na voljo ob posnetku."
+  },
+  "videos": [
+    {
+      "id": "sachs-eu-parliament-2025",
+      "title": "Geopolitika miru — govor Jeffreyja Sachsa v Evropskem parlamentu",
+      "originalTitle": "Speech at the EU Parliament — The Geopolitics of Peace",
+      "speaker": "Jeffrey D. Sachs",
+      "date": "2025-02-19",
+      "video": {
+        "provider": "youtube",
+        "id": "VjcMoDFU1xg"
+      },
+      "description": "Govor ekonomista Jeffreyja D. Sachsa na dogodku »The Geopolitics of Peace« v Evropskem parlamentu, 19. februarja 2025. Dogodek je gostil Michael von der Schulenburg, nekdanji pomočnik generalnega sekretarja ZN in poslanec BSW. Sachs govori o ameriški zunanji politiki po letu 1991, o širitvi zveze NATO, o vojni v Ukrajini in o Bližnjem vzhodu, ter o tem, zakaj bi morala Evropa voditi svojo zunanjo politiko. Sledijo vprašanja poslancev in odgovori.",
+      "sources": [
+        {
+          "label": "Celoten urejeni prepis govora z opombami",
+          "url": "https://www.other-news.info/edited-transcript-professor-jeffrey-sachs-the-geopolitics-of-peace/"
+        },
+        {
+          "label": "Jeffrey Sachs: How the Neocons Chose Hegemony Over Peace in the Early 1990s",
+          "url": "https://www.jeffsachs.org/newspaper-articles/bfsmbpe4plx7cc6lgxhf37lx249r22"
+        },
+        {
+          "label": "Dennis Fritz: Deadly Betrayal — The Truth about why the United States Invaded Iraq (OR Books, 2024)",
+          "url": "http://orbooks.com/catalog/deadly-betrayal/"
+        },
+        {
+          "label": "Genscherova novinarska konferenca po pogovorih z Gorbačovom (video, 1990)",
+          "url": "https://www.youtube.com/watch?v=ogM0EjYbPRk"
+        },
+        {
+          "label": "Nacionalni varnostni arhiv: širitev zveze NATO — kaj je slišal Gorbačov",
+          "url": "https://nsarchive.gwu.edu/briefing-book/russia-programs/2017-12-12/nato-expansion-what-gorbachev-heard-western-leaders-early"
+        },
+        {
+          "label": "Nacionalni varnostni arhiv: širitev zveze NATO — kaj je slišal Jelcin",
+          "url": "https://nsarchive.gwu.edu/briefing-book/russia-programs/2018-03-16/nato-expansion-what-yeltsin-heard"
+        },
+        {
+          "label": "Clean Break: A New Strategy for Securing the Realm (1996)",
+          "url": "https://www.dougfeith.com/docs/Clean_Break.pdf"
+        },
+        {
+          "label": "Putinov govor na 43. Münchenski varnostni konferenci (2007)",
+          "url": "http://en.kremlin.ru/events/president/transcripts/24034"
+        },
+        {
+          "label": "William Burns: Nyet Means Nyet — odposlani telegram (2008)",
+          "url": "https://wikileaks.org/plusd/cables/08MOSCOW265_a.html"
+        },
+        {
+          "label": "Prepis prestreženega pogovora Nuland–Pyatt (BBC)",
+          "url": "https://www.bbc.com/news/world-europe-26079957"
+        },
+        {
+          "label": "Resolucija Varnostnega sveta ZN 2202 o sporazumu Minsk II (2015)",
+          "url": "https://press.un.org/en/2015/sc11785.doc.htm"
+        },
+        {
+          "label": "RAND: Extending Russia — Competing from Advantageous Ground (2019)",
+          "url": "https://www.rand.org/pubs/research_reports/RR3063.html"
+        },
+        {
+          "label": "Vatikan: Fraternal Economy, Jubilee 2025 (PDF, 2024)",
+          "url": "https://www.pass.va/content/dam/casinapioiv/pass/pdf-booklet/2024_booklet_fraternal_economy.pdf"
+        },
+        {
+          "label": "Mednarodno kazensko sodišče: zahteva tožilca za nalog za prijetje",
+          "url": "https://www.icc-cpi.int/news/statement-icc-prosecutor-karim-aa-khan-kc-applications-arrest-warrants-situation-state"
+        },
+        {
+          "label": "Al Jazeera: The UN can end the Middle East conflict by welcoming Palestine as a member",
+          "url": "https://www.aljazeera.com/opinions/2025/1/10/the-un-can-end-the-middle-east-conflict-by-welcoming-palestine-as-a-member"
+        }
+      ],
+      "references": "Opombe vira navajajo tudi knjige brez povezave: Window of Opportunity: The Grand Bargain for Democracy in the Soviet Union (Allison in Yavlinsky, Pantheon, 1991), Zbigniew Brzezinski: The Grand Chessboard (1997), Halford Mackinder: Democratic Ideals and Reality (1919) in The Geographical Pivot of History (1904), Lindsey O'Rourke: Covert Regime Change (2018)."
+    }
+  ]
+}
