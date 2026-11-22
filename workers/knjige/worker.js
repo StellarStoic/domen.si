@@ -1,12 +1,12 @@
 // knjige.domen.si — a live book lookup for the Antikvariat cell in OPEN YOUR EYES.
 //
-// Two shops are queried, and only these two, because they are the only ones that answer a machine:
+// Three sources are asked, each through its own published search address:
 //   • MK / emka.si — Shopify's predictive-search JSON (title, price, availability, url)
+//   • the Slovene antiquariats — their ordinary HTML search pages, parsed for the title asked for
 //   • Bolha.com — behind the cell's toggle; classifieds, so best-effort and labelled as such
 //
-// The ten Slovene antiquariats answer every request — including robots.txt — with an anti-bot page.
-// No program may read them, so the cell links out to them and says so. That is the site's decision
-// to respect, not a scraper's problem to solve.
+// The antiquariats are readable here because a Worker's request looks like a browser's; a page cannot
+// ask them itself, which is the whole reason this proxy exists.
 //
 // Relevance rule: Shopify's predictive search is fuzzy and will answer "parenti" with "Apprentice to
 // the Villain". Every row returned here must contain one of the words actually asked for, folded and
@@ -77,6 +77,80 @@ async function mkSearch(query, wanted) {
     })).filter(row => row.title && row.url.length > 20 && relevant(row, wanted));
 }
 
+// The Slovene antiquariats, with the search address each one publishes. They refuse the Tor exits
+// but answer an ordinary request, which is what this Worker sends — the cell cannot ask them itself
+// because a page is not allowed to read another origin's answer.
+const ANTIQUARIATS = [
+    {id: 'alef', label: 'Antikvariat Alef', search: 'https://www.antikvariatalef.si/?s={q}'},
+    {id: 'knjigoljub', label: 'Knjigoljub', search: 'https://www.knjigoljub.com/?s={q}'},
+    {id: 'bukvarna-net', label: 'Bukvarna.net', search: 'https://www.bukvarna.net/?s={q}'},
+    {id: 'bukvarna-cipros', label: 'Bukvarna Ciproš', search: 'https://bukvarna.org/?s={q}'},
+    {id: 'glavan', label: 'Antikvariat Glavan', search: 'https://www.antiquariat.si/iskanje?q={q}'},
+    {id: 'antika', label: 'Antika.si', search: 'https://www.antika.si/search?q={q}'},
+    {id: 'vodnik', label: 'Antikvariat Vodnik', search: 'https://www.antikvariat-vodnik.si/?s={q}'},
+    {id: 'antiqua', label: 'Antikvariat Antiqua', search: 'https://www.antikvariatantiqua.si/?s={q}'},
+];
+
+const ENTITIES = [['&euro;', '€'], ['&amp;', '&'], ['&nbsp;', ' '], ['&quot;', '"'], ['&#39;', "'"],
+                  ['&#8220;', '“'], ['&#8221;', '”'], ['&#8211;', '–'], ['&#8217;', '’'],
+                  ['&scaron;', 'š'], ['&zcaron;', 'ž'], ['&ccaron;', 'č']];
+
+function unescapeText(text) {
+    let out = String(text || '');
+    for (const [entity, char] of ENTITIES) out = out.split(entity).join(char);
+    return out.replace(/&#(\d{2,4});/g, (_, code) => String.fromCharCode(Number(code)));
+}
+
+/** Pull result rows out of one antiquariat's search page: anchors whose text mentions the title. */
+function parseShop(html, shop, wanted) {
+    const rows = [];
+    const seen = new Set();
+    const priceRe = /(\d{1,4}[.,]\d{2})\s*€|€\s*(\d{1,4}[.,]\d{2})/;
+    const anchors = html.matchAll(/<a[^>]+href="([^"#]+)"[^>]*>([\s\S]{0,400}?)<\/a>/gi);
+    for (const anchor of anchors) {
+        const href = anchor[1];
+        const title = unescapeText(anchor[2].replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim());
+        if (title.length < 6) continue;
+        const row = {shop: shop.id, shopLabel: shop.label, title, price: '', available: true,
+                     used: true,
+                     url: href.startsWith('http') ? href
+                          : `https://${new URL(shop.search).hostname}${href}`};
+        if (!relevant(row, wanted)) continue;
+        const after = html.slice(anchor.index, anchor.index + 1400);
+        const priceMatch = after.match(priceRe);
+        if (priceMatch) row.price = (priceMatch[1] || priceMatch[2]).replace(',', '.');
+        // WooCommerce puts the product in the query (/?product=…), so stripping everything after the
+        // question mark turned a real listing into the shop's front page.
+        const cleanUrl = row.url
+            .replace(/([?&])(utm_[^&]*|_pos|_psq|_psid|_ss|_sid|_fid|fbclid|gclid)=[^&]*/g, '$1')
+            .replace(/[?&]+$/, '');
+        if (seen.has(cleanUrl)) continue;
+        seen.add(cleanUrl);
+        row.url = cleanUrl;
+        rows.push(row);
+        if (rows.length >= 3) break;
+    }
+    return rows;
+}
+
+async function usedSearch(query, wanted) {
+    const results = await Promise.all(ANTIQUARIATS.map(async shop => {
+        const url = shop.search.replace('{q}', encodeURIComponent(query));
+        try {
+            const response = await fetch(url, {
+                cf: {cacheTtl: 600},
+                headers: {'User-Agent': UA, 'Accept-Language': 'sl,en;q=0.9',
+                          Accept: 'text/html,application/xhtml+xml'},
+            });
+            if (!response.ok) return [];
+            return parseShop(await response.text(), shop, wanted);
+        } catch (error) {
+            return [];
+        }
+    }));
+    return results.flat();
+}
+
 async function bolhaSearch(query, wanted) {
     const url = 'https://www.bolha.com/?ctl=search_ads&keywords=' + encodeURIComponent(query);
     const response = await fetch(url, {cf: {cacheTtl: 300}, headers: {'User-Agent': UA}});
@@ -125,13 +199,23 @@ export default {
         if (query.length > MAX_QUERY) return json({error: 'query too long'}, 400, origin);
 
         const includeBolha = url.searchParams.get('bolha') === '1';
+        const includeUsed = url.searchParams.get('used') === '1';
         const wanted = words(query);
         const started = Date.now();
         const notes = [];
         const results = [];
 
-        const jobs = [mkSearch(query, wanted).then(rows => results.push(...rows))
-                                           .catch(err => notes.push('MK: ' + err.message))];
+        const jobs = [];
+        if (!includeUsed) {
+            // an antiquariat search is about second-hand copies; the new-book shop would only add rows
+            // that are labelled "rabljeno" and are nothing of the sort
+            jobs.push(mkSearch(query, wanted).then(rows => results.push(...rows))
+                                             .catch(err => notes.push('MK: ' + err.message)));
+        }
+        if (includeUsed) {
+            jobs.push(usedSearch(query, wanted).then(rows => results.push(...rows))
+                                           .catch(err => notes.push('antikviati: ' + err.message)));
+        }
         if (includeBolha) {
             jobs.push(bolhaSearch(query, wanted).then(rows => {
                 results.push(...rows);
@@ -144,6 +228,7 @@ export default {
             query,
             words: wanted,
             bolha: includeBolha,
+            used: includeUsed,
             results,
             notes,
             tookMs: Date.now() - started,

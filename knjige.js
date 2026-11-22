@@ -2,16 +2,14 @@
 //
 // The cube carries stats: "knjige". Two modes share the same search box:
 //   • nove knjige — asks knjige.domen.si, a Worker that queries Mladinska knjiga and, on request, Bolha
-//   • antikvariat — the used-book shops. A page cannot cross-origin them, so the cell shows the most
-//     recent recorded sweep (data/antikvariat.json) with its date, and links into each shop's own
-//     search with the title already in the address. Nothing about how any of that works is printed in
-//     the cell: the reader gets results and links, not an account of the plumbing.
+//   • antikvariat — the used-book shops, asked live through the same Worker (which can read them;
+//     a page cannot), plus a link into each shop's own search with the title already in the address.
+//     Nothing about how any of that works is printed in the cell: the reader gets results and links.
 
-import {relevantRows, priceLabel, countLabel, shopSearches, trackedEntry} from './knjigeModel.mjs?v=4';
+import {relevantRows, priceLabel, countLabel, shopSearches} from './knjigeModel.mjs?v=5';
 
 (function initKnjige(global) {
     const ENDPOINT = 'https://knjige.domen.si/';
-    const INDEX = 'data/antikvariat.json';
 
     let container = null;
     let root = null;
@@ -26,8 +24,6 @@ import {relevantRows, priceLabel, countLabel, shopSearches, trackedEntry} from '
         notes: [],
         error: '',
         bolha: false,
-        index: null,
-        indexError: '',
         interest: null,
         depth: 0,
     };
@@ -155,65 +151,59 @@ import {relevantRows, priceLabel, countLabel, shopSearches, trackedEntry} from '
         box.appendChild(launcherBlock(state.query));
     }
 
-    async function loadIndex() {
-        if (state.index || state.indexError) return;
-        try {
-            const response = await fetch(INDEX, {cache: 'no-store'});
-            if (!response.ok) throw new Error(`HTTP ${response.status}`);
-            state.index = await response.json();
-        } catch (error) {
-            state.indexError = error.message;
-        }
-    }
-
+    /** Antikvariat mode: the Worker asks the used-book shops and returns whatever they list. */
     async function showUsed(query) {
         state.query = query || '';
         state.busy = true;
+        state.error = '';
         renderResults();
-        await loadIndex();
-        state.busy = false;
-        renderResults();
+        if (!state.query) {
+            state.busy = false;
+            renderResults();
+            return;
+        }
+        try {
+            const url = `${ENDPOINT}?q=${encodeURIComponent(state.query)}&used=1`;
+            const response = await fetch(url, {headers: {Accept: 'application/json'}});
+            if (!response.ok) throw new Error(`HTTP ${response.status}`);
+            const payload = await response.json();
+            state.rows = relevantRows(payload.results, state.query).filter(row => row.used === true);
+            state.notes = Array.isArray(payload.notes) ? payload.notes : [];
+        } catch (error) {
+            state.rows = [];
+            state.error = `Iskanje ni uspelo (${error.message}).`;
+        } finally {
+            state.busy = false;
+            renderResults();
+        }
     }
 
     function renderUsed(box) {
         const query = state.query;
-        const entry = query ? trackedEntry(state.index, query) : null;
-
-        if (state.busy) {
-            box.appendChild(el('p', 'knjige-note', 'Gledam zadnji pregled …'));
-        } else if (state.indexError) {
-            box.appendChild(el('p', 'knjige-note knjige-note--error',
-                `Zadnjega pregleda ni bilo mogoče prebrati (${state.indexError}).`));
+        if (state.error) {
+            box.appendChild(el('p', 'knjige-note knjige-note--error', state.error));
+        } else if (state.busy) {
+            box.appendChild(el('p', 'knjige-note', 'Iščem po antikvariatih …'));
         } else if (!query) {
-            box.appendChild(el('p', 'knjige-note',
-                'Vpišite naslov: pokažemo zadnji pregled antikvariatov in povezave v njihove iskalnike.'));
-        } else if (!entry) {
-            box.appendChild(el('p', 'knjige-note',
-                `Za »${query}« še nimamo pregleda. Antikvariate odprete spodaj in poiščete sami.`));
+            box.appendChild(el('p', 'knjige-note', 'Vpišite naslov.'));
         } else {
-            const when = state.index?.generated || '';
-            box.appendChild(el('p', 'knjige-note',
-                `Pregled ${dateLabel(when)} · ${entry.searched?.length || 0} antikvariatov`));
-            if (entry.found?.length) {
-                for (const hit of entry.found) {
-                    const item = el('a', 'knjige-row');
-                    item.href = hit.url;
-                    item.target = '_blank';
-                    item.rel = 'noopener noreferrer';
-                    item.appendChild(el('span', 'knjige-row__shop', hit.shop));
-                    item.appendChild(el('span', 'knjige-row__title', hit.title));
-                    const price = priceLabel(hit.price);
-                    if (price) item.appendChild(el('span', 'knjige-row__price', price));
-                    item.appendChild(el('span', 'knjige-row__stock', 'rabljeno'));
-                    box.appendChild(item);
-                }
-            } else {
-                box.appendChild(el('p', 'knjige-note',
-                    `Takrat pri nobenem od pregledanih antikvariatov ni bilo izvoda za »${entry.label}«.`));
+            const shops = [...new Set(state.rows.map(row => row.shopLabel).filter(Boolean))];
+            box.appendChild(el('p', 'knjige-note', state.rows.length
+                ? `${countLabel(state.rows.length)} · ${shops.join(', ')}`
+                : `Ni zadetkov za »${query}« v antikvariatih.`));
+            for (const row of state.rows) {
+                const item = el('a', 'knjige-row');
+                item.href = row.url;
+                item.target = '_blank';
+                item.rel = 'noopener noreferrer';
+                item.appendChild(el('span', 'knjige-row__shop', row.shopLabel || row.shop || ''));
+                item.appendChild(el('span', 'knjige-row__title', row.title));
+                const price = priceLabel(row.price);
+                if (price) item.appendChild(el('span', 'knjige-row__price', price));
+                item.appendChild(el('span', 'knjige-row__stock', 'rabljeno'));
+                box.appendChild(item);
             }
-
         }
-
         box.appendChild(launcherBlock(query, true));
     }
 

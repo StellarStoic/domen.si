@@ -131,10 +131,12 @@ test('the cube is BOOKS and carries its own Antikvariat', () => {
     assert.match(VIEW, /data-mode="new"/);
     assert.match(VIEW, /data-mode="antikvariat"/);
     assert.match(VIEW, />antikvariat</);
-    // the used mode reads the recorded sweep and prints its date, never a live-looking empty list
-    assert.match(VIEW, /data\/antikvariat\.json/);
-    assert.match(VIEW, /function trackedEntry|trackedEntry\(/);
-    assert.match(VIEW, /Pregled \$\{dateLabel/);
+    // the used mode asks the Worker live, which asks the shops, and keeps only second-hand rows
+    assert.match(VIEW, /&used=1/);
+    assert.match(VIEW, /filter\(row => row\.used === true\)/);
+    assert.match(WORKER, /if \(!includeUsed\)/);
+    assert.match(VIEW, /Iščem po antikvariatih/);
+    assert.match(VIEW, /Ni zadetkov za »\$\{query\}« v antikvariatih/);
     // and the Bolha switch belongs to new books only
     assert.match(VIEW, /toggle\.hidden = state\.mode !== 'new'/);
 });
@@ -166,8 +168,17 @@ test('the Worker only ever returns rows that mention what was asked', () => {
     // CORS is an allowlist, not a wildcard
     assert.match(WORKER, /ALLOWED_ORIGINS = new Set/);
     assert.doesNotMatch(WORKER, /Access-Control-Allow-Origin', '\*'/);
-    // and it never claims to search the walled antiquariats
-    assert.doesNotMatch(WORKER, /antikvariat-vodnik|antikvariatalef|bukvarna|knjigoljub/);
+    // the antiquariats are searched server-side, each through its published address, and their rows go
+    // through the same relevance filter as everything else
+    assert.match(WORKER, /ANTIQUARIATS = \[/);
+    for (const host of ('antikvariatalef.si knjigoljub.com bukvarna.net bukvarna.org '
+                        + 'antiquariat.si antika.si antikvariat-vodnik.si antikvariatantiqua.si').split(' ')) {
+        assert.ok(WORKER.includes(host), `the Worker does not ask ${host}`);
+    }
+    assert.match(WORKER, /function parseShop/);
+    assert.match(WORKER, /if \(!relevant\(row, wanted\)\) continue;/);
+    // a WooCommerce listing lives in the query string; stripping it turned products into front pages
+    assert.match(WORKER, /_pos\|_psq\|_psid/);
 });
 
 test('the cell covers the cubes instead of letting them show through', () => {
