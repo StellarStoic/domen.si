@@ -251,8 +251,12 @@ test('the letter asks for the book and for the waiting list', () => {
     // D's own wording, character for character: the question asks whether they have it, the fallback
     // asks for the waiting list, and the farewell is his
     assert.ok(sl.body.includes(
-        'Ali jo imate na zalogi? Če je nimate, bi vas prosil, da me vpišete na seznam čakajočih, '
+        'Ali jo imate na zalogi? Če je nimate, vas prosim, da me vpišete na seznam čakajočih, '
         + 'če ga vodite, in mi sporočite, ko se izvod pojavi.'), 'the Slovene request has drifted');
+    // nothing in the letter makes the reader declare a gender
+    for (const gendered of ['bi vas prosil', 'prosila', 'hvaležen', 'hvaležna', 'bi rad ']) {
+        assert.ok(!sl.body.includes(gendered), `the Slovene letter is gendered: ${gendered}`);
+    }
     assert.ok(sl.body.includes('\r\nhvala in lep pozdrav,\r\nDomen'), 'the Slovene farewell has drifted');
     assert.ok(!sl.body.includes('ne morete najti'), 'the older wording came back');
     // blank lines survive: it is a letter, not a wall of text
@@ -260,6 +264,14 @@ test('the letter asks for the book and for the waiting list', () => {
     // an unfilled field shows as a marked gap rather than as nothing
     assert.match(requestDraft({}, 'sl').subject, /\[naslov knjige\]/);
     assert.match(requestDraft({}, 'en').body, /\[your name\]/);
+
+    // the phone number is offered, not demanded: no line when it is empty, one line under the name
+    assert.ok(!sl.body.includes('Tel:'), 'an empty phone number left a line behind');
+    assert.ok(!en.body.includes('Phone:'));
+    const withPhone = requestDraft({...values, contact: '031 123 456'}, 'sl');
+    assert.ok(withPhone.body.endsWith('hvala in lep pozdrav,\r\nDomen\r\nTel: 031 123 456'),
+        'the phone number belongs under the name');
+    assert.match(requestDraft({...values, contact: '031 123 456'}, 'en').body, /\r\nPhone: 031 123 456$/);
 });
 
 test('the mailto carries every shop, one in To and the rest in Bcc', () => {
@@ -276,8 +288,11 @@ test('the mailto carries every shop, one in To and the rest in Bcc', () => {
 test('the tool marks exactly what the reader must fill in', () => {
     assert.deepEqual(missingRequestFields({}), ['title', 'details', 'name']);
     assert.deepEqual(missingRequestFields({title: 'x', details: 'y', name: 'z'}), []);
-    // the author is optional and never blocks a letter
-    assert.ok(!REQUEST_FIELDS.find(field => field.name === 'author').required);
+    // the author and the phone number are optional and never block a letter
+    for (const optional of ['author', 'contact']) {
+        assert.ok(!REQUEST_FIELDS.find(field => field.name === optional).required, `${optional} is required`);
+        assert.deepEqual(missingRequestFields({title: 'x', details: 'y', name: 'z'}).filter(n => n === optional), []);
+    }
     // every field is labelled in both languages
     for (const field of REQUEST_FIELDS) {
         assert.ok(field.label.sl && field.label.en && field.hint.sl && field.hint.en);

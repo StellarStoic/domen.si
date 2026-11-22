@@ -136,7 +136,8 @@
 }
 
 .knjige-mail__field[data-field="author"],
-.knjige-mail__field[data-field="name"] {
+.knjige-mail__field[data-field="name"],
+.knjige-mail__field[data-field="contact"] {
     grid-column: span 1;
 }
 
@@ -226,6 +227,11 @@
 .knjige-mail__send:focus-visible {
     border-color: var(--active);
     outline: none;
+}
+
+/* [hidden] loses to a display rule, which is how the search box stayed visible in the letter editor */
+.knjige-search[hidden] {
+    display: none !important;
 }
 
 .knjige-results {

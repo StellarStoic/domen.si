@@ -8,7 +8,7 @@
 //     Nothing about how any of that works is printed in the cell: the reader gets results and links.
 
 import {relevantRows, priceLabel, countLabel, shopSearches, REQUEST_FIELDS, missingRequestFields,
-        emailShops, emaillessShops, requestDraft, mailtoLink} from './knjigeModel.mjs?v=8';
+        emailShops, emaillessShops, requestDraft, mailtoLink} from './knjigeModel.mjs?v=10';
 
 (function initKnjige(global) {
     const ENDPOINT = 'https://knjige.domen.si/';
@@ -311,17 +311,19 @@ import {relevantRows, priceLabel, countLabel, shopSearches, REQUEST_FIELDS, miss
         const author = read('author');
         const details = read('details') || (lang === 'en' ? '[details]' : '[podrobnosti]');
         const name = read('name') || (lang === 'en' ? '[your name]' : '[vaše ime]');
+        const contact = read('contact');
 
         const body = draft.body
             .replace(title, wrap(title, 'title'))
             .replace(details, wrap(details, 'details'))
             .replace(name, wrap(name, 'name'));
         const withAuthor = author ? body.replace(author, wrap(author, 'author')) : body;
+        const withContact = contact ? withAuthor.replace(contact, wrap(contact, 'contact')) : withAuthor;
 
         preview.innerHTML = `
             <div class="knjige-mail__subject">${escapeHtml(draft.subject)
                 .replace(escapeHtml(title), wrap(title, 'title'))}</div>
-            <pre class="knjige-mail__body">${withAuthor}</pre>`;
+            <pre class="knjige-mail__body">${withContact}</pre>`;
 
         for (const field of REQUEST_FIELDS) {
             const label = form.querySelector(`[data-field="${field.name}"]`);

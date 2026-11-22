@@ -137,6 +137,10 @@ export const REQUEST_FIELDS = [
     {name: 'name', required: true,
      label: {sl: 'Vaše ime', en: 'Your name'},
      hint: {sl: 'ime in priimek', en: 'first and last name'}},
+    // optional: a shop that has the book may prefer to ring than to write back
+    {name: 'contact', required: false,
+     label: {sl: 'Tel', en: 'Phone'},
+     hint: {sl: 'vaša telefonska številka', en: 'your phone number'}},
 ];
 
 /** Which required fields are still empty — those are the ones the tool paints orange. */
@@ -158,6 +162,7 @@ export function requestDraft(values, lang) {
     const author = read('author');
     const details = read('details') || (lang === 'en' ? '[details]' : '[podrobnosti]');
     const name = read('name') || (lang === 'en' ? '[your name]' : '[vaše ime]');
+    const contact = read('contact');
 
     if (lang === 'en') {
         const lines = ['Dear bookseller,', '', 'I am looking for a used copy of this book:',
@@ -167,6 +172,7 @@ export function requestDraft(values, lang) {
             'Do you have it in stock? If you do not, I would be grateful if you could put me on your '
             + 'wanted list, if you keep one, and let me know when a copy turns up.',
             '', 'Thank you and best regards,', name);
+        if (contact) lines.push(`Phone: ${contact}`);
         return {subject: `Wanted: ${title}`, body: lines.join('\r\n')};
     }
 
@@ -175,9 +181,12 @@ export function requestDraft(values, lang) {
     lines.push(`Podrobnosti: ${details}`, '',
         // D's own wording: "je nimate", not "je ne morete najti", and a lower-case "hvala" before the
         // farewell — it is a letter from a person, not a circular
-        'Ali jo imate na zalogi? Če je nimate, bi vas prosil, da me vpišete na seznam čakajočih, '
+        // genderless: the present "prosim" asks exactly what "bi vas prosil" asked without making the
+        // sender declare whether they are a man or a woman
+        'Ali jo imate na zalogi? Če je nimate, vas prosim, da me vpišete na seznam čakajočih, '
         + 'če ga vodite, in mi sporočite, ko se izvod pojavi.',
         '', 'hvala in lep pozdrav,', name);
+    if (contact) lines.push(`Tel: ${contact}`);
     return {subject: `Povpraševanje: ${title}`, body: lines.join('\r\n')};
 }
 
