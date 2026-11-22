@@ -1,27 +1,32 @@
-// KNJIGE / ANTIKVARIAT — a book lookup in the board.
+// BOOKS — new books and the Antikvariat, in one cell.
 //
-// The cube carries stats: "knjige". Pressing it opens a search box; the question goes to
-// knjige.domen.si, a Worker that asks Mladinska knjiga (emka) and, when the reader ticks the box,
-// Bolha. Eleven Slovene antiquariats are listed underneath as links, because they answer every
-// request — robots.txt included — with an anti-bot page: no program may search them, and the cell
-// says so rather than quietly returning a shorter list.
+// The cube carries stats: "knjige". Two modes share the same search box:
+//   • nove knjige — asks knjige.domen.si, a Worker that queries Mladinska knjiga and, on request, Bolha
+//   • antikvariat — the used-book shops. They refuse Tor, and a page cannot cross-origin them, so the
+//     cell shows the most recent recorded sweep (data/antikvariat.json) with its date and links into
+//     each shop's own search. A dated answer the reader can weigh beats a live-looking one nobody took.
 
-import {relevantRows, priceLabel, countLabel, shopSearches} from './knjigeModel.mjs?v=2';
+import {relevantRows, priceLabel, countLabel, shopSearches, trackedEntry} from './knjigeModel.mjs?v=3';
 
 (function initKnjige(global) {
     const ENDPOINT = 'https://knjige.domen.si/';
+    const INDEX = 'data/antikvariat.json';
 
     let container = null;
     let root = null;
+    let panelLang = 'sl';
     const state = {
         open: false,
+        mode: 'new',           // 'new' | 'antikvariat'
         busy: false,
         query: '',
-        answered: '',          // the query the shown results belong to
+        answered: '',
         rows: [],
         notes: [],
         error: '',
         bolha: false,
+        index: null,
+        indexError: '',
         interest: null,
         depth: 0,
     };
@@ -45,14 +50,20 @@ import {relevantRows, priceLabel, countLabel, shopSearches} from './knjigeModel.
         if (root && container.contains(root)) return true;
 
         root = el('section', 'knjige-view');
-        root.setAttribute('aria-label', 'Knjige — iskanje po slovenskih knjigarnah in antikvariatih');
+        root.setAttribute('aria-label', 'Books — nove knjige in antikvariat');
         root.innerHTML = `
             <div class="knjige-view__head">
                 <div>
-                    <div class="knjige-view__title">KNJIGE / ANTIKVARIAT</div>
-                    <div class="knjige-view__sub">išči po naslovu ali avtorju</div>
+                    <div class="knjige-view__title">BOOKS</div>
+                    <div class="knjige-view__sub">nove knjige in antikvariat</div>
                 </div>
                 <button type="button" class="knjige-view__close" aria-label="Zapri">×</button>
+            </div>
+            <div class="knjige-tabs" role="tablist">
+                <button type="button" class="knjige-tab is-active" role="tab" data-mode="new"
+                        aria-selected="true">nove knjige</button>
+                <button type="button" class="knjige-tab" role="tab" data-mode="antikvariat"
+                        aria-selected="false">antikvariat</button>
             </div>
             <form class="knjige-search" role="search">
                 <input class="knjige-search__input" type="search" name="q" autocomplete="off"
@@ -61,7 +72,7 @@ import {relevantRows, priceLabel, countLabel, shopSearches} from './knjigeModel.
             </form>
             <label class="knjige-toggle">
                 <input type="checkbox" class="knjige-toggle__box">
-                <span>Vključi Bolha.com <em>(zasebni oglasi)</em></span>
+                <span>Vključi Bolha.com <em>(zasebni oglasi, pri novih knjigah)</em></span>
             </label>
             <div class="knjige-results" aria-live="polite"></div>`;
         container.classList.add('has-knjige');
@@ -70,20 +81,45 @@ import {relevantRows, priceLabel, countLabel, shopSearches} from './knjigeModel.
         root.querySelector('.knjige-view__close').addEventListener('click', () => close());
         root.querySelector('.knjige-toggle__box').addEventListener('change', event => {
             state.bolha = event.target.checked;
-            if (state.query) search(state.query);
+            if (state.query && state.mode === 'new') search(state.query);
         });
+        for (const tab of root.querySelectorAll('.knjige-tab')) {
+            tab.addEventListener('click', () => setMode(tab.dataset.mode));
+        }
         root.querySelector('.knjige-search').addEventListener('submit', event => {
             event.preventDefault();
             const value = root.querySelector('.knjige-search__input').value.trim();
-            if (value) search(value);
+            if (!value) return;
+            if (state.mode === 'antikvariat') showUsed(value);
+            else search(value);
         });
         return true;
+    }
+
+    function setMode(mode) {
+        state.mode = mode === 'antikvariat' ? 'antikvariat' : 'new';
+        for (const tab of root.querySelectorAll('.knjige-tab')) {
+            const active = tab.dataset.mode === state.mode;
+            tab.classList.toggle('is-active', active);
+            tab.setAttribute('aria-selected', active ? 'true' : 'false');
+        }
+        // the Bolha switch belongs to the new-book search; leaving it visible under the antiquariats
+        // would suggest they were being searched too
+        const toggle = root.querySelector('.knjige-toggle');
+        if (toggle) toggle.hidden = state.mode !== 'new';
+        if (state.mode === 'antikvariat') showUsed(state.query);
+        else if (state.query) search(state.query);
+        else renderResults();
     }
 
     function renderResults() {
         const box = root?.querySelector('.knjige-results');
         if (!box) return;
         box.innerHTML = '';
+        if (state.mode === 'antikvariat') {
+            renderUsed(box);
+            return;
+        }
 
         if (state.error) {
             box.appendChild(el('p', 'knjige-note knjige-note--error', state.error));
@@ -93,21 +129,13 @@ import {relevantRows, priceLabel, countLabel, shopSearches} from './knjigeModel.
             box.appendChild(el('p', 'knjige-note', 'Iščem …'));
             return;
         }
-
-        const launchers = shopSearches(state.query);
-        const manual = launchers.filter(shop => !shop.searchable);
-
         if (state.answered) {
-            // Name the shops that actually answered, not the ones we asked: a stub, a timeout or a
-            // shop with nothing to say must not be credited with a result list.
+            // Name the shops that actually answered, never one we merely asked.
             const shops = [...new Set(state.rows.map(row => row.shopLabel).filter(Boolean))];
-            const heading = el('p', 'knjige-note',
-                state.rows.length
-                    ? `${countLabel(state.rows.length)} · ${shops.join(', ')}`
-                    : `Ni zadetkov za »${state.answered}« v iskanih trgovinah.`);
-            box.appendChild(heading);
+            box.appendChild(el('p', 'knjige-note', state.rows.length
+                ? `${countLabel(state.rows.length)} · ${shops.join(', ')}`
+                : `Ni zadetkov za »${state.answered}« pri Mladinski knjigi.`));
         }
-
         for (const row of state.rows) {
             const item = el('a', 'knjige-row');
             item.href = row.url;
@@ -121,19 +149,105 @@ import {relevantRows, priceLabel, countLabel, shopSearches} from './knjigeModel.
                 row.available === false ? 'ni na zalogi' : 'na zalogi'));
             box.appendChild(item);
         }
+        for (const note of state.notes) box.appendChild(el('p', 'knjige-note', note));
 
-        for (const note of state.notes) {
-            box.appendChild(el('p', 'knjige-note', note));
+        box.appendChild(launcherBlock(state.query));
+    }
+
+    async function loadIndex() {
+        if (state.index || state.indexError) return;
+        try {
+            const response = await fetch(INDEX, {cache: 'no-store'});
+            if (!response.ok) throw new Error(`HTTP ${response.status}`);
+            state.index = await response.json();
+        } catch (error) {
+            state.indexError = error.message;
+        }
+    }
+
+    async function showUsed(query) {
+        state.query = query || '';
+        state.busy = true;
+        renderResults();
+        await loadIndex();
+        state.busy = false;
+        renderResults();
+    }
+
+    function renderUsed(box) {
+        const query = state.query;
+        const entry = query ? trackedEntry(state.index, query) : null;
+
+        if (state.busy) {
+            box.appendChild(el('p', 'knjige-note', 'Gledam zadnji pregled …'));
+        } else if (state.indexError) {
+            box.appendChild(el('p', 'knjige-note knjige-note--error',
+                `Zadnjega pregleda ni bilo mogoče prebrati (${state.indexError}).`));
+        } else if (!query) {
+            box.appendChild(el('p', 'knjige-note',
+                'Vpišite naslov: pokažemo zadnji pregled antikvariatov in povezave v njihove iskalnike.'));
+        } else if (!entry) {
+            box.appendChild(el('p', 'knjige-note',
+                `Za »${query}« še nimamo pregleda. Antikvariate odprete spodaj in poiščete sami.`));
+        } else {
+            const when = state.index?.generated || '';
+            box.appendChild(el('p', 'knjige-note',
+                `Pregled ${dateLabel(when)} · ${entry.searched?.length || 0} antikvariatov`));
+            if (entry.found?.length) {
+                for (const hit of entry.found) {
+                    const item = el('a', 'knjige-row');
+                    item.href = hit.url;
+                    item.target = '_blank';
+                    item.rel = 'noopener noreferrer';
+                    item.appendChild(el('span', 'knjige-row__shop', hit.shop));
+                    item.appendChild(el('span', 'knjige-row__title', hit.title));
+                    const price = priceLabel(hit.price);
+                    if (price) item.appendChild(el('span', 'knjige-row__price', price));
+                    item.appendChild(el('span', 'knjige-row__stock', 'rabljeno'));
+                    box.appendChild(item);
+                }
+            } else {
+                box.appendChild(el('p', 'knjige-note',
+                    `Takrat pri nobenem od pregledanih antikvariatov ni bilo izvoda za »${entry.label}«.`));
+            }
+            if (entry.notSearchable?.length) {
+                box.appendChild(el('p', 'knjige-note',
+                    `Nepregledano: ${entry.notSearchable.join(', ')} — strani ne odgovorijo programu.`));
+            }
         }
 
-        // The walled shops, always visible: this is the part the cell cannot do for the reader.
+        box.appendChild(launcherBlock(query, true));
+    }
+
+    function launcherBlock(query, used) {
+        const shops = shopSearches(query).filter(shop => !shop.searchable);
+        const waitlist = shops.find(shop => shop.waitlist);
         const block = el('div', 'knjige-antikvariati');
-        block.innerHTML = `<strong>Teh antikvariatov ne moremo iskati</strong>
-            <span class="knjige-antikvariati__why">Vsak od njih zavrne vsak program, tudi robots.txt.
-            Odprete jih sami${state.query ? ` in poiščete »${escapeHtml(state.query)}«` : ''}.</span>
-            <ul>${manual.map(shop => `<li><a href="${escapeHtml(shop.url)}" target="_blank"
-                rel="noopener noreferrer">${escapeHtml(shop.label)}</a></li>`).join('')}</ul>`;
-        box.appendChild(block);
+        block.innerHTML = `
+            <strong>${used ? 'Antikviati — odprite in poiščite' : 'Rabljeno pri antikvariatih'}</strong>
+            <span class="knjige-antikvariati__why">
+                Iskalniki teh trgovin ne odgovorijo programu (Tor zavrnejo, stran pa jih ne more
+                vprašati), zato jih odprete sami. Kjer iskalnik sprejme naslov v povezavi, se odpre že
+                z vpisanim naslovom.
+            </span>
+            <ul>${shops.map(shop => `<li>
+                <a href="${escapeHtml(shop.url)}" target="_blank" rel="noopener noreferrer">${escapeHtml(shop.label)}</a>
+                ${shop.prefilled ? '<span class="knjige-antikvariati__tag">išči</span>' : ''}
+                ${shop.waitlist ? '<span class="knjige-antikvariati__tag">seznam čakajočih</span>' : ''}
+            </li>`).join('')}</ul>
+            ${waitlist && query ? `<p class="knjige-antikvariati__note">
+                ${escapeHtml(waitlist.label)} vodi seznam iskalcev: pišite jim, da iščete
+                »${escapeHtml(query)}« — vpis ne obvezuje k nakupu in cene ne dvignejo.
+                <a href="${escapeHtml(waitlist.waitlistUrl || waitlist.url)}" target="_blank"
+                   rel="noopener noreferrer">pogoji</a>
+            </p>` : ''}`;
+        return block;
+    }
+
+    function dateLabel(iso) {
+        const match = /^(\d{4})-(\d{2})-(\d{2})/.exec(String(iso || ''));
+        if (!match) return '';
+        return `${Number(match[3])}. ${Number(match[2])}. ${match[1]}`;
     }
 
     async function search(query) {
@@ -160,6 +274,50 @@ import {relevantRows, priceLabel, countLabel, shopSearches} from './knjigeModel.
         }
     }
 
+    // ---- the panel, in both languages ----------------------------------------------------------
+
+    function languageBlock(slHtml, enHtml) {
+        if (!enHtml) return `<p class="description" data-lang="sl">${slHtml}</p>`;
+        return `
+            <p class="description" data-lang="sl"${panelLang === 'en' ? ' hidden' : ''}>${slHtml}</p>
+            <p class="description" data-lang="en"${panelLang === 'sl' ? ' hidden' : ''}>${enHtml}</p>
+            <div class="knjige-lang" role="group" aria-label="Jezik opisa">
+                <button type="button" class="knjige-lang__btn${panelLang === 'sl' ? ' is-active' : ''}"
+                        data-lang="sl">slovensko</button>
+                <button type="button" class="knjige-lang__btn${panelLang === 'en' ? ' is-active' : ''}"
+                        data-lang="en">english</button>
+            </div>`;
+    }
+
+    function wireLanguageToggle(content) {
+        const buttons = Array.from(content.querySelectorAll('.knjige-lang__btn'));
+        for (const button of buttons) {
+            button.addEventListener('click', () => {
+                panelLang = button.dataset.lang === 'en' ? 'en' : 'sl';
+                for (const paragraph of content.querySelectorAll('.description[data-lang]')) {
+                    paragraph.hidden = paragraph.dataset.lang !== panelLang;
+                }
+                for (const other of buttons) {
+                    other.classList.toggle('is-active', other.dataset.lang === panelLang);
+                }
+            });
+        }
+    }
+
+    function showPanel() {
+        const content = document.getElementById('info-content');
+        const shell = document.getElementById('info-panel');
+        if (!content) return;
+        const interest = state.interest || {};
+        content.dataset.interestId = 'knjige';
+        content.innerHTML = `
+            <div class="breadcrumb"><span class="breadcrumb-item">ROOT</span></div>
+            <h3>${escapeHtml(interest.name || 'BOOKS')}</h3>
+            ${languageBlock(interest.description || '', interest.descriptionEn || '')}`;
+        wireLanguageToggle(content);
+        if (shell) shell.hidden = false;
+    }
+
     function open(interest, depth) {
         if (!ensureShell()) return;
         state.interest = interest || null;
@@ -167,27 +325,9 @@ import {relevantRows, priceLabel, countLabel, shopSearches} from './knjigeModel.
         state.open = true;
         root.hidden = false;
         container.classList.add('has-knjige');
-        renderResults();
+        setMode(state.mode);
         root.querySelector('.knjige-search__input')?.focus({preventScroll: true});
         showPanel();
-    }
-
-    function showPanel() {
-        const content = document.getElementById('info-content');
-        const shell = document.getElementById('info-panel');
-        if (!content) return;
-        content.dataset.interestId = 'knjige';
-        content.innerHTML = `
-            <div class="breadcrumb"><span class="breadcrumb-item">ROOT</span></div>
-            <h3>KNJIGE / ANTIKVARIAT</h3>
-            <p class="description">Iskanje po knjigah pri nas. Iskalnik vpraša <strong>Mladinsko knjigo</strong>
-            (spletna trgovina emka) in — če obkljukate — <strong>Bolho</strong>, kjer knjige prodajajo
-            posamezniki. Rezultati so povezave na stran trgovine, kjer knjigo tudi kupite.</p>
-            <p class="description">Slovenski antikvariati, našteti spodaj v celici, zavrnejo vsak program,
-            tudi svoj <code>robots.txt</code>. Zato jih ne moremo iskati sami, ampak jih odpremo in
-            naslov poiščete pri njih. Če želite, da vas obvestijo, ko knjiga prispe, jim pišite — sezname
-            želja imajo nekateri, a tega nismo mogli preveriti, ker nam strani ne odgovorijo.</p>`;
-        if (shell) shell.hidden = false;
     }
 
     function close() {

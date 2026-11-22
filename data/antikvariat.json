@@ -1,0 +1,40 @@
+{
+  "generated": "2026-11-22T16:12:39+00:00",
+  "source": "antikvariat.py --no-tor",
+  "titles": [
+    {
+      "label": "Ubijanje države: Jugoslavija je morala pasti",
+      "author": "Michael Parenti",
+      "query": "ubijanje drzave",
+      "found": [
+        {
+          "shop": "Knjigoljub",
+          "title": "Ubijanje države: Jugoslavija je morala pasti",
+          "price": "26.50 €",
+          "url": "https://www.knjigoljub.com/product/ubijanje-drzave-jugoslavija-je-morala-pasti-michael-parenti-2/"
+        }
+      ],
+      "searched": [
+        "Antikvariat Alef",
+        "Bukvarna.net",
+        "Knjigoljub",
+        "Antikvariat Glavan = Antiquariat.si",
+        "Antika.si",
+        "Rabljene-Knjige.si",
+        "Bukla",
+        "Svet knjige",
+        "Moje knjige / Bestseller"
+      ],
+      "notSearchable": [
+        "Bukvarna Ciproš (Maribor)",
+        "Trubarjev antikvariat (MK)"
+      ],
+      "waitlist": [
+        {
+          "shop": "Antikvariat Alef",
+          "note": "seznam iskalcev: pišete po e-pošti, vpišejo vas na seznam čakajočih, cene ne dvignejo, knjigo ob najdbi rezervirajo za en teden"
+        }
+      ]
+    }
+  ]
+}

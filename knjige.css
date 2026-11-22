@@ -206,3 +206,82 @@
 .knjige-antikvariati a:focus-visible {
     color: var(--active-ink, var(--active));
 }
+
+/* Two modes under one cube: the tabs say which shop list you are looking at. */
+.knjige-tabs {
+    display: flex;
+    gap: 0.35rem;
+    border-bottom: 1px solid var(--rule);
+    padding-bottom: 0.4rem;
+}
+
+.knjige-tab {
+    padding: 0.3rem 0.7rem;
+    background: none;
+    border: 1px solid var(--rule);
+    color: var(--muted);
+    font: inherit;
+    font-size: 0.78rem;
+    cursor: pointer;
+}
+
+.knjige-tab.is-active {
+    border-color: var(--active);
+    color: var(--ink);
+}
+
+.knjige-tab:hover,
+.knjige-tab:focus-visible {
+    color: var(--ink);
+    outline: none;
+}
+
+.knjige-toggle[hidden] {
+    display: none !important;
+}
+
+.knjige-antikvariati__tag {
+    display: inline-block;
+    margin-left: 0.35rem;
+    padding: 0 0.35rem;
+    border: 1px dashed var(--rule);
+    border-radius: 999px;
+    font-size: 0.62rem;
+    color: var(--muted);
+    vertical-align: middle;
+}
+
+.knjige-antikvariati__note {
+    margin: 0.5rem 0 0;
+    font-size: 0.74rem;
+    color: var(--muted);
+    line-height: 1.5;
+}
+
+/* The description switch, same shape as the one in OPEN YOUR EYES. */
+.knjige-lang {
+    display: flex;
+    gap: 0.35rem;
+    margin: 0.2rem 0 1rem;
+}
+
+.knjige-lang__btn {
+    padding: 0.2rem 0.55rem;
+    background: none;
+    border: 1px solid var(--rule);
+    color: var(--muted);
+    font: inherit;
+    font-size: 0.7rem;
+    cursor: pointer;
+}
+
+.knjige-lang__btn.is-active {
+    border-color: var(--active);
+    color: var(--ink);
+}
+
+.knjige-lang__btn:hover,
+.knjige-lang__btn:focus-visible {
+    color: var(--ink);
+    outline: none;
+}

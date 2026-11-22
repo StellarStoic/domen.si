@@ -65,18 +65,29 @@ export function countLabel(count) {
  * automation and an invented `?s=` address would land the reader on a 404. The cell tells them what to
  * paste instead of pretending to have a query URL.
  */
+/**
+ * `search` is a query template, filled in only where the shop's own address pattern was verified.
+ * Where it is null the shop is opened at its front page and the reader pastes the title — an invented
+ * `?s=` lands on a 404 and looks like the cell is broken.
+ *
+ * `waitlist` marks a shop that keeps a list of wanted titles. Verified for Alef only; its terms say
+ * plainly that being on the list obliges nobody to buy and adds nothing to the price.
+ */
 export const ANTIQUARIATS = [
-    {label: 'Antikvariat Vodnik', url: 'https://www.antikvariat-vodnik.si/'},
-    {label: 'Antikvariat Alef', url: 'https://www.antikvariatalef.si/'},
-    {label: 'Antikvariat Glavan', url: 'https://www.antikvariat-glavan.si/'},
-    {label: 'Antikvariat Antiqua', url: 'https://www.antikvariatantiqua.si/'},
-    {label: 'Antiquariat.si', url: 'https://www.antiquariat.si/si/'},
-    {label: 'Bukvarna.org', url: 'https://bukvarna.org/'},
-    {label: 'Bukvarna.net', url: 'https://www.bukvarna.net/'},
-    {label: 'Bukvarna.si', url: 'https://bukvarna.si/'},
+    {label: 'Antikvariat Alef', url: 'https://www.antikvariatalef.si/',
+     search: 'https://www.antikvariatalef.si/?s={q}', waitlist: true,
+     waitlistUrl: 'https://www.antikvariatalef.si/rabljene-knjige/'},
+    {label: 'Knjigoljub', url: 'https://www.knjigoljub.com/',
+     search: 'https://www.knjigoljub.com/?s={q}'},
+    {label: 'Bukvarna.net', url: 'https://www.bukvarna.net/',
+     search: 'https://www.bukvarna.net/?s={q}'},
+    {label: 'Bukvarna Ciproš (Maribor)', url: 'https://bukvarna.org/',
+     search: 'https://bukvarna.org/?s={q}'},
+    {label: 'Antikvariat Glavan = Antiquariat.si', url: 'https://www.antiquariat.si/'},
     {label: 'Antika.si', url: 'https://www.antika.si/'},
-    {label: 'Knjigoljub', url: 'https://www.knjigoljub.com/'},
     {label: 'Rabljene-Knjige.si', url: 'https://rabljene-knjige.si/'},
+    {label: 'Antikvariat Vodnik', url: 'https://www.antikvariat-vodnik.si/'},
+    {label: 'Antikvariat Antiqua', url: 'https://www.antikvariatantiqua.si/'},
 ];
 
 /** Shops the cell can actually ask, and where the reader goes when it cannot. */
@@ -89,9 +100,32 @@ export function shopSearches(query) {
         url: text ? `https://www.bolha.com/?ctl=search_ads&keywords=${encodeURIComponent(text)}` : '',
     });
     for (const shop of ANTIQUARIATS) {
-        shops.push({label: shop.label, searchable: false, url: shop.url, manual: text});
+        // where the shop's own search takes a query in the address, link straight into it
+        const url = text && shop.search
+            ? shop.search.replace('{q}', encodeURIComponent(text))
+            : shop.url;
+        shops.push({label: shop.label, searchable: false, url, prefilled: Boolean(text && shop.search),
+                    manual: text, waitlist: shop.waitlist === true,
+                    waitlistUrl: shop.waitlistUrl || ''});
     }
     return shops;
+}
+
+/**
+ * The last recorded sweep of the antiquariats for a title, out of data/antikvariat.json.
+ *
+ * The cell cannot ask them live — they refuse Tor, which is how this site reaches the world, and a
+ * browser cannot cross-origin them — so it shows the most recent answer and the date it was taken.
+ * A stale answer labelled with its date beats a live-looking one that was never taken.
+ */
+export function trackedEntry(payload, query) {
+    const wanted = queryWords(query);
+    const titles = Array.isArray(payload?.titles) ? payload.titles : [];
+    if (!wanted.length) return null;
+    return titles.find(entry => {
+        const haystack = fold([entry.label, entry.author, entry.query].filter(Boolean).join(' '));
+        return wanted.every(word => haystack.includes(word));
+    }) || null;
 }
 
 /** Did every shop answer nothing? Then the cell must say nobody had it — not that it found nothing. */

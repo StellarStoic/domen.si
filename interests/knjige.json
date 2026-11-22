@@ -1,8 +1,8 @@
 {
     "id": "knjige",
-    "name": "KNJIGE / ANTIKVARIAT",
-    "description": "Iskanje po knjigah pri nas. Iskalnik vpraša Mladinsko knjigo (emka) in po želji Bolho.<br><br>Slovenski antikvariati zavrnejo vsak program, tudi svoj robots.txt, zato jih ne moremo iskati sami — odpremo jih, naslov pa poiščete pri njih.",
-    "descriptionEn": "A book lookup in Slovene shops. It asks Mladinska knjiga (emka) and, if you tick the box, Bolha classifieds.<br><br>The Slovene antiquariats refuse every program, robots.txt included, so the cell cannot search them — it opens them instead and you search there.",
+    "name": "BOOKS",
+    "description": "Iskanje po knjigah pri nas, v dveh korakih.<br><br><strong>Nove knjige</strong> — iskalnik vpraša Mladinsko knjigo (emka), po želji tudi Bolho, kjer knjige prodajajo posamezniki.<br><br><strong>Antikvariat</strong> — rabljene knjige. Slovenski antikvarti zavrnejo Tor in stran jih ne more vprašati sama, zato celica pokaže zadnji zabeleženi pregled z datumom in povezave v njihove iskalnike. Kjer iskalnik sprejme naslov v povezavi, se odpre že z vpisanim naslovom.",
+    "descriptionEn": "A book lookup in Slovene shops, in two steps.<br><br><strong>New books</strong> — it asks Mladinska knjiga (emka) and, on request, Bolha classifieds.<br><br><strong>Antikvariat</strong> — used books. The Slovene antiquariats refuse Tor and a page cannot ask them itself, so the cell shows the most recent recorded sweep with its date and links into each shop's own search. Where the shop's search takes a title in the address, it opens with the title already in it.",
     "stats": "knjige",
     "visible": true
 }

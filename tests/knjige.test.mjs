@@ -68,18 +68,31 @@ test('the antiquariats are links, never pretend searches', () => {
     // exactly two shops can be asked: MK, and Bolha behind the toggle
     assert.deepEqual(searchable.map(s => s.label), ['Mladinska knjiga (emka)', 'Bolha.com']);
     assert.equal(manual.length, ANTIQUARIATS.length);
-    // every one of the eleven opens at its own front page — an invented ?s= would 404
+    // A query goes into the address only where the shop's own search was verified to take one; every
+    // other shop opens at its front page, because an invented ?s= lands on a 404 and looks broken.
     for (const shop of manual) {
-        assert.match(shop.url, /^https:\/\/[^?]+$/, `a launcher URL carries a query: ${shop.url}`);
+        if (shop.prefilled) {
+            assert.match(shop.url, /\?s=Ubijanje%20dr%C5%BEave$/, `unexpected shape: ${shop.url}`);
+        } else {
+            assert.match(shop.url, /^https:\/\/[^?]+$/, `a query was invented for ${shop.label}`);
+        }
         assert.equal(shop.manual, 'Ubijanje države', 'the reader is told what to paste');
     }
+    // the four shops whose search address was verified are prefilled, the rest are not
+    assert.deepEqual(manual.filter(s => s.prefilled).map(s => s.label).sort(),
+        ['Antikvariat Alef', 'Bukvarna Ciproš (Maribor)', 'Bukvarna.net', 'Knjigoljub']);
+    // exactly one shop keeps a list of wanted titles, and it is Alef
+    const waitlists = manual.filter(s => s.waitlist);
+    assert.deepEqual(waitlists.map(s => s.label), ['Antikvariat Alef']);
+    assert.match(waitlists[0].waitlistUrl, /rabljene-knjige/);
     // Bolha does get a real search address, because its markup is known
     assert.match(searchable[1].url, /bolha\.com\/\?ctl=search_ads&keywords=Ubijanje/);
 });
 
 test('the cell says plainly which shops it cannot search', () => {
-    assert.match(VIEW, /Teh antikvariatov ne moremo iskati/);
-    assert.match(VIEW, /robots\.txt/);
+    // Tor refusal is the real reason: the shops answer a home address, which is why the sweep exists
+    assert.match(VIEW, /Tor zavrnejo/);
+    assert.match(VIEW, /ne odgovorijo programu/);
     // a shop giving nothing usable is a note, not a silent empty list
     assert.match(VIEW, /Ni zadetkov za/);
     // the heading names the shops that answered, never one we merely asked
@@ -103,6 +116,30 @@ test('pressing the cube opens the view, and BACK closes it', () => {
     for (const line of gestureLists) {
         assert.ok(line.includes('.knjige-view'), `a gesture handler does not know this view: ${line.trim().slice(0, 110)}`);
     }
+});
+
+test('the cube is BOOKS and carries its own Antikvariat', () => {
+    assert.equal(INTEREST.name, 'BOOKS');
+    // two modes under one cube, and the tab that owns the used books says so in Slovene
+    assert.match(VIEW, /data-mode="new"/);
+    assert.match(VIEW, /data-mode="antikvariat"/);
+    assert.match(VIEW, />antikvariat</);
+    // the used mode reads the recorded sweep and prints its date, never a live-looking empty list
+    assert.match(VIEW, /data\/antikvariat\.json/);
+    assert.match(VIEW, /function trackedEntry|trackedEntry\(/);
+    assert.match(VIEW, /Pregled \$\{dateLabel/);
+    // and the Bolha switch belongs to new books only
+    assert.match(VIEW, /toggle\.hidden = state\.mode !== 'new'/);
+});
+
+test('the panel describes the cell in both languages', () => {
+    assert.ok(INTEREST.description.length > 120, 'Slovene copy');
+    assert.ok(INTEREST.descriptionEn.length > 120, 'English copy');
+    // the same switch OPEN YOUR EYES uses, in this view's own classes
+    assert.match(VIEW, /function languageBlock\(/);
+    assert.match(VIEW, /function wireLanguageToggle\(/);
+    assert.match(VIEW, /knjige-lang__btn/);
+    assert.match(CSS, /\.knjige-lang__btn\.is-active/);
 });
 
 test('the cube exists in the manifest the board reads', () => {
