@@ -131,6 +131,23 @@
     color: var(--muted);
 }
 
+/* A recording whose address is not filled in yet. Readable and openable — its sources are already
+   worth reading — but visibly not published: no accent edge, and the state says why. */
+.open-eyes-list__item.is-awaiting {
+    border-left-color: var(--rule);
+}
+
+.open-eyes-list__state {
+    align-self: flex-start;
+    margin-top: 0.15rem;
+    padding: 0.1rem 0.4rem;
+    border: 1px dashed var(--rule);
+    border-radius: 999px;
+    font-size: 0.68rem;
+    letter-spacing: 0.02em;
+    color: var(--muted);
+}
+
 /* ---- the player ---- */
 
 .open-eyes-player {

@@ -10,7 +10,7 @@ import {readFileSync} from 'node:fs';
 import {fileURLToPath} from 'node:url';
 import {dirname, join} from 'node:path';
 import {youTubeId, rumbleId, providerOf, providerLabel, providerNote, embedUrl, watchUrl, hostOf, sloveneDate,
-        videoCountLabel, playableVideos} from '../openEyesModel.mjs';
+        videoCountLabel, playableVideos, listedVideos, whenLabel} from '../openEyesModel.mjs';
 
 const ROOT = dirname(dirname(fileURLToPath(import.meta.url)));
 const read = name => readFileSync(join(ROOT, name), 'utf8');
@@ -134,8 +134,10 @@ test('the cube is a root cube that opens itself, and the manifest loads it', () 
 });
 
 test('the first recording carries a description and every source link', () => {
-    assert.equal(DATA.videos.length, 1);
-    const video = DATA.videos[0];
+    // the Sachs lecture is the one that is published and playable; the Parenti record is still waiting
+    const video = DATA.videos.find(v => v.id === 'sachs-eu-parliament-2025');
+    assert.ok(video, 'the Sachs record went missing');
+    assert.ok(DATA.videos.length >= 1);
     assert.ok(video.title && video.speaker && video.date);
     assert.ok(video.description.length > 120, 'a caption, but a real one');
     assert.equal(video.sources.length, 15);
@@ -249,4 +251,61 @@ test('the cell describes itself in both languages, and the reader can switch', (
     // the assets moved with the change
     assert.ok(Number(HTML.match(/openEyes\.js\?v=(\d+)/)[1]) >= 2);
     assert.ok(Number(HTML.match(/openEyes\.css\?v=(\d+)/)[1]) >= 2);
+});
+
+
+test('a record waiting for its address is listed, a half-written one is not', () => {
+    const playing = {id: 'a', date: '2025-02-19', video: {provider: 'rumble', id: 'v7girrk', pub: '48lg0b'}};
+    const waiting = {id: 'b', date: '1999-05', status: 'awaiting-link', video: {}};
+    const halfWritten = {id: 'c', date: '2024-01-01', video: {}};
+
+    const listed = listedVideos([playing, waiting, halfWritten]);
+    assert.deepEqual(listed.map(v => v.id), ['a', 'b'], 'the waiting record is listed, the half-written one is not');
+
+    // newest first, and a waiting record still sorts by its date
+    assert.deepEqual(listedVideos([waiting, playing]).map(v => v.id), ['a', 'b']);
+    // playableVideos keeps its old meaning: a waiting record is not playable
+    assert.deepEqual(playableVideos([playing, waiting]).map(v => v.id), ['a']);
+    // junk in, nothing out
+    assert.deepEqual(listedVideos(null), []);
+    assert.deepEqual(listedVideos([null, {}, 'x']), []);
+});
+
+test('a known month prints as a month, not as a guessed day', () => {
+    assert.equal(whenLabel({date: '1999-05', dateLabel: 'maj 1999'}), 'maj 1999');
+    assert.equal(whenLabel({date: '2025-02-19'}), '19. 2. 2025');
+    // no label and no readable date prints nothing rather than a broken date
+    assert.equal(whenLabel({date: '1999-05'}), '');
+    assert.equal(whenLabel({}), '');
+    // the view asks the model, so the month case cannot be formatted in two places differently
+    assert.match(VIEW, /whenLabel\(video/);
+    assert.doesNotMatch(VIEW, /sloveneDate\(video/);
+});
+
+test('the awaiting row says why it cannot play', () => {
+    assert.match(VIEW, /is-awaiting/);
+    assert.match(VIEW, /posnetek še ni objavljen/);
+    // a record with no platform and no subtitle note leaves no empty paragraph behind
+    assert.match(VIEW, /function platformLine\(video\)/);
+    assert.match(VIEW, /\$\{platformLine\(video\)\}/);
+    assert.match(CSS, /\.open-eyes-list__item\.is-awaiting/);
+    assert.match(CSS, /\.open-eyes-list__state/);
+});
+
+test('the Parenti recording is in the data with its sources and no address yet', () => {
+    const parenti = DATA.videos.find(v => v.id === 'parenti-us-war-yugoslavia-1999');
+    assert.ok(parenti, 'the Parenti record is missing');
+    assert.equal(parenti.status, 'awaiting-link');
+    assert.deepEqual(parenti.video, {}, 'no address until D publishes it');
+    assert.equal(parenti.dateLabel, 'maj 1999');
+    assert.ok(parenti.sources.length >= 35, `only ${parenti.sources.length} sources`);
+    assert.ok(parenti.sources.every(s => /^https?:\/\//.test(s.url)), 'every source needs a real address');
+    assert.ok(parenti.sources.every(s => s.label && s.label.length <= 90), 'labels stay short enough for the panel');
+    const urls = parenti.sources.map(s => s.url);
+    assert.equal(new Set(urls).size, urls.length, 'a source is listed twice');
+    // the Watson page reference must survive: it is the one source found through a biography
+    assert.ok(urls.some(u => u.includes('agrarian-rebel-biography-tom-watson-1938/page/n299')),
+        'the Woodward page reference was lost');
+    // the record is listed even though it cannot play
+    assert.ok(listedVideos(DATA.videos).some(v => v.id === parenti.id));
 });

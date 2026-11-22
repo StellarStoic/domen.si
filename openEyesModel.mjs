@@ -176,6 +176,32 @@ export function videoCountLabel(count) {
     return `${n} ${word}`;
 }
 
+/**
+ * When a recording happened, as the panel prints it.
+ *
+ * Some recordings have a known month but no known day — the Parenti lecture is "May 1999" and nothing
+ * more precise. Those records carry `dateLabel`; without it the ISO date is formatted. Writing
+ * 1999-05-01 for such a record would print a day nobody knows.
+ */
+export function whenLabel(video) {
+    const label = String(video?.dateLabel ?? '').trim();
+    if (label) return label;
+    return sloveneDate(video?.date);
+}
+
+/**
+ * Every recording the list shows: the ones that can play, plus the ones marked as waiting for an
+ * address (`status: "awaiting-link"`). A record with neither stays out, so a half-written entry cannot
+ * surface as a row that does nothing.
+ */
+export function listedVideos(videos) {
+    return (Array.isArray(videos) ? videos : [])
+        .filter(video => video && (embedUrl(video.video ?? video) ||
+            String(video.status ?? '').trim().toLowerCase() === 'awaiting-link'))
+        .slice()
+        .sort((a, b) => String(b.date ?? '').localeCompare(String(a.date ?? '')));
+}
+
 /** Videos the view can actually play, newest first. A record with no usable address stays out. */
 export function playableVideos(videos) {
     return (Array.isArray(videos) ? videos : [])

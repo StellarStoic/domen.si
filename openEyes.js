@@ -9,8 +9,8 @@
 // this before the container is cleared, goBack() asks back() first, and the stylesheet needs
 // `.open-eyes-view[hidden] { display: none !important }` because it sets display.
 
-import {videoCountLabel, embedUrl, watchUrl, hostOf, sloveneDate, playableVideos, providerOf, providerNote}
-    from './openEyesModel.mjs?v=2';
+import {videoCountLabel, embedUrl, watchUrl, hostOf, listedVideos, whenLabel, providerOf, providerNote}
+    from './openEyesModel.mjs?v=3';
 
 (function initOpenEyes(global) {
     const DATA_URL = 'data/openEyes.json';
@@ -63,7 +63,7 @@ import {videoCountLabel, embedUrl, watchUrl, hostOf, sloveneDate, playableVideos
         if (!sub) return;
         if (state.playing !== null) {
             const video = state.videos[state.playing];
-            const when = sloveneDate(video?.date);
+            const when = whenLabel(video);
             sub.textContent = [video?.speaker, when].filter(Boolean).join(' · ');
             return;
         }
@@ -108,10 +108,17 @@ import {videoCountLabel, embedUrl, watchUrl, hostOf, sloveneDate, playableVideos
             item.dataset.videoIndex = String(index);
 
             item.appendChild(el('span', 'open-eyes-list__title', video.title || 'Brez naslova'));
-            const meta = [video.speaker, sloveneDate(video.date), video.originalTitle]
+            const meta = [video.speaker, whenLabel(video), video.originalTitle]
                 .filter(Boolean)
                 .join(' · ');
             if (meta) item.appendChild(el('span', 'open-eyes-list__meta', meta));
+
+            // A record with no address yet still opens: its description and sources are worth reading
+            // before the recording is published, and the player says plainly that the link is missing.
+            if (!embedUrl(video.video)) {
+                item.classList.add('is-awaiting');
+                item.appendChild(el('span', 'open-eyes-list__state', 'posnetek še ni objavljen'));
+            }
 
             const play = () => play_(index);
             item.addEventListener('click', play);
@@ -163,7 +170,7 @@ import {videoCountLabel, embedUrl, watchUrl, hostOf, sloveneDate, playableVideos
 
         const caption = el('div', 'open-eyes-player__caption');
         caption.appendChild(el('strong', 'open-eyes-player__name', video.title || ''));
-        const line = [video.speaker, sloveneDate(video.date)].filter(Boolean).join(' · ');
+        const line = [video.speaker, whenLabel(video)].filter(Boolean).join(' · ');
         if (line) caption.appendChild(el('span', 'open-eyes-player__line', line));
         wrap.appendChild(caption);
 
@@ -251,11 +258,22 @@ import {videoCountLabel, embedUrl, watchUrl, hostOf, sloveneDate, playableVideos
                 </li>`).join('')}</ul>
             </div>` : ''}
             ${video.references ? `<p class="interest-metadata">${escapeHtml(video.references)}</p>` : ''}
-            <p class="interest-metadata">${escapeHtml(providerNote(video.video))}${escapeHtml(subtitleNote(video))}</p>`;
+            ${platformLine(video)}`;
         wireLanguageToggle(content);
         if (shell) shell.hidden = false;
     }
 
+
+    /**
+     * The line about where it plays and how its subtitles arrive — or nothing.
+     *
+     * A record still waiting for its address has neither, and an empty paragraph under the sources
+     * reads as a missing sentence rather than as silence.
+     */
+    function platformLine(video) {
+        const text = `${providerNote(video.video)}${subtitleNote(video)}`.trim();
+        return text ? `<p class="interest-metadata">${escapeHtml(text)}</p>` : '';
+    }
 
     /**
      * What to say about the subtitles, which depends on how they were made.
@@ -304,7 +322,7 @@ import {videoCountLabel, embedUrl, watchUrl, hostOf, sloveneDate, playableVideos
             if (!response.ok) throw new Error(`HTTP ${response.status}`);
             const data = await response.json();
             state.series = data.series || null;
-            state.videos = playableVideos(data.videos);
+            state.videos = listedVideos(data.videos);
         } catch (error) {
             state.series = null;
             state.videos = [];
