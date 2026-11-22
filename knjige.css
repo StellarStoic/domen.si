@@ -69,8 +69,10 @@
     flex: 1;
     min-width: 0;
     padding: 0.5rem 0.6rem;
-    background: var(--soft);
-    border: 1px solid var(--rule);
+    /* --soft is a TEXT colour in this palette; used as a background it put black text on dark grey in
+       the white theme and white text on light grey in the dark one. --surface is the nested-panel role. */
+    background: var(--surface);
+    border: 1px solid var(--surface-edge);
     color: var(--ink);
     font: inherit;
     font-size: 0.86rem;
@@ -83,8 +85,8 @@
 
 .knjige-search__go {
     padding: 0.5rem 0.9rem;
-    background: var(--soft);
-    border: 1px solid var(--rule);
+    background: var(--surface);
+    border: 1px solid var(--surface-edge);
     color: var(--ink);
     font: inherit;
     font-size: 0.84rem;
@@ -123,8 +125,8 @@
     align-items: baseline;
     gap: 0.55rem;
     padding: 0.5rem 0.6rem;
-    background: var(--soft);
-    border: 1px solid var(--rule);
+    background: var(--surface);
+    border: 1px solid var(--surface-edge);
     border-left: 3px solid var(--accent);
     text-decoration: none;
     color: var(--ink);

@@ -116,7 +116,8 @@
 .open-eyes-list__item:hover,
 .open-eyes-list__item:focus-visible {
     border-left-color: var(--active);
-    background: var(--soft);
+    /* --soft is text ink here; as a hover fill it made the row unreadable in the white theme */
+    background: var(--surface);
     outline: none;
 }
 
