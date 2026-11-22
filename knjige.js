@@ -1,12 +1,13 @@
 // BOOKS — new books and the Antikvariat, in one cell.
 //
 // The cube carries stats: "knjige". Two modes share the same search box:
-//   • nove knjige — asks knjige.domen.si, a Worker that queries Mladinska knjiga and, on request, Bolha
-//   • antikvariat — the used-book shops, asked live through the same Worker (which can read them;
-//     a page cannot), plus a link into each shop's own search with the title already in the address.
+//   • nove knjige — asks knjige.domen.si, a Worker that queries Mladinska knjiga
+//   • antikvariat — the used-book shops and, on request, Bolha's classifieds, asked live through the
+//     same Worker (which can read them; a page cannot), plus a link into each shop's own search with
+//     the title already in the address.
 //     Nothing about how any of that works is printed in the cell: the reader gets results and links.
 
-import {relevantRows, priceLabel, countLabel, shopSearches} from './knjigeModel.mjs?v=5';
+import {relevantRows, priceLabel, countLabel, shopSearches} from './knjigeModel.mjs?v=6';
 
 (function initKnjige(global) {
     const ENDPOINT = 'https://knjige.domen.si/';
@@ -23,7 +24,6 @@ import {relevantRows, priceLabel, countLabel, shopSearches} from './knjigeModel.
         rows: [],
         notes: [],
         error: '',
-        bolha: false,
         interest: null,
         depth: 0,
     };
@@ -151,8 +151,9 @@ import {relevantRows, priceLabel, countLabel, shopSearches} from './knjigeModel.
             return;
         }
         try {
-            const url = `${ENDPOINT}?q=${encodeURIComponent(state.query)}&used=1`
-                      + `${state.bolha ? '&bolha=1' : ''}`;
+            // Bolha is always part of an antiquariat search. What keeps a wrong ad out is the shelf
+            // rule in the Worker: an ad is shown only if it stands under Knjige, revije, stripi.
+            const url = `${ENDPOINT}?q=${encodeURIComponent(state.query)}&used=1&bolha=1`;
             const response = await fetch(url, {headers: {Accept: 'application/json'}});
             if (!response.ok) throw new Error(`HTTP ${response.status}`);
             const payload = await response.json();
@@ -219,7 +220,9 @@ import {relevantRows, priceLabel, countLabel, shopSearches} from './knjigeModel.
         state.busy = true;
         state.error = '';
         renderResults();
-        const url = `${ENDPOINT}?q=${encodeURIComponent(query)}${state.bolha ? '&bolha=1' : ''}`;
+        // Bolha is classifieds, and D wants them only among the used books: the new-book search never
+        // carries the flag, whatever the panel's switch says.
+        const url = `${ENDPOINT}?q=${encodeURIComponent(query)}`;
         try {
             const response = await fetch(url, {headers: {Accept: 'application/json'}});
             if (!response.ok) throw new Error(`HTTP ${response.status}`);
@@ -268,18 +271,6 @@ import {relevantRows, priceLabel, countLabel, shopSearches} from './knjigeModel.
         }
     }
 
-    /** The Bolha switch is a setting of the search, not of one tab: both modes read state.bolha. */
-    function wireBolhaToggle(content) {
-        const box = content.querySelector('.knjige-bolha__box');
-        if (!box) return;
-        box.addEventListener('change', () => {
-            state.bolha = box.checked;
-            if (!state.query) return;
-            if (state.mode === 'antikvariat') showUsed(state.query);
-            else search(state.query);
-        });
-    }
-
     function showPanel() {
         const content = document.getElementById('info-content');
         const shell = document.getElementById('info-panel');
@@ -290,12 +281,8 @@ import {relevantRows, priceLabel, countLabel, shopSearches} from './knjigeModel.
             <div class="breadcrumb"><span class="breadcrumb-item">ROOT</span></div>
             <h3>${escapeHtml(interest.name || 'BOOKS')}</h3>
             ${languageBlock(interest.description || '', interest.descriptionEn || '')}
-            <label class="knjige-bolha">
-                <input type="checkbox" class="knjige-bolha__box"${state.bolha ? ' checked' : ''}>
-                <span class="knjige-bolha__label">Vključi Bolha.com</span>
-            </label>`;
+`;
         wireLanguageToggle(content);
-        wireBolhaToggle(content);
         if (shell) shell.hidden = false;
     }
 

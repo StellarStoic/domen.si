@@ -1,8 +1,9 @@
 // The rules behind the KNJIGE / ANTIKVARIAT cell, kept free of the DOM so the tests can walk them.
 //
-// The cell searches two shops live (through the knjige.domen.si Worker) and links out to the eleven
-// Slovene antiquariats that refuse every program, including robots.txt. Those two facts are the whole
-// design: a result list that never claims to have looked where it could not look.
+// The cell searches live through the knjige.domen.si Worker: Mladinska knjiga, Bolha's classifieds and
+// the Slovene antiquariats, each through the search address it publishes. Every shop is also listed
+// under the results, with the title already in its own address, because a reader often wants the shop's
+// own page rather than our row.
 
 /** Fold diacritics and case: "države" and "drzave" are the same word to a reader. */
 export function fold(value) {
@@ -59,11 +60,10 @@ export function countLabel(count) {
 }
 
 /**
- * Where a reader can look for a title we cannot search.
+ * Where a reader can look for a title: the launcher under the results.
  *
- * `searchable: false` shops are opened at their own front page, because every one of them refuses
- * automation and an invented `?s=` address would land the reader on a 404. The cell tells them what to
- * paste instead of pretending to have a query URL.
+ * `searchable: true` means the shop's answer arrives inside the cell (Mladinska knjiga), so listing it
+ * again as a place to go would say nothing new. Everything else is listed with the query filled in.
  */
 /**
  * `search` is a query template, filled in only where the shop's own address pattern was verified.
@@ -99,10 +99,14 @@ export const ANTIQUARIATS = [
 export function shopSearches(query) {
     const text = String(query ?? '').trim();
     const shops = [{label: 'Mladinska knjiga (emka)', searchable: true}];
+    // Bolha is searched live with the antiquariats, and is also listed with them: a reader who wants the
+    // whole result page, the photos and the seller's other ads goes there rather than through us.
     shops.push({
         label: 'Bolha.com',
-        searchable: true,
-        url: text ? `https://www.bolha.com/?ctl=search_ads&keywords=${encodeURIComponent(text)}` : '',
+        searchable: false,
+        url: text ? `https://www.bolha.com/?ctl=search_ads&keywords=${encodeURIComponent(text)}` : 'https://www.bolha.com/',
+        prefilled: Boolean(text),
+        manual: text,
     });
     for (const shop of ANTIQUARIATS) {
         // where the shop's own search takes a query in the address, link straight into it

@@ -175,17 +175,102 @@ function parseBolha(html, wanted) {
             .trim().toLowerCase();
         const href = (anchor[1].startsWith('http') ? anchor[1] : 'https://www.bolha.com' + anchor[1])
             .split('?')[0];
+        // the first path segment is the ad's leaf category, and that is what places it on a shelf
+        const slug = (href.replace('https://www.bolha.com/', '').split('/')[0] || '').trim();
         const row = {shop: 'bolha', shopLabel: 'Bolha (rabljeno)', title,
                      price: priceDigits ? priceDigits[1].replace(',', '.') : '',
-                     available: true, used: true, condition, url: href};
+                     available: true, used: true, condition, slug, url: href};
         // Bolha pads a thin result set with unrelated ads, so anything that does not mention the words
         // asked for is noise and is dropped rather than shown.
         if (!relevant(row, wanted)) continue;
         if (rows.some(existing => existing.url === href)) continue;
         rows.push(row);
-        if (rows.length >= LIMIT) break;
+        // the shelf filter runs afterwards, so collect well past the display limit here
+        if (rows.length >= 40) break;
     }
     return rows;
+}
+
+/**
+ * Which shelf an ad stands on. Bolha's search ignores the category in the address and answers from the
+ * whole site, so a book query can return a doll or a flat. Every ad link starts with its leaf category
+ * (/strokovne-knjige-antikvarne-knjige/…), and that category's own page carries the breadcrumb that
+ * places it: Oglasnik → Marketplac → Knjige, revije, stripi. Only those three are books.
+ *
+ * Resolved once per leaf category and kept: in the isolate's memory for the request, and in the edge
+ * cache for a week, because a category tree does not move often.
+ */
+const SECTIONS = new Map();
+const SECTION_TTL = 604800;
+
+// the shelf cache lives as long as the isolate; tests wipe it between cases so one case's answer does
+// not decide the next one's question
+export function __forgetSections() {
+    SECTIONS.clear();
+}
+
+function crumbItems(html) {
+    const nav = html.match(/<nav class="breadcrumbs"[\s\S]{0,2500}?<\/nav>/);
+    if (!nav) return [];
+    return [...nav[0].matchAll(/<li[^>]*>([\s\S]{0,200}?)<\/li>/g)]
+        .map(match => unescapeText(match[1].replace(/<[^>]+>/g, ' ')).replace(/\s+/g, ' ').trim())
+        .filter(Boolean);
+}
+
+/** '' when the page cannot place the ad; never a guess. */
+function sectionFrom(crumbs) {
+    if (!crumbs.length || crumbs[0] !== 'Oglasnik') return '';
+    const market = crumbs.indexOf('Marketplac');
+    if (market === -1) return 'Oglasnik';          // an ad in the general classifieds
+    const section = crumbs[market + 1];
+    if (!section || section === '…') return 'Marketplac';   // an ad in the marketplace itself
+    return section;
+}
+
+async function sectionOf(slug) {
+    if (!slug) return '';
+    if (SECTIONS.has(slug)) return SECTIONS.get(slug);
+    const key = `https://knjige.domen.si/__bolha-section/${slug}`;
+    const store = typeof caches !== 'undefined' ? caches.default : null;
+    if (store) {
+        const hit = await store.match(key);
+        if (hit) {
+            const cached = await hit.text();
+            SECTIONS.set(slug, cached);
+            return cached;
+        }
+    }
+    let section = '';
+    try {
+        const response = await fetch(`https://www.bolha.com/${slug}`, {
+            cf: {cacheTtl: SECTION_TTL},
+            headers: {'User-Agent': UA, 'Accept-Language': 'sl,en;q=0.9'},
+        });
+        if (response.ok) section = sectionFrom(crumbItems(await response.text()));
+    } catch (error) {
+        section = '';
+    }
+    SECTIONS.set(slug, section);
+    if (store && section) {
+        try {
+            await store.put(key, new Response(section, {headers: {'Cache-Control': `max-age=${SECTION_TTL}`}}));
+        } catch (error) { /* a cache miss next time is not a failure */ }
+    }
+    return section;
+}
+
+/** The three shelves D allows in this cell: Oglasnik, Marketplac, Knjige, revije, stripi. */
+function isBookShelf(section) {
+    return section === 'Oglasnik' || section === 'Marketplac' || section === 'Knjige, revije, stripi';
+}
+
+async function keepBookShelf(rows) {
+    const slugs = [...new Set(rows.map(row => row.slug))];
+    const sections = new Map();
+    await Promise.all(slugs.map(async slug => sections.set(slug, await sectionOf(slug))));
+    return rows
+        .map(row => ({...row, category: sections.get(row.slug) || ''}))
+        .filter(row => isBookShelf(row.category));
 }
 
 async function bolhaSearch(query, wanted) {
@@ -193,7 +278,9 @@ async function bolhaSearch(query, wanted) {
     const response = await fetch(url, {cf: {cacheTtl: 300},
         headers: {'User-Agent': UA, 'Accept-Language': 'sl,en;q=0.9'}});
     if (!response.ok) throw new Error('bolha HTTP ' + response.status);
-    return parseBolha(await response.text(), wanted);
+    // an ad that cannot be placed on a book shelf is not shown; silence beats a doll in a book search
+    const shelved = await keepBookShelf(parseBolha(await response.text(), wanted));
+    return shelved.slice(0, LIMIT);
 }
 
 export default {
@@ -234,7 +321,9 @@ export default {
             jobs.push(usedSearch(query, wanted).then(rows => results.push(...rows))
                                            .catch(err => notes.push('antikviati: ' + err.message)));
         }
-        if (includeBolha) {
+        // Bolha is classifieds: second-hand by nature, and D wants them in the antiquariat only, so
+        // the flag is ignored for a new-book search even if a cached page sends it.
+        if (includeBolha && includeUsed) {
             jobs.push(bolhaSearch(query, wanted).then(rows => {
                 results.push(...rows);
                 if (!rows.length) notes.push('Bolha ni vrnila zadetkov za to poizvedbo.');
@@ -245,7 +334,7 @@ export default {
         const body = {
             query,
             words: wanted,
-            bolha: includeBolha,
+            bolha: includeBolha && includeUsed,
             used: includeUsed,
             results,
             notes,

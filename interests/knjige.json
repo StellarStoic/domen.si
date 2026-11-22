@@ -1,8 +1,8 @@
 {
     "id": "knjige",
     "name": "BOOKS",
-    "description": "Iskanje po knjigah pri nas.<br><br><strong>Nove knjige</strong> — Mladinska knjiga, po želji tudi Bolha.<br><br><strong>Antikvariat</strong> — rabljene knjige. Povezave vodijo v slovenske antikvariate z že vpisanim naslovom, ki ga iščete.",
-    "descriptionEn": "A book lookup in Slovene shops.<br><br><strong>New books</strong> — Mladinska knjiga and, on request, Bolha.<br><br><strong>Antikvariat</strong> — used books. The links open Slovene antiquariats with the title you are looking for already in the search box.",
+    "description": "Iskanje po knjigah pri nas.<br><br><strong>Nove knjige</strong> — Mladinska knjiga.<br><br><strong>Antikvariat</strong> — rabljene knjige po slovenskih antikvariatih in Bolhi. Povezave vodijo v slovenske antikvariate z že vpisanim naslovom, ki ga iščete.",
+    "descriptionEn": "A book lookup in Slovene shops.<br><br><strong>New books</strong> — Mladinska knjiga.<br><br><strong>Antikvariat</strong> — second-hand books from the Slovene antiquariats and from Bolha. The links open them with the title you are looking for already in the search box.",
     "stats": "knjige",
     "visible": true
 }

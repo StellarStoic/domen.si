@@ -65,9 +65,11 @@ test('the antiquariats are links, never pretend searches', () => {
     const shops = shopSearches('Ubijanje države');
     const searchable = shops.filter(shop => shop.searchable);
     const manual = shops.filter(shop => !shop.searchable);
-    // exactly two shops can be asked: MK, and Bolha behind the toggle
-    assert.deepEqual(searchable.map(s => s.label), ['Mladinska knjiga (emka)', 'Bolha.com']);
-    assert.equal(manual.length, ANTIQUARIATS.length);
+    // one shop's answer arrives in the cell and needs no link: MK. Everything else, Bolha included, is
+    // also listed with the title in its own address.
+    assert.deepEqual(searchable.map(s => s.label), ['Mladinska knjiga (emka)']);
+    assert.equal(manual.length, ANTIQUARIATS.length + 1);
+    assert.equal(manual[0].label, 'Bolha.com', 'Bolha leads the list');
     // A query goes into the address only where the shop's own search was verified to take one; every
     // other shop opens at its front page, because an invented ?s= lands on a 404 and looks broken.
     for (const shop of manual) {
@@ -83,7 +85,7 @@ test('the antiquariats are links, never pretend searches', () => {
     const prefilled = manual.filter(s => s.prefilled).map(s => s.label).sort();
     assert.deepEqual(manual.filter(s => !s.prefilled).map(s => s.label), ['Rabljene-Knjige.si'],
         'only the shop with a JavaScript-only search opens at its front page');
-    assert.ok(prefilled.length === 8, `expected 8 prefilled, got ${prefilled.length}`);
+    assert.equal(prefilled.length, 9, 'eight antiquariats and Bolha');
     // the non-WordPress ones need their own shape
     const byLabel = Object.fromEntries(manual.map(s => [s.label, s.url]));
     assert.match(byLabel['Antika.si'], /antika\.si\/search\?q=Ubijanje/);
@@ -91,8 +93,8 @@ test('the antiquariats are links, never pretend searches', () => {
     // exactly one shop keeps a list of wanted titles, and it is Alef
     const waitlists = manual.filter(s => s.waitlist);
     assert.deepEqual(waitlists.map(s => s.label), ['Antikvariat Alef']);
-    // Bolha does get a real search address, because its markup is known
-    assert.match(searchable[1].url, /bolha\.com\/\?ctl=search_ads&keywords=Ubijanje/);
+    // Bolha's own search address, verified
+    assert.match(byLabel['Bolha.com'], /bolha\.com\/\?ctl=search_ads&keywords=Ubijanje/);
 });
 
 test('the cell states results and never explains its own machinery', () => {
@@ -131,15 +133,13 @@ test('the cube is BOOKS and carries its own Antikvariat', () => {
     assert.match(VIEW, /data-mode="new"/);
     assert.match(VIEW, /data-mode="antikvariat"/);
     assert.match(VIEW, />antikvariat</);
-    // the Bolha switch belongs to the search, not to a tab: it lives in the side panel and both modes
-    // send it to the Worker
-    assert.doesNotMatch(VIEW, /knjige-toggle/);
-    assert.match(VIEW, /knjige-bolha__box/);
-    assert.match(VIEW, /function wireBolhaToggle/);
-    assert.match(VIEW, /&used=1`\s*\n?\s*\+ `\$\{state\.bolha \? '&bolha=1' : ''\}`/) ||
-        assert.ok(VIEW.includes("${state.bolha ? '&bolha=1' : ''}"));
-    assert.equal((VIEW.match(/state\.bolha \? '&bolha=1' : ''/g) || []).length, 2,
-        'both search paths must carry the Bolha flag');
+    // Bolha is part of the antiquariat search, not something the reader switches on: the search box is
+    // the only control in the cell, and the Worker's shelf rule is what keeps wrong ads out.
+    assert.doesNotMatch(VIEW, /knjige-toggle|knjige-bolha|state\.bolha/);
+    assert.equal((VIEW.match(/&bolha=1/g) || []).length, 1, 'one search asks Bolha');
+    assert.match(VIEW, /q=\$\{encodeURIComponent\(state\.query\)\}&used=1&bolha=1/);
+    // the new-book search does not
+    assert.doesNotMatch(VIEW, /\?q=\$\{encodeURIComponent\(query\)\}&bolha/);
 
     // the used mode asks the Worker live, which asks the shops, and keeps only second-hand rows
     assert.match(VIEW, /&used=1/);
@@ -148,15 +148,14 @@ test('the cube is BOOKS and carries its own Antikvariat', () => {
     // classifieds are second-hand, so an antiquariat search keeps them; tests/worker.test.mjs runs the
     // parsers against saved pages, which is where the markup itself is checked
     assert.match(WORKER, /function parseBolha/);
-    assert.match(WORKER, /used: true, condition, url: href/);
+    assert.match(WORKER, /function keepBookShelf/);
+    assert.match(WORKER, /section === 'Oglasnik' \|\| section === 'Marketplac' \|\| section === 'Knjige, revije, stripi'/);
     // and a new-book row says it is not, so the antiquariat filter can drop it
     assert.match(WORKER, /used: false,/);
     assert.match(VIEW, /Iščem po antikvariatih/);
     assert.match(VIEW, /Ni zadetkov za »\$\{query\}« v antikvariatih/);
-    // the Bolha switch is not a tab's property: it is never hidden per mode, and flipping it re-runs
-    // whichever mode is on screen
-    assert.doesNotMatch(VIEW, /toggle\.hidden/);
-    assert.match(VIEW, /if \(state\.mode === 'antikvariat'\) showUsed\(state\.query\);\n            else search\(state\.query\);/);
+    // and there is no switch anywhere to hide, flip or remember
+    assert.doesNotMatch(VIEW, /toggle\.hidden|Bolha switch/);
 });
 
 test('the panel describes the cell in both languages', () => {
