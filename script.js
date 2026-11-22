@@ -2245,7 +2245,33 @@ function visualizeTree(interests, depth = 0) {
 
 
 // Initialize when page loads
-document.addEventListener('DOMContentLoaded', initPortfolio);
+/**
+ * Keep --brain-height equal to the board's real height.
+ *
+ * The side panel scrolls inside a box no taller than the brain cell, and CSS cannot ask a sibling how
+ * tall it is. A ResizeObserver on the container republishes the number whenever the board grows, the
+ * window changes, or a view swaps its contents, so the panel always ends where the board ends.
+ */
+function publishBrainHeight() {
+    const board = document.getElementById('brain-container');
+    if (!board) return;
+    const height = Math.round(board.getBoundingClientRect().height);
+    if (height > 0) {
+        document.documentElement.style.setProperty('--brain-height', `${height}px`);
+    }
+}
+
+if (typeof ResizeObserver === 'function') {
+    const board = document.getElementById('brain-container');
+    if (board) new ResizeObserver(publishBrainHeight).observe(board);
+}
+window.addEventListener('resize', publishBrainHeight);
+window.addEventListener('load', publishBrainHeight);
+
+document.addEventListener('DOMContentLoaded', () => {
+    publishBrainHeight();
+    initPortfolio();
+});
 
 // Export functions for potential extension
 window.portfolio = {

@@ -91,7 +91,10 @@ test('the shake starts with the board and is reachable on a desktop', () => {
 
 test('the mix nudge animates through palette roles and both assets are versioned', () => {
     assert.match(CSS, /\.board-layer\.is-mixed[\s\S]{0,200}animation:/);
-    assert.match(HTML, /style\.css\?v=12/);
+    // versioned, not a fixed number: every change to the sheet bumps it, and a test that pins the
+    // number fails on a legitimate bump instead of on a missing one
+    const styleVersion = Number(HTML.match(/style\.css\?v=(\d+)/)[1]);
+    assert.ok(styleVersion >= 12, `style.css is at ${styleVersion}`);
     assert.ok(Number((HTML.match(/script\.js\?v=(\d+)/) || [])[1]) >= 18);
 });
 

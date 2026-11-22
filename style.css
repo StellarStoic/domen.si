@@ -415,6 +415,23 @@ font-weight: bold;
     height: 100%;
 }
 
+/* A long panel scrolls inside itself rather than stretching the page past the board.
+
+   The cap is --brain-height, which script.js keeps equal to #brain-container's real height: guessing
+   with 100vh leaves the panel either short of the board or hanging below it, and the board is what the
+   panel is supposed to sit beside. On a phone the panel is full width and the page scrolls, so this
+   applies only above 768px. */
+@media (min-width: 769px) {
+    .info-panel {
+        max-height: var(--brain-height, calc(100vh - 8rem));
+        overflow-y: auto;
+        overscroll-behavior: contain;
+        scrollbar-gutter: stable;
+        /* the border is part of the box the cap applies to */
+        box-sizing: border-box;
+    }
+}
+
 /* Responsive design */
 @media (max-width: 768px) {
     .main {
