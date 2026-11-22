@@ -73,6 +73,7 @@ async function mkSearch(query, wanted) {
         vendor: String(product.vendor || '').trim(),
         price: product.price ? String(product.price) : '',
         available: product.available !== false,
+        used: false,
         url: 'https://emka.si' + String(product.url || '').split('?')[0],
     })).filter(row => row.title && row.url.length > 20 && relevant(row, wanted));
 }
@@ -116,7 +117,8 @@ function parseShop(html, shop, wanted) {
                      url: href.startsWith('http') ? href
                           : `https://${new URL(shop.search).hostname}${href}`};
         if (!relevant(row, wanted)) continue;
-        const after = html.slice(anchor.index, anchor.index + 1400);
+        // shops write the euro sign both ways; &euro; left the price empty until the entity was decoded
+        const after = unescapeText(html.slice(anchor.index, anchor.index + 1400));
         const priceMatch = after.match(priceRe);
         if (priceMatch) row.price = (priceMatch[1] || priceMatch[2]).replace(',', '.');
         // WooCommerce puts the product in the query (/?product=…), so stripping everything after the
@@ -151,31 +153,47 @@ async function usedSearch(query, wanted) {
     return results.flat();
 }
 
-async function bolhaSearch(query, wanted) {
-    const url = 'https://www.bolha.com/?ctl=search_ads&keywords=' + encodeURIComponent(query);
-    const response = await fetch(url, {cf: {cacheTtl: 300}, headers: {'User-Agent': UA}});
-    if (!response.ok) throw new Error('bolha HTTP ' + response.status);
-    const html = await response.text();
-
+/**
+ * Bolha renders its listings as <li class="listing"> … <h3 class="title"><a href="/kategorija/slug-oglas-123">
+ * with the price in <p class="amount"> and the condition in the first <dd>. The page is also full of
+ * navigation and filter links, so only the listing blocks are read — the earlier parser looked for
+ * "oglas-\d" anywhere and had been matching nothing since Bolha changed its markup.
+ */
+function parseBolha(html, wanted) {
     const rows = [];
-    for (const block of html.split('EntityList-item').slice(1)) {
-        const anchor = block.match(/href="(\/[^"]*oglas-?\d[^"]*)"[^>]*>([\s\S]{0,400}?)<\/a>/i);
+    for (const block of html.split('<li class="listing"').slice(1)) {
+        const anchor = block.match(/<h3[^>]*class="title"[^>]*>[\s\S]{0,80}?<a[^>]+href="([^"]+)"/i)
+                    || block.match(/<a[^>]+href="([^"]+)"[^>]*class="link"/i);
         if (!anchor) continue;
-        const title = anchor[2].replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
+        const titleMatch = block.match(/<h3[^>]*class="title"[^>]*>([\s\S]{0,400}?)<\/h3>/i);
+        const title = unescapeText((titleMatch ? titleMatch[1] : '')
+            .replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim());
         if (title.length < 6) continue;
-        const price = (block.match(/(\d{1,4}[.,]\d{2})\s*€/) || [])[1] || '';
+        const amount = (block.match(/<p[^>]*class="amount"[^>]*>([\s\S]{0,40}?)<\/p>/i) || [])[1] || '';
+        const priceDigits = amount.replace(/&nbsp;/g, ' ').match(/(\d+(?:[.,]\d{1,2})?)/);
+        const condition = ((block.match(/<dt[^>]*>Stanje<\/dt>\s*<dd[^>]*>([^<]{2,20})<\/dd>/i) || [])[1] || '')
+            .trim().toLowerCase();
         const href = (anchor[1].startsWith('http') ? anchor[1] : 'https://www.bolha.com' + anchor[1])
             .split('?')[0];
-        const row = {shop: 'bolha', shopLabel: 'Bolha (rabljeno)', title, price: price.replace(',', '.'),
-                     available: true, url: href};
-        // Bolha answers a server-side search with unrelated ads, so anything that does not mention the
-        // words asked for is noise and is dropped rather than shown.
+        const row = {shop: 'bolha', shopLabel: 'Bolha (rabljeno)', title,
+                     price: priceDigits ? priceDigits[1].replace(',', '.') : '',
+                     available: true, used: true, condition, url: href};
+        // Bolha pads a thin result set with unrelated ads, so anything that does not mention the words
+        // asked for is noise and is dropped rather than shown.
         if (!relevant(row, wanted)) continue;
         if (rows.some(existing => existing.url === href)) continue;
         rows.push(row);
         if (rows.length >= LIMIT) break;
     }
     return rows;
+}
+
+async function bolhaSearch(query, wanted) {
+    const url = 'https://www.bolha.com/?ctl=search_ads&keywords=' + encodeURIComponent(query);
+    const response = await fetch(url, {cf: {cacheTtl: 300},
+        headers: {'User-Agent': UA, 'Accept-Language': 'sl,en;q=0.9'}});
+    if (!response.ok) throw new Error('bolha HTTP ' + response.status);
+    return parseBolha(await response.text(), wanted);
 }
 
 export default {

@@ -131,14 +131,32 @@ test('the cube is BOOKS and carries its own Antikvariat', () => {
     assert.match(VIEW, /data-mode="new"/);
     assert.match(VIEW, /data-mode="antikvariat"/);
     assert.match(VIEW, />antikvariat</);
+    // the Bolha switch belongs to the search, not to a tab: it lives in the side panel and both modes
+    // send it to the Worker
+    assert.doesNotMatch(VIEW, /knjige-toggle/);
+    assert.match(VIEW, /knjige-bolha__box/);
+    assert.match(VIEW, /function wireBolhaToggle/);
+    assert.match(VIEW, /&used=1`\s*\n?\s*\+ `\$\{state\.bolha \? '&bolha=1' : ''\}`/) ||
+        assert.ok(VIEW.includes("${state.bolha ? '&bolha=1' : ''}"));
+    assert.equal((VIEW.match(/state\.bolha \? '&bolha=1' : ''/g) || []).length, 2,
+        'both search paths must carry the Bolha flag');
+
     // the used mode asks the Worker live, which asks the shops, and keeps only second-hand rows
     assert.match(VIEW, /&used=1/);
     assert.match(VIEW, /filter\(row => row\.used === true\)/);
     assert.match(WORKER, /if \(!includeUsed\)/);
+    // classifieds are second-hand, so an antiquariat search keeps them; tests/worker.test.mjs runs the
+    // parsers against saved pages, which is where the markup itself is checked
+    assert.match(WORKER, /function parseBolha/);
+    assert.match(WORKER, /used: true, condition, url: href/);
+    // and a new-book row says it is not, so the antiquariat filter can drop it
+    assert.match(WORKER, /used: false,/);
     assert.match(VIEW, /Iščem po antikvariatih/);
     assert.match(VIEW, /Ni zadetkov za »\$\{query\}« v antikvariatih/);
-    // and the Bolha switch belongs to new books only
-    assert.match(VIEW, /toggle\.hidden = state\.mode !== 'new'/);
+    // the Bolha switch is not a tab's property: it is never hidden per mode, and flipping it re-runs
+    // whichever mode is on screen
+    assert.doesNotMatch(VIEW, /toggle\.hidden/);
+    assert.match(VIEW, /if \(state\.mode === 'antikvariat'\) showUsed\(state\.query\);\n            else search\(state\.query\);/);
 });
 
 test('the panel describes the cell in both languages', () => {

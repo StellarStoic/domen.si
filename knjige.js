@@ -67,19 +67,11 @@ import {relevantRows, priceLabel, countLabel, shopSearches} from './knjigeModel.
                        placeholder="naslov ali avtor …" aria-label="Naslov ali avtor">
                 <button class="knjige-search__go" type="submit">Išči</button>
             </form>
-            <label class="knjige-toggle">
-                <input type="checkbox" class="knjige-toggle__box">
-                <span>Vključi Bolha.com <em>(zasebni oglasi, pri novih knjigah)</em></span>
-            </label>
             <div class="knjige-results" aria-live="polite"></div>`;
         container.classList.add('has-knjige');
         container.appendChild(root);
 
         root.querySelector('.knjige-view__close').addEventListener('click', () => close());
-        root.querySelector('.knjige-toggle__box').addEventListener('change', event => {
-            state.bolha = event.target.checked;
-            if (state.query && state.mode === 'new') search(state.query);
-        });
         for (const tab of root.querySelectorAll('.knjige-tab')) {
             tab.addEventListener('click', () => setMode(tab.dataset.mode));
         }
@@ -100,10 +92,6 @@ import {relevantRows, priceLabel, countLabel, shopSearches} from './knjigeModel.
             tab.classList.toggle('is-active', active);
             tab.setAttribute('aria-selected', active ? 'true' : 'false');
         }
-        // the Bolha switch belongs to the new-book search; leaving it visible under the antiquariats
-        // would suggest they were being searched too
-        const toggle = root.querySelector('.knjige-toggle');
-        if (toggle) toggle.hidden = state.mode !== 'new';
         if (state.mode === 'antikvariat') showUsed(state.query);
         else if (state.query) search(state.query);
         else renderResults();
@@ -163,7 +151,8 @@ import {relevantRows, priceLabel, countLabel, shopSearches} from './knjigeModel.
             return;
         }
         try {
-            const url = `${ENDPOINT}?q=${encodeURIComponent(state.query)}&used=1`;
+            const url = `${ENDPOINT}?q=${encodeURIComponent(state.query)}&used=1`
+                      + `${state.bolha ? '&bolha=1' : ''}`;
             const response = await fetch(url, {headers: {Accept: 'application/json'}});
             if (!response.ok) throw new Error(`HTTP ${response.status}`);
             const payload = await response.json();
@@ -200,7 +189,7 @@ import {relevantRows, priceLabel, countLabel, shopSearches} from './knjigeModel.
                 item.appendChild(el('span', 'knjige-row__title', row.title));
                 const price = priceLabel(row.price);
                 if (price) item.appendChild(el('span', 'knjige-row__price', price));
-                item.appendChild(el('span', 'knjige-row__stock', 'rabljeno'));
+                item.appendChild(el('span', 'knjige-row__stock', row.condition || 'rabljeno'));
                 box.appendChild(item);
             }
         }
@@ -279,6 +268,18 @@ import {relevantRows, priceLabel, countLabel, shopSearches} from './knjigeModel.
         }
     }
 
+    /** The Bolha switch is a setting of the search, not of one tab: both modes read state.bolha. */
+    function wireBolhaToggle(content) {
+        const box = content.querySelector('.knjige-bolha__box');
+        if (!box) return;
+        box.addEventListener('change', () => {
+            state.bolha = box.checked;
+            if (!state.query) return;
+            if (state.mode === 'antikvariat') showUsed(state.query);
+            else search(state.query);
+        });
+    }
+
     function showPanel() {
         const content = document.getElementById('info-content');
         const shell = document.getElementById('info-panel');
@@ -288,8 +289,13 @@ import {relevantRows, priceLabel, countLabel, shopSearches} from './knjigeModel.
         content.innerHTML = `
             <div class="breadcrumb"><span class="breadcrumb-item">ROOT</span></div>
             <h3>${escapeHtml(interest.name || 'BOOKS')}</h3>
-            ${languageBlock(interest.description || '', interest.descriptionEn || '')}`;
+            ${languageBlock(interest.description || '', interest.descriptionEn || '')}
+            <label class="knjige-bolha">
+                <input type="checkbox" class="knjige-bolha__box"${state.bolha ? ' checked' : ''}>
+                <span class="knjige-bolha__label">Vključi Bolha.com</span>
+            </label>`;
         wireLanguageToggle(content);
+        wireBolhaToggle(content);
         if (shell) shell.hidden = false;
     }
 

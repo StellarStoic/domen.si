@@ -100,17 +100,31 @@
     outline: none;
 }
 
-.knjige-toggle {
+/* The Bolha switch sits in the side panel: it is a setting of the search, and it applies to both
+   tabs, so leaving it inside the cell made it look like one tab's property. */
+.knjige-bolha {
     display: flex;
     align-items: center;
-    gap: 0.45rem;
-    font-size: 0.78rem;
-    color: var(--muted);
+    gap: 0.5rem;
+    margin: 0.9rem 0 0.2rem;
+    padding: 0.5rem 0.6rem;
+    background: var(--surface);
+    border: 1px solid var(--surface-edge);
+    border-left: 3px solid var(--accent);
+    border-radius: 2px;
+    font-size: 0.8rem;
+    color: var(--ink);
+    cursor: pointer;
 }
 
-.knjige-toggle em {
-    font-style: normal;
-    opacity: 0.8;
+.knjige-bolha__box {
+    margin: 0;
+    accent-color: var(--active);
+    cursor: pointer;
+}
+
+.knjige-bolha__label {
+    user-select: none;
 }
 
 .knjige-results {
@@ -236,10 +250,6 @@
 .knjige-tab:focus-visible {
     color: var(--ink);
     outline: none;
-}
-
-.knjige-toggle[hidden] {
-    display: none !important;
 }
 
 .knjige-antikvariati__tag {
