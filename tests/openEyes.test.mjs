@@ -291,11 +291,17 @@ test('the awaiting row says why it cannot play', () => {
     assert.match(CSS, /\.open-eyes-list__state/);
 });
 
-test('the Parenti recording is in the data with its sources and no address yet', () => {
+test('the Parenti recording is published, with its sources', () => {
     const parenti = DATA.videos.find(v => v.id === 'parenti-us-war-yugoslavia-1999');
     assert.ok(parenti, 'the Parenti record is missing');
-    assert.equal(parenti.status, 'awaiting-link');
-    assert.deepEqual(parenti.video, {}, 'no address until D publishes it');
+    // the page slug and the embed id are not the same video id on Rumble: v7iq3l8 answers 410,
+    // only the embed id plays, so the record must carry the one that works
+    assert.equal(parenti.video.provider, 'rumble');
+    assert.equal(parenti.video.id, 'v7gjqnq');
+    assert.equal(parenti.video.pub, '48lg0b');
+    assert.equal('status' in parenti, false, 'a published record carries no awaiting marker');
+    assert.equal(embedUrl(parenti.video), 'https://rumble.com/embed/v7gjqnq/?pub=48lg0b');
+    assert.equal(providerNote(parenti.video), 'Predvajanje poteka z Rumbleja.');
     assert.equal(parenti.dateLabel, 'maj 1999');
     assert.ok(parenti.sources.length >= 35, `only ${parenti.sources.length} sources`);
     assert.ok(parenti.sources.every(s => /^https?:\/\//.test(s.url)), 'every source needs a real address');

@@ -84,13 +84,16 @@
     },
     {
       "id": "parenti-us-war-yugoslavia-1999",
-      "status": "awaiting-link",
       "title": "Ameriška vojna proti Jugoslaviji — predavanje Michaela Parentija",
       "originalTitle": "The American War Against Yugoslavia: Why American Leaders Demonize and Destroy Another Country",
       "speaker": "Michael Parenti",
       "date": "1999-05",
       "dateLabel": "maj 1999",
-      "video": {},
+      "video": {
+        "provider": "rumble",
+        "id": "v7gjqnq",
+        "pub": "48lg0b"
+      },
       "description": "Predavanje Michaela Parentija z naslovom »Ameriška vojna proti Jugoslaviji: zakaj voditelji Amerike znova demonizirajo in uničujejo še eno državo«, posneto maja 1999 na Univerzi Washington v Seattlu, med Natovim bombardiranjem ZRJ.<br><br>Parenti razlaga, kako se javnost pripravi na vojno: s katerimi besedami se opisuje nasprotnika, kako mediji prevzamejo uradno različico in kako se številke beguncev in žrtev zaokrožajo navzgor. Ob Jugoslaviji poseže po Panami, Iraku in Bhopalu, po zunanjem dolgu in programih IMF v osemdesetih, po rambouilletskem »ultimatu« ter po Watsonovem govoru iz leta 1898 in Schumpetrovem eseju o imperializmu. Na koncu odgovarja na vprašanja občinstva o osiromašenem uranu, številu beguncev in vlogi medijev.",
       "descriptionEn": "Michael Parenti's lecture »The American War Against Yugoslavia: Why American Leaders Demonize and Destroy Another Country«, recorded in May 1999 at the University of Washington, Seattle, while NATO was bombing the Federal Republic of Yugoslavia.<br><br>Parenti sets out how a public is prepared for war: which words are used to describe the adversary, how the press takes over the official account, and how refugee and casualty figures are rounded upwards. Alongside Yugoslavia he reaches for Panama, Iraq and Bhopal, for Yugoslavia's foreign debt and the IMF programmes of the 1980s, for the Rambouillet »ultimatum«, and for Watson's 1898 speech and Schumpeter's essay on imperialism. He ends by taking audience questions on depleted uranium, refugee numbers and the role of the media.",
       "sources": [
