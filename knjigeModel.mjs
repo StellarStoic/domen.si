@@ -164,18 +164,20 @@ export function requestDraft(values, lang) {
                        `Title: ${title}`];
         if (author) lines.push(`Author: ${author}`);
         lines.push(`Details: ${details}`, '',
-            'Could you check whether you have it in stock? If you do not, I would be grateful if you '
-            + 'could put me on your wanted list, if you keep one, and let me know when a copy turns up.',
-            '', 'Kind regards,', name);
+            'Do you have it in stock? If you do not, I would be grateful if you could put me on your '
+            + 'wanted list, if you keep one, and let me know when a copy turns up.',
+            '', 'Thank you and best regards,', name);
         return {subject: `Wanted: ${title}`, body: lines.join('\r\n')};
     }
 
     const lines = ['Spoštovani,', '', 'iščem rabljeni izvod te knjige:', `Naslov: ${title}`];
     if (author) lines.push(`Avtor: ${author}`);
     lines.push(`Podrobnosti: ${details}`, '',
-        'Ali jo imate na zalogi? Če je ne morete najti, bi vas prosil, da me vpišete na seznam '
-        + 'čakajočih, če ga vodite, in mi sporočite, ko se izvod pojavi.',
-        '', 'Lep pozdrav,', name);
+        // D's own wording: "je nimate", not "je ne morete najti", and a lower-case "hvala" before the
+        // farewell — it is a letter from a person, not a circular
+        'Ali jo imate na zalogi? Če je nimate, bi vas prosil, da me vpišete na seznam čakajočih, '
+        + 'če ga vodite, in mi sporočite, ko se izvod pojavi.',
+        '', 'hvala in lep pozdrav,', name);
     return {subject: `Povpraševanje: ${title}`, body: lines.join('\r\n')};
 }
 

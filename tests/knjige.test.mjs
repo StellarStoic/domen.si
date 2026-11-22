@@ -244,9 +244,17 @@ test('the letter asks for the book and for the waiting list', () => {
     }
     const en = requestDraft(values, 'en');
     assert.equal(en.subject, 'Wanted: Ubijanje države');
-    for (const piece of ['Dear bookseller', 'used copy', 'wanted list', 'Kind regards', 'Domen']) {
+    for (const piece of ['Dear bookseller', 'used copy', 'Do you have it in stock?', 'wanted list',
+                         'Thank you and best regards', 'Domen']) {
         assert.ok(en.body.includes(piece), `the English letter is missing ${piece}`);
     }
+    // D's own wording, character for character: the question asks whether they have it, the fallback
+    // asks for the waiting list, and the farewell is his
+    assert.ok(sl.body.includes(
+        'Ali jo imate na zalogi? Če je nimate, bi vas prosil, da me vpišete na seznam čakajočih, '
+        + 'če ga vodite, in mi sporočite, ko se izvod pojavi.'), 'the Slovene request has drifted');
+    assert.ok(sl.body.includes('\r\nhvala in lep pozdrav,\r\nDomen'), 'the Slovene farewell has drifted');
+    assert.ok(!sl.body.includes('ne morete najti'), 'the older wording came back');
     // blank lines survive: it is a letter, not a wall of text
     assert.ok(sl.body.includes('\r\n\r\n'));
     // an unfilled field shows as a marked gap rather than as nothing

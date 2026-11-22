@@ -8,7 +8,7 @@
 //     Nothing about how any of that works is printed in the cell: the reader gets results and links.
 
 import {relevantRows, priceLabel, countLabel, shopSearches, REQUEST_FIELDS, missingRequestFields,
-        emailShops, emaillessShops, requestDraft, mailtoLink} from './knjigeModel.mjs?v=7';
+        emailShops, emaillessShops, requestDraft, mailtoLink} from './knjigeModel.mjs?v=8';
 
 (function initKnjige(global) {
     const ENDPOINT = 'https://knjige.domen.si/';
