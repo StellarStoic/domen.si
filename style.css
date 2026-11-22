@@ -42,6 +42,7 @@ body {
     --scrim: rgba(0, 0, 0, 0.62);            /* behind a dialog */
     --active-text: #3ddc84;
     --accent-ink: #000;    /* text sitting on an accent fill */
+    --accent-on-surface: #ffa257;            /* the accent as words on --surface: #ff6600 is 2.7:1 there */
     --player-wash: rgba(0, 0, 0, 0.6);
 }
 
@@ -74,6 +75,7 @@ body {
     --scrim: rgba(20, 20, 20, 0.55);
     --active-text: #1b7a33;
     --accent-ink: #000;
+    --accent-on-surface: #b34700;            /* 5.0:1 on the light surface */
     --player-wash: rgba(255, 255, 255, 0.85);
 }
 

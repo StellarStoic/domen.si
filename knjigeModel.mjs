@@ -76,24 +76,123 @@ export function countLabel(count) {
 export const ANTIQUARIATS = [
     {label: 'Antikvariat Alef', url: 'https://www.antikvariatalef.si/',
      search: 'https://www.antikvariatalef.si/?s={q}', waitlist: true,
-     waitlistUrl: 'https://www.antikvariatalef.si/rabljene-knjige/'},
+     waitlistUrl: 'https://www.antikvariatalef.si/rabljene-knjige/',
+     email: 'antikvariat.alef@gmail.com', emailSource: 'https://www.antikvariatalef.si/o-nas/'},
     {label: 'Knjigoljub', url: 'https://www.knjigoljub.com/',
      search: 'https://www.knjigoljub.com/?s={q}'},
     {label: 'Bukvarna.net', url: 'https://www.bukvarna.net/',
      search: 'https://www.bukvarna.net/?s={q}'},
     {label: 'Bukvarna Ciproš (Maribor)', url: 'https://bukvarna.org/',
-     search: 'https://bukvarna.org/?s={q}'},
+     search: 'https://bukvarna.org/?s={q}',
+     email: 'cipros@bukvarna.org', emailSource: 'https://bukvarna.org/kontakt/'},
     {label: 'Antikvariat Glavan = Antiquariat.si', url: 'https://www.antiquariat.si/',
-     search: 'https://www.antiquariat.si/iskanje?q={q}'},
+     search: 'https://www.antiquariat.si/iskanje?q={q}',
+     email: 'info@antikvariat-glavan.si', emailSource: 'https://www.antiquariat.si/'},
     {label: 'Antika.si', url: 'https://www.antika.si/',
-     search: 'https://www.antika.si/search?q={q}'},
+     search: 'https://www.antika.si/search?q={q}',
+     email: 'info@antika.si', emailSource: 'https://www.antika.si/kontakt'},
     {label: 'Antikvariat Vodnik', url: 'https://www.antikvariat-vodnik.si/',
-     search: 'https://www.antikvariat-vodnik.si/?s={q}'},
+     search: 'https://www.antikvariat-vodnik.si/?s={q}',
+     email: 'knjigarna.vodnik@gmail.com', emailSource: 'https://www.antikvariat-vodnik.si/'},
     {label: 'Antikvariat Antiqua', url: 'https://www.antikvariatantiqua.si/',
-     search: 'https://www.antikvariatantiqua.si/?s={q}'},
+     search: 'https://www.antikvariatantiqua.si/?s={q}',
+     email: 'info@antikvariatantiqua.si', emailSource: 'https://www.antikvariatantiqua.si/kontakt/'},
     // its search runs in JavaScript and takes no query in the address; it opens at the front page
-    {label: 'Rabljene-Knjige.si', url: 'https://rabljene-knjige.si/'},
+    {label: 'Rabljene-Knjige.si', url: 'https://rabljene-knjige.si/',
+     email: 'info@rabljene-knjige.si', emailSource: 'https://rabljene-knjige.si/kontakt/'},
 ];
+
+/**
+ * The shops that publish an e-mail address, and the ones that do not.
+ *
+ * Every address below was read off the shop's own page (the source is recorded beside it); Bolha is not
+ * among them — it is a marketplace of private sellers, not a shop that takes requests. Knjigoljub and
+ * Bukvarna.net publish no address at all, only a form on their own site, so a request to them has to go
+ * through that form. Nothing is guessed: a wrong address would send a reader's letter nowhere.
+ */
+export function emailShops() {
+    return ANTIQUARIATS
+        .filter(shop => shop.email)
+        .map(shop => ({label: shop.label, email: shop.email, url: shop.url,
+                       waitlist: shop.waitlist === true}));
+}
+
+export function emaillessShops() {
+    return ANTIQUARIATS
+        .filter(shop => !shop.email)
+        .map(shop => ({label: shop.label, url: shop.url}));
+}
+
+/** The fields of the request, in both languages, and which ones the reader must fill in. */
+export const REQUEST_FIELDS = [
+    {name: 'title', required: true,
+     label: {sl: 'Naslov knjige', en: 'Book title'},
+     hint: {sl: 'npr. Ubijanje države', en: 'e.g. To Kill a Nation'}},
+    {name: 'author', required: false,
+     label: {sl: 'Avtor', en: 'Author'},
+     hint: {sl: 'npr. Michael Parenti', en: 'e.g. Michael Parenti'}},
+    {name: 'details', required: true,
+     label: {sl: 'Podrobnosti', en: 'Details'},
+     hint: {sl: 'leto, založba, vezava, stanje', en: 'year, publisher, binding, condition'}},
+    {name: 'name', required: true,
+     label: {sl: 'Vaše ime', en: 'Your name'},
+     hint: {sl: 'ime in priimek', en: 'first and last name'}},
+];
+
+/** Which required fields are still empty — those are the ones the tool paints orange. */
+export function missingRequestFields(values) {
+    return REQUEST_FIELDS
+        .filter(field => field.required)
+        .filter(field => !String(values?.[field.name] ?? '').trim())
+        .map(field => field.name);
+}
+
+/**
+ * The letter itself. Written the way a person writes to a shop: what is wanted, what would help, and the
+ * question about the waiting list — because that is the whole point of asking a shop that does not have
+ * the book.
+ */
+export function requestDraft(values, lang) {
+    const read = name => String(values?.[name] ?? '').trim();
+    const title = read('title') || (lang === 'en' ? '[book title]' : '[naslov knjige]');
+    const author = read('author');
+    const details = read('details') || (lang === 'en' ? '[details]' : '[podrobnosti]');
+    const name = read('name') || (lang === 'en' ? '[your name]' : '[vaše ime]');
+
+    if (lang === 'en') {
+        const lines = ['Dear bookseller,', '', 'I am looking for a used copy of this book:',
+                       `Title: ${title}`];
+        if (author) lines.push(`Author: ${author}`);
+        lines.push(`Details: ${details}`, '',
+            'Could you check whether you have it in stock? If you do not, I would be grateful if you '
+            + 'could put me on your wanted list, if you keep one, and let me know when a copy turns up.',
+            '', 'Kind regards,', name);
+        return {subject: `Wanted: ${title}`, body: lines.join('\r\n')};
+    }
+
+    const lines = ['Spoštovani,', '', 'iščem rabljeni izvod te knjige:', `Naslov: ${title}`];
+    if (author) lines.push(`Avtor: ${author}`);
+    lines.push(`Podrobnosti: ${details}`, '',
+        'Ali jo imate na zalogi? Če je ne morete najti, bi vas prosil, da me vpišete na seznam '
+        + 'čakajočih, če ga vodite, in mi sporočite, ko se izvod pojavi.',
+        '', 'Lep pozdrav,', name);
+    return {subject: `Povpraševanje: ${title}`, body: lines.join('\r\n')};
+}
+
+/**
+ * One address in To and the rest in Bcc, so seven shops do not end up reading each other's mail and
+ * replying to all of them. Every mail program worth the name fills in Bcc from a mailto: link.
+ */
+export function mailtoLink(values, lang) {
+    const shops = emailShops();
+    if (!shops.length) return '';
+    const draft = requestDraft(values, lang);
+    const query = new URLSearchParams();
+    query.set('subject', draft.subject);
+    query.set('body', draft.body);
+    if (shops.length > 1) query.set('bcc', shops.slice(1).map(shop => shop.email).join(','));
+    return `mailto:${shops[0].email}?${query.toString()}`;
+}
 
 /** Shops the cell can actually ask, and where the reader goes when it cannot. */
 export function shopSearches(query) {

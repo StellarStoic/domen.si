@@ -7,7 +7,8 @@
 //     the title already in the address.
 //     Nothing about how any of that works is printed in the cell: the reader gets results and links.
 
-import {relevantRows, priceLabel, countLabel, shopSearches} from './knjigeModel.mjs?v=6';
+import {relevantRows, priceLabel, countLabel, shopSearches, REQUEST_FIELDS, missingRequestFields,
+        emailShops, emaillessShops, requestDraft, mailtoLink} from './knjigeModel.mjs?v=7';
 
 (function initKnjige(global) {
     const ENDPOINT = 'https://knjige.domen.si/';
@@ -17,13 +18,15 @@ import {relevantRows, priceLabel, countLabel, shopSearches} from './knjigeModel.
     let panelLang = 'sl';
     const state = {
         open: false,
-        mode: 'new',           // 'new' | 'antikvariat'
+        mode: 'new',           // 'new' | 'antikvariat' | 'email'
         busy: false,
         query: '',
         answered: '',
         rows: [],
         notes: [],
         error: '',
+        request: {},           // the reader's letter to the shops
+        emailLang: 'sl',
         interest: null,
         depth: 0,
     };
@@ -61,6 +64,8 @@ import {relevantRows, priceLabel, countLabel, shopSearches} from './knjigeModel.
                         aria-selected="true">nove knjige</button>
                 <button type="button" class="knjige-tab" role="tab" data-mode="antikvariat"
                         aria-selected="false">antikvariat</button>
+                <button type="button" class="knjige-tab" role="tab" data-mode="email"
+                        aria-selected="false">email all</button>
             </div>
             <form class="knjige-search" role="search">
                 <input class="knjige-search__input" type="search" name="q" autocomplete="off"
@@ -77,6 +82,7 @@ import {relevantRows, priceLabel, countLabel, shopSearches} from './knjigeModel.
         }
         root.querySelector('.knjige-search').addEventListener('submit', event => {
             event.preventDefault();
+            if (state.mode === 'email') return;      // the letter has its own button
             const value = root.querySelector('.knjige-search__input').value.trim();
             if (!value) return;
             if (state.mode === 'antikvariat') showUsed(value);
@@ -86,12 +92,19 @@ import {relevantRows, priceLabel, countLabel, shopSearches} from './knjigeModel.
     }
 
     function setMode(mode) {
-        state.mode = mode === 'antikvariat' ? 'antikvariat' : 'new';
+        state.mode = mode === 'antikvariat' ? 'antikvariat' : mode === 'email' ? 'email' : 'new';
+        const searchForm = root.querySelector('.knjige-search');
         for (const tab of root.querySelectorAll('.knjige-tab')) {
             const active = tab.dataset.mode === state.mode;
             tab.classList.toggle('is-active', active);
             tab.setAttribute('aria-selected', active ? 'true' : 'false');
         }
+        if (state.mode === 'email') {
+            if (searchForm) searchForm.hidden = true;
+            renderResults();
+            return;
+        }
+        if (searchForm) searchForm.hidden = false;
         if (state.mode === 'antikvariat') showUsed(state.query);
         else if (state.query) search(state.query);
         else renderResults();
@@ -101,6 +114,10 @@ import {relevantRows, priceLabel, countLabel, shopSearches} from './knjigeModel.
         const box = root?.querySelector('.knjige-results');
         if (!box) return;
         box.innerHTML = '';
+        if (state.mode === 'email') {
+            renderEmail(box);
+            return;
+        }
         if (state.mode === 'antikvariat') {
             renderUsed(box);
             return;
@@ -195,6 +212,122 @@ import {relevantRows, priceLabel, countLabel, shopSearches} from './knjigeModel.
             }
         }
         box.appendChild(launcherBlock(query, true));
+    }
+
+    // ---- email all: the reader's request to every shop that takes one --------------------------
+
+    /**
+     * A blank form with a letter already written in it. The reader changes the book, the details and the
+     * name; everything those fields touch is painted orange so nothing is sent half-filled by accident.
+     * Submitting hands the finished letter to their own mail program with the shops' addresses in it.
+     */
+    function renderEmail(box) {
+        const shops = emailShops();
+        const forms = emaillessShops();
+        const lang = state.emailLang;
+        const values = state.request;
+
+        const head = el('div', 'knjige-mail__head');
+        head.innerHTML = `
+            <span class="knjige-mail__title">${lang === 'en'
+                ? 'One letter to every antiquariat'
+                : 'Eno pismo vsem antikvariatom'}</span>
+            <span class="knjige-lang" role="group" aria-label="${lang === 'en' ? 'Language' : 'Jezik'}">
+                <button type="button" class="knjige-lang__btn${lang === 'sl' ? ' is-active' : ''}"
+                        data-mail-lang="sl">slovensko</button>
+                <button type="button" class="knjige-lang__btn${lang === 'en' ? ' is-active' : ''}"
+                        data-mail-lang="en">english</button>
+            </span>`;
+        box.appendChild(head);
+
+        const form = el('form', 'knjige-mail__form');
+        form.innerHTML = REQUEST_FIELDS.map(field => `
+            <label class="knjige-mail__field${field.required ? ' is-required' : ''}"
+                   data-field="${field.name}">
+                <span class="knjige-mail__label">${escapeHtml(field.label[lang])}</span>
+                <input class="knjige-mail__input" type="text" name="${field.name}"
+                       autocomplete="off"
+                       placeholder="${escapeHtml(field.hint[lang])}"
+                       value="${escapeHtml(values[field.name] || '')}">
+            </label>`).join('');
+        box.appendChild(form);
+
+        const preview = el('div', 'knjige-mail__preview');
+        box.appendChild(preview);
+        paintEmail(preview, form, values, lang);
+
+        const to = el('p', 'knjige-mail__to');
+        to.innerHTML = `<strong>${shops.length}</strong> ${lang === 'en' ? 'recipients' : 'naslovnikov'}`
+            + `: ${shops.map(shop => escapeHtml(shop.label)).join(', ')}`;
+        box.appendChild(to);
+
+        const note = el('p', 'knjige-note');
+        note.textContent = lang === 'en'
+            ? 'The first shop is in To and the rest in Bcc, so the shops do not see each other.'
+            : 'Prva trgovina je v »Za«, ostale v skritem kopiranju (Bcc), da se trgovine ne vidijo med seboj.';
+        box.appendChild(note);
+
+        if (forms.length) {
+            const missing = el('p', 'knjige-note');
+            missing.innerHTML = (lang === 'en'
+                ? 'No published address, only their own form: '
+                : 'Brez objavljenega naslova, le obrazec na svoji strani: ')
+                + forms.map(shop => `<a href="${escapeHtml(shop.url)}" target="_blank"
+                        rel="noopener noreferrer">${escapeHtml(shop.label)}</a>`).join(', ');
+            box.appendChild(missing);
+        }
+
+        const send = el('button', 'knjige-mail__send');
+        send.type = 'button';
+        send.textContent = lang === 'en' ? 'Open in my mail program' : 'Odpri v svojem poštnem programu';
+        send.addEventListener('click', () => {
+            const link = mailtoLink(values, lang);
+            if (link) window.location.href = link;
+        });
+        box.appendChild(send);
+
+        for (const input of form.querySelectorAll('.knjige-mail__input')) {
+            input.addEventListener('input', () => {
+                values[input.name] = input.value;
+                paintEmail(preview, form, values, lang);
+            });
+        }
+        for (const button of head.querySelectorAll('.knjige-lang__btn')) {
+            button.addEventListener('click', () => {
+                state.emailLang = button.dataset.mailLang === 'en' ? 'en' : 'sl';
+                renderResults();
+            });
+        }
+    }
+
+    /** The letter as it stands, with the reader's own words marked so they can see what is theirs. */
+    function paintEmail(preview, form, values, lang) {
+        const draft = requestDraft(values, lang);
+        const wrap = (text, name) => text
+            ? `<span class="knjige-todo${String(values[name] || '').trim() ? '' : ' is-empty'}">${escapeHtml(text)}</span>`
+            : '';
+        const read = name => String(values[name] || '').trim();
+        const title = read('title') || (lang === 'en' ? '[book title]' : '[naslov knjige]');
+        const author = read('author');
+        const details = read('details') || (lang === 'en' ? '[details]' : '[podrobnosti]');
+        const name = read('name') || (lang === 'en' ? '[your name]' : '[vaše ime]');
+
+        const body = draft.body
+            .replace(title, wrap(title, 'title'))
+            .replace(details, wrap(details, 'details'))
+            .replace(name, wrap(name, 'name'));
+        const withAuthor = author ? body.replace(author, wrap(author, 'author')) : body;
+
+        preview.innerHTML = `
+            <div class="knjige-mail__subject">${escapeHtml(draft.subject)
+                .replace(escapeHtml(title), wrap(title, 'title'))}</div>
+            <pre class="knjige-mail__body">${withAuthor}</pre>`;
+
+        for (const field of REQUEST_FIELDS) {
+            const label = form.querySelector(`[data-field="${field.name}"]`);
+            if (!label) continue;
+            label.classList.toggle('is-todo', field.required && !read(field.name));
+        }
     }
 
     function launcherBlock(query, used) {

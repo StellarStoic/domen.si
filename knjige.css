@@ -100,6 +100,134 @@
     outline: none;
 }
 
+/* Orange marks the parts the reader has to change. Inside the letter the words sit on a nested panel,
+   so they take the accent's on-surface shade: the bright orange measures 2.7:1 on that panel in the
+   dark theme, which is not readable and was not worth arguing about. */
+.knjige-todo {
+    color: var(--accent-on-surface);
+    font-weight: 600;
+}
+
+.knjige-mail__head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 0.6rem;
+    margin-bottom: 0.6rem;
+}
+
+.knjige-mail__title {
+    font-size: 0.82rem;
+    letter-spacing: 0.02em;
+    color: var(--ink);
+}
+
+.knjige-mail__form {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.5rem 0.6rem;
+}
+
+.knjige-mail__field {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+    grid-column: span 2;
+}
+
+.knjige-mail__field[data-field="author"],
+.knjige-mail__field[data-field="name"] {
+    grid-column: span 1;
+}
+
+.knjige-mail__label {
+    font-size: 0.68rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--muted);
+}
+
+/* an empty required field is painted orange: it is the next thing to do */
+.knjige-mail__field.is-todo .knjige-mail__label {
+    color: var(--accent-text);
+}
+
+.knjige-mail__field.is-todo .knjige-mail__input {
+    border-left: 3px solid var(--accent);
+}
+
+.knjige-mail__input {
+    padding: 0.45rem 0.55rem;
+    background: var(--surface);
+    border: 1px solid var(--surface-edge);
+    border-left: 3px solid var(--surface-edge);
+    color: var(--ink);
+    font: inherit;
+    font-size: 0.84rem;
+}
+
+.knjige-mail__input::placeholder {
+    color: var(--muted);
+    opacity: 0.75;
+}
+
+.knjige-mail__input:focus-visible {
+    border-color: var(--active);
+    outline: none;
+}
+
+.knjige-mail__preview {
+    margin-top: 0.7rem;
+    padding: 0.6rem 0.7rem;
+    background: var(--surface);
+    border: 1px solid var(--surface-edge);
+    border-radius: 2px;
+}
+
+.knjige-mail__subject {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--ink);
+    padding-bottom: 0.4rem;
+    margin-bottom: 0.4rem;
+    border-bottom: 1px dashed var(--surface-edge);
+}
+
+.knjige-mail__body {
+    margin: 0;
+    font-family: inherit;
+    font-size: 0.78rem;
+    line-height: 1.45;
+    color: var(--ink);
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+}
+
+.knjige-mail__to {
+    margin: 0.55rem 0 0;
+    font-size: 0.74rem;
+    line-height: 1.4;
+    color: var(--muted);
+}
+
+.knjige-mail__send {
+    margin-top: 0.6rem;
+    padding: 0.5rem 0.9rem;
+    background: var(--surface);
+    border: 1px solid var(--surface-edge);
+    border-left: 3px solid var(--active);
+    color: var(--ink);
+    font: inherit;
+    font-size: 0.84rem;
+    cursor: pointer;
+}
+
+.knjige-mail__send:hover,
+.knjige-mail__send:focus-visible {
+    border-color: var(--active);
+    outline: none;
+}
+
 .knjige-results {
     display: flex;
     flex-direction: column;

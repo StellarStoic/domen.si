@@ -6,7 +6,8 @@ import {readFileSync} from 'node:fs';
 import {fileURLToPath} from 'node:url';
 import {dirname, join} from 'node:path';
 import {fold, queryWords, isRelevant, relevantRows, priceLabel, countLabel, shopSearches,
-        ANTIQUARIATS} from '../knjigeModel.mjs';
+        ANTIQUARIATS, emailShops, emaillessShops, requestDraft, mailtoLink, missingRequestFields,
+        REQUEST_FIELDS} from '../knjigeModel.mjs';
 
 const ROOT = dirname(dirname(fileURLToPath(import.meta.url)));
 const read = name => readFileSync(join(ROOT, name), 'utf8');
@@ -216,4 +217,78 @@ test('the stylesheet names no colour of its own', () => {
     const withoutComments = CSS.replace(/\/\*[\s\S]*?\*\//g, '');
     const colours = withoutComments.match(/#[0-9a-fA-F]{3,8}\b|rgba?\(|hsla?\(/g) || [];
     assert.deepEqual(colours, [], 'the cell must use the palette roles');
+});
+
+
+test('email all writes one letter to the seven shops that publish an address', () => {
+    const shops = emailShops();
+    assert.equal(shops.length, 7);
+    assert.ok(shops.every(shop => /^[^@\s]+@[^@\s]+\.[a-z]{2,}$/.test(shop.email)),
+        'every recipient is a real address shape');
+    // a marketplace of private sellers takes no requests, so Bolha is not a recipient
+    assert.ok(!shops.some(shop => /bolha/i.test(shop.label + shop.email)));
+    // the two shops with only a form on their own site are named, never given a made-up address
+    assert.deepEqual(emaillessShops().map(shop => shop.label).sort(), ['Bukvarna.net', 'Knjigoljub']);
+    assert.ok(!ANTIQUARIATS.some(shop => shop.email && !shop.emailSource),
+        'an address is only there when its source page was recorded');
+});
+
+test('the letter asks for the book and for the waiting list', () => {
+    const values = {title: 'Ubijanje države', author: 'Michael Parenti',
+                    details: 'Ciceron 2023, mehka vezava', name: 'Domen'};
+    const sl = requestDraft(values, 'sl');
+    assert.equal(sl.subject, 'Povpraševanje: Ubijanje države');
+    for (const piece of ['Spoštovani', 'Ubijanje države', 'Michael Parenti', 'Ciceron 2023',
+                         'seznam', 'čakajoč', 'Domen']) {
+        assert.ok(sl.body.includes(piece), `the Slovene letter is missing ${piece}`);
+    }
+    const en = requestDraft(values, 'en');
+    assert.equal(en.subject, 'Wanted: Ubijanje države');
+    for (const piece of ['Dear bookseller', 'used copy', 'wanted list', 'Kind regards', 'Domen']) {
+        assert.ok(en.body.includes(piece), `the English letter is missing ${piece}`);
+    }
+    // blank lines survive: it is a letter, not a wall of text
+    assert.ok(sl.body.includes('\r\n\r\n'));
+    // an unfilled field shows as a marked gap rather than as nothing
+    assert.match(requestDraft({}, 'sl').subject, /\[naslov knjige\]/);
+    assert.match(requestDraft({}, 'en').body, /\[your name\]/);
+});
+
+test('the mailto carries every shop, one in To and the rest in Bcc', () => {
+    const link = mailtoLink({title: 'Biblija', details: 'stara izdaja', name: 'Domen'}, 'sl');
+    const shops = emailShops();
+    assert.ok(link.startsWith(`mailto:${shops[0].email}?`), 'the first shop is the addressee');
+    const query = new URLSearchParams(link.slice(link.indexOf('?') + 1));
+    assert.equal(query.get('bcc'), shops.slice(1).map(s => s.email).join(','));
+    assert.ok(query.get('subject').length > 5 && query.get('body').length > 100);
+    // no line breaks may leak into the address unencoded
+    assert.ok(!link.includes('\r') && !link.includes('\n'));
+});
+
+test('the tool marks exactly what the reader must fill in', () => {
+    assert.deepEqual(missingRequestFields({}), ['title', 'details', 'name']);
+    assert.deepEqual(missingRequestFields({title: 'x', details: 'y', name: 'z'}), []);
+    // the author is optional and never blocks a letter
+    assert.ok(!REQUEST_FIELDS.find(field => field.name === 'author').required);
+    // every field is labelled in both languages
+    for (const field of REQUEST_FIELDS) {
+        assert.ok(field.label.sl && field.label.en && field.hint.sl && field.hint.en);
+    }
+});
+
+test('the cell carries the third tab, and hides the book search inside it', () => {
+    assert.match(VIEW, /data-mode="email"/);
+    assert.match(VIEW, /email all/);
+    assert.match(VIEW, /function renderEmail/);
+    assert.match(VIEW, /function paintEmail/);
+    assert.match(VIEW, /window\.location\.href = link/);
+    // an empty required field is painted, so nothing is sent half-filled by accident
+    assert.match(VIEW, /classList\.toggle\('is-todo'/);
+    assert.match(VIEW, /knjige-todo/);
+    // the search box has nothing to do in the letter, and Enter must not fire a hidden search
+    assert.match(VIEW, /searchForm\.hidden = true/);
+    assert.match(VIEW, /if \(state\.mode === 'email'\) return;/);
+    // both languages, in the cell itself
+    assert.match(VIEW, /data-mail-lang="sl"/);
+    assert.match(VIEW, /data-mail-lang="en"/);
 });

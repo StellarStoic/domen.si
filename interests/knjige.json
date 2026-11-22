@@ -1,8 +1,8 @@
 {
     "id": "knjige",
     "name": "BOOKS",
-    "description": "Iskanje po knjigah pri nas.<br><br><strong>Nove knjige</strong> — Mladinska knjiga.<br><br><strong>Antikvariat</strong> — rabljene knjige po slovenskih antikvariatih in Bolhi. Povezave vodijo v slovenske antikvariate z že vpisanim naslovom, ki ga iščete.",
-    "descriptionEn": "A book lookup in Slovene shops.<br><br><strong>New books</strong> — Mladinska knjiga.<br><br><strong>Antikvariat</strong> — second-hand books from the Slovene antiquariats and from Bolha. The links open them with the title you are looking for already in the search box.",
+    "description": "Iskanje po knjigah pri nas.<br><br><strong>Nove knjige</strong> — Mladinska knjiga.<br><br><strong>Antikvariat</strong> — rabljene knjige po slovenskih antikvariatih in Bolhi. Povezave vodijo v slovenske antikvariate z že vpisanim naslovom, ki ga iščete.<br><br><strong>Email all</strong> — sestavite eno povpraševanje za rabljeno knjigo; oranžna polja so tista, ki jih morate izpolniti sami, gumb pa odpre vaš poštni program z naslovi antikvariatov.",
+    "descriptionEn": "A book lookup in Slovene shops.<br><br><strong>New books</strong> — Mladinska knjiga.<br><br><strong>Antikvariat</strong> — second-hand books from the Slovene antiquariats and from Bolha. The links open them with the title you are looking for already in the search box.<br><br><strong>Email all</strong> — write one request for a used book; the orange fields are the ones you fill in, and the button opens your own mail program with the antiquariats' addresses.",
     "stats": "knjige",
     "visible": true
 }
