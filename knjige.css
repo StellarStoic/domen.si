@@ -1,0 +1,208 @@
+/* KNJIGE / ANTIKVARIAT — a search box and a list, in the board's own palette roles. */
+
+.brain-container.has-knjige {
+    position: relative;
+}
+
+.knjige-view {
+    position: absolute;
+    inset: 0;
+    /* above the cubes, which set z-index 50 inline on the BACK cube */
+    z-index: 60;
+    display: flex;
+    flex-direction: column;
+    gap: 0.7rem;
+    padding: 0.9rem 1rem 1.2rem;
+    overflow-y: auto;
+    background: var(--page);
+    border: 2px solid var(--rule);
+    color: var(--ink);
+}
+
+.knjige-view[hidden] {
+    display: none !important;
+}
+
+.knjige-view__head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 0.8rem;
+    border-bottom: 1px solid var(--rule);
+    padding-bottom: 0.5rem;
+}
+
+.knjige-view__title {
+    font-size: 0.95rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+}
+
+.knjige-view__sub {
+    font-size: 0.74rem;
+    color: var(--muted);
+}
+
+.knjige-view__close {
+    background: none;
+    border: 1px solid var(--rule);
+    color: var(--muted);
+    font-size: 1rem;
+    line-height: 1;
+    padding: 0.15rem 0.45rem;
+    cursor: pointer;
+}
+
+.knjige-view__close:hover,
+.knjige-view__close:focus-visible {
+    color: var(--ink);
+    border-color: var(--active);
+    outline: none;
+}
+
+.knjige-search {
+    display: flex;
+    gap: 0.4rem;
+}
+
+.knjige-search__input {
+    flex: 1;
+    min-width: 0;
+    padding: 0.5rem 0.6rem;
+    background: var(--soft);
+    border: 1px solid var(--rule);
+    color: var(--ink);
+    font: inherit;
+    font-size: 0.86rem;
+}
+
+.knjige-search__input:focus-visible {
+    outline: none;
+    border-color: var(--active);
+}
+
+.knjige-search__go {
+    padding: 0.5rem 0.9rem;
+    background: var(--soft);
+    border: 1px solid var(--rule);
+    color: var(--ink);
+    font: inherit;
+    font-size: 0.84rem;
+    cursor: pointer;
+}
+
+.knjige-search__go:hover,
+.knjige-search__go:focus-visible {
+    border-color: var(--active);
+    color: var(--active-ink, var(--ink));
+    outline: none;
+}
+
+.knjige-toggle {
+    display: flex;
+    align-items: center;
+    gap: 0.45rem;
+    font-size: 0.78rem;
+    color: var(--muted);
+}
+
+.knjige-toggle em {
+    font-style: normal;
+    opacity: 0.8;
+}
+
+.knjige-results {
+    display: flex;
+    flex-direction: column;
+    gap: 0.45rem;
+}
+
+.knjige-row {
+    display: grid;
+    grid-template-columns: auto 1fr auto auto;
+    align-items: baseline;
+    gap: 0.55rem;
+    padding: 0.5rem 0.6rem;
+    background: var(--soft);
+    border: 1px solid var(--rule);
+    border-left: 3px solid var(--accent);
+    text-decoration: none;
+    color: var(--ink);
+}
+
+.knjige-row:hover,
+.knjige-row:focus-visible {
+    border-left-color: var(--active);
+    outline: none;
+}
+
+.knjige-row__shop {
+    font-size: 0.68rem;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    color: var(--muted);
+    white-space: nowrap;
+}
+
+.knjige-row__title {
+    font-size: 0.86rem;
+    font-weight: 600;
+}
+
+.knjige-row__price {
+    font-size: 0.82rem;
+    color: var(--ink);
+    white-space: nowrap;
+}
+
+.knjige-row__stock {
+    font-size: 0.68rem;
+    color: var(--muted);
+    white-space: nowrap;
+}
+
+.knjige-note {
+    font-size: 0.8rem;
+    color: var(--muted);
+}
+
+.knjige-note--error {
+    color: var(--ink);
+    border-left: 3px solid var(--rule);
+    padding-left: 0.5rem;
+}
+
+.knjige-antikvariati {
+    margin-top: 0.6rem;
+    padding-top: 0.6rem;
+    border-top: 1px solid var(--rule);
+    font-size: 0.78rem;
+    color: var(--muted);
+}
+
+.knjige-antikvariati__why {
+    display: block;
+    margin: 0.2rem 0 0.4rem;
+    font-size: 0.72rem;
+}
+
+.knjige-antikvariati ul {
+    margin: 0;
+    padding-left: 1.1rem;
+    columns: 2;
+    column-gap: 1.2rem;
+}
+
+.knjige-antikvariati li {
+    margin-bottom: 0.2rem;
+    break-inside: avoid;
+}
+
+.knjige-antikvariati a {
+    color: var(--ink);
+}
+
+.knjige-antikvariati a:hover,
+.knjige-antikvariati a:focus-visible {
+    color: var(--active-ink, var(--active));
+}

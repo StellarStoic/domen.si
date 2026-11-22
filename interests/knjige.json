@@ -1,0 +1,8 @@
+{
+    "id": "knjige",
+    "name": "KNJIGE / ANTIKVARIAT",
+    "description": "Iskanje po knjigah pri nas. Iskalnik vpraša Mladinsko knjigo (emka) in po želji Bolho.<br><br>Slovenski antikvariati zavrnejo vsak program, tudi svoj robots.txt, zato jih ne moremo iskati sami — odpremo jih, naslov pa poiščete pri njih.",
+    "descriptionEn": "A book lookup in Slovene shops. It asks Mladinska knjiga (emka) and, if you tick the box, Bolha classifieds.<br><br>The Slovene antiquariats refuse every program, robots.txt included, so the cell cannot search them — it opens them instead and you search there.",
+    "stats": "knjige",
+    "visible": true
+}

@@ -131,7 +131,7 @@ function setupBoardPanZoom() {
     const onTouchStart = event => {
         if (!event.touches.length) return;
         // A touch that starts on a view or the panel is not the board's business.
-        if (event.target.closest('.polistat-view, .feed-view, .day86400-view, .pod-inspector-view, .xdeleter-view, .keytool-view, .keymaker-view, .open-eyes-view')) return;
+        if (event.target.closest('.polistat-view, .feed-view, .day86400-view, .pod-inspector-view, .xdeleter-view, .keytool-view, .keymaker-view, .open-eyes-view, .knjige-view')) return;
         if (event.touches.length === 1) {
             touchMode = 'pan';
             start = { point: point(event.touches[0]), x: boardView.x, y: boardView.y };
@@ -189,7 +189,7 @@ function setupBoardPanZoom() {
 
     const onMouseDown = event => {
         if (event.button !== 0) return;
-        if (event.target.closest('.polistat-view, .feed-view, .day86400-view, .pod-inspector-view, .xdeleter-view, .keytool-view, .keymaker-view, .open-eyes-view, .podcast-board')) return;
+        if (event.target.closest('.polistat-view, .feed-view, .day86400-view, .pod-inspector-view, .xdeleter-view, .keytool-view, .keymaker-view, .open-eyes-view, .knjige-view, .podcast-board')) return;
         start = { point: { x: event.clientX, y: event.clientY }, x: boardView.x, y: boardView.y };
         boardView.dragging = false;
         const onMove = moveEvent => {
@@ -293,7 +293,7 @@ function setupBoardPanZoom() {
     container.addEventListener('wheel', onWheel, { passive: false });
     // a double click on empty board space is the quick way back out
     container.addEventListener('dblclick', event => {
-        if (event.target.closest('.cube, .back-button, .polistat-view, .feed-view, .day86400-view, .pod-inspector-view, .xdeleter-view, .keytool-view, .keymaker-view, .open-eyes-view, .day86400-view')) return;
+        if (event.target.closest('.cube, .back-button, .polistat-view, .feed-view, .day86400-view, .pod-inspector-view, .xdeleter-view, .keytool-view, .keymaker-view, .open-eyes-view, .knjige-view, .day86400-view')) return;
         resetBoardView();
     });
     window.addEventListener('resize', applyBoardView);
@@ -719,6 +719,7 @@ function renderBrain() {
     window.keymakerView?.close?.();
     // OPEN YOUR EYES: the video view covers the container exactly as the others do.
     window.openEyesView?.close?.();
+    window.knjigeView?.close?.();
     window.podcastFeedView?.close?.();
     window.polistatView?.close?.();
     window.day86400View?.close?.();
@@ -1137,7 +1138,8 @@ function createCube(interest, index, isSubCube = false, parentPosition = null, d
             || interest.stats === 'xdeleter'
             || interest.stats === 'keytool'
             || interest.stats === 'keymaker'
-            || interest.stats === 'openEyes';
+            || interest.stats === 'openEyes'
+            || interest.stats === 'knjige';
 
         if (opensBoardView || getVisibleInterests(interest.subInterests).length > 0) {
             // Get current position in pixels for navigation (if not set this will produce NaN)
@@ -1463,6 +1465,10 @@ function handleCubeClick(interest, position, depth) {
     }
 
     // OPEN YOUR EYES: the recordings list takes the board, and each recording plays in it.
+    if (interest.stats === 'knjige') {
+        window.knjigeView?.open?.(interest, depth);
+        return;
+    }
     if (interest.stats === 'openEyes') {
         window.openEyesView?.open?.(interest, depth);
         return;
@@ -1541,6 +1547,7 @@ function leaveNewestOverlays() {
     }
 
     for (const [view, selector] of [
+        ['knjigeView', '#brain-container .knjige-view'],
         ['keymakerView', '#brain-container .keymaker-view'],
         ['keytoolView', '#brain-container .keytool-view'],
         ['xdeleterView', '#brain-container .xdeleter-view'],

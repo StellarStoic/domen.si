@@ -1,9 +1,10 @@
-﻿[
-    "about.json",
-    "fermentation.json",
-    "freedomtech.json",
-    "photography.json",
-    "podcasts.json",
-    "open-eyes.json",
-    "builds.json"
+[
+  "about.json",
+  "fermentation.json",
+  "freedomtech.json",
+  "photography.json",
+  "podcasts.json",
+  "open-eyes.json",
+  "builds.json",
+  "knjige.json"
 ]
