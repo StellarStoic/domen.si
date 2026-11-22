@@ -257,12 +257,32 @@ import {videoCountLabel, embedUrl, watchUrl, hostOf, listedVideos, whenLabel, pr
                     <span class="open-eyes-sources__host">${escapeHtml(hostOf(source.url))}</span>
                 </li>`).join('')}</ul>
             </div>` : ''}
+            ${bookList(video)}
             ${video.references ? `<p class="interest-metadata">${escapeHtml(video.references)}</p>` : ''}
             ${platformLine(video)}`;
         wireLanguageToggle(content);
         if (shell) shell.hidden = false;
     }
 
+
+    /**
+     * More of the speaker's books, where the reader can actually get them.
+     *
+     * A Slovene edition is worth more to this audience than the original, so the record says which is
+     * which in `note`; the view prints that note and the shop's host, and never invents a price.
+     */
+    function bookList(video) {
+        const books = Array.isArray(video?.books) ? video.books.filter(book => book && book.url) : [];
+        if (!books.length) return '';
+        return `<div class="open-eyes-books">
+            <strong>Več od ${escapeHtml(video.speaker || 'avtorja')}</strong>
+            <ul>${books.map(book => `<li>
+                <a href="${escapeHtml(book.url)}" target="_blank" rel="noopener noreferrer">${escapeHtml(book.label || book.url)}</a>
+                ${book.note ? `<span class="open-eyes-books__note">${escapeHtml(book.note)}</span>` : ''}
+                <span class="open-eyes-sources__host">${escapeHtml(hostOf(book.url))}</span>
+            </li>`).join('')}</ul>
+        </div>`;
+    }
 
     /**
      * The line about where it plays and how its subtitles arrive — or nothing.

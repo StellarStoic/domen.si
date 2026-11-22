@@ -148,6 +148,27 @@
     color: var(--muted);
 }
 
+/* More by the speaker: the same list shape as the sources, with the edition spelled out. */
+.open-eyes-books {
+    margin-top: 1rem;
+}
+
+.open-eyes-books ul {
+    margin: 0.35rem 0 0;
+    padding-left: 1.1rem;
+}
+
+.open-eyes-books li {
+    margin-bottom: 0.4rem;
+    font-size: 0.82rem;
+}
+
+.open-eyes-books__note {
+    display: block;
+    font-size: 0.72rem;
+    color: var(--muted);
+}
+
 /* ---- the player ---- */
 
 .open-eyes-player {

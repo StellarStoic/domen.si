@@ -253,7 +253,6 @@ test('the cell describes itself in both languages, and the reader can switch', (
     assert.ok(Number(HTML.match(/openEyes\.css\?v=(\d+)/)[1]) >= 2);
 });
 
-
 test('a record waiting for its address is listed, a half-written one is not', () => {
     const playing = {id: 'a', date: '2025-02-19', video: {provider: 'rumble', id: 'v7girrk', pub: '48lg0b'}};
     const waiting = {id: 'b', date: '1999-05', status: 'awaiting-link', video: {}};
@@ -308,4 +307,23 @@ test('the Parenti recording is in the data with its sources and no address yet',
         'the Woodward page reference was lost');
     // the record is listed even though it cannot play
     assert.ok(listedVideos(DATA.videos).some(v => v.id === parenti.id));
+});
+
+test('the panel offers more of the speaker\'s books, Slovene edition first', () => {
+    const parenti = DATA.videos.find(v => v.id === 'parenti-us-war-yugoslavia-1999');
+    assert.ok(Array.isArray(parenti.books) && parenti.books.length >= 2, 'no books on the record');
+    const [first] = parenti.books;
+    assert.match(first.label, /Ubijanje države/, 'the Slovene edition comes first');
+    assert.match(first.note, /Ciceron/, 'the publisher is named');
+    assert.match(first.note, /Poznič/, 'the translator is named');
+    assert.match(first.note, /26,50/, 'the price is on the record, not in the layout');
+    assert.ok(parenti.books.every(b => /^https?:\/\//.test(b.url)), 'a book has no address');
+    // the section is drawn, titled with the speaker, and escapes everything
+    assert.match(VIEW, /function bookList\(video\)/);
+    assert.match(VIEW, /Več od \$\{escapeHtml\(video\.speaker/);
+    assert.match(VIEW, /escapeHtml\(book\.url\)/);
+    assert.match(VIEW, /escapeHtml\(book\.note\)/);
+    assert.match(CSS, /\.open-eyes-books__note/);
+    // a record with no books draws nothing at all
+    assert.match(VIEW, /if \(!books\.length\) return ''/);
 });
