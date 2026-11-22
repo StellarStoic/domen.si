@@ -83,11 +83,16 @@ export const ANTIQUARIATS = [
      search: 'https://www.bukvarna.net/?s={q}'},
     {label: 'Bukvarna Ciproš (Maribor)', url: 'https://bukvarna.org/',
      search: 'https://bukvarna.org/?s={q}'},
-    {label: 'Antikvariat Glavan = Antiquariat.si', url: 'https://www.antiquariat.si/'},
-    {label: 'Antika.si', url: 'https://www.antika.si/'},
+    {label: 'Antikvariat Glavan = Antiquariat.si', url: 'https://www.antiquariat.si/',
+     search: 'https://www.antiquariat.si/iskanje?q={q}'},
+    {label: 'Antika.si', url: 'https://www.antika.si/',
+     search: 'https://www.antika.si/search?q={q}'},
+    {label: 'Antikvariat Vodnik', url: 'https://www.antikvariat-vodnik.si/',
+     search: 'https://www.antikvariat-vodnik.si/?s={q}'},
+    {label: 'Antikvariat Antiqua', url: 'https://www.antikvariatantiqua.si/',
+     search: 'https://www.antikvariatantiqua.si/?s={q}'},
+    // its search runs in JavaScript and takes no query in the address; it opens at the front page
     {label: 'Rabljene-Knjige.si', url: 'https://rabljene-knjige.si/'},
-    {label: 'Antikvariat Vodnik', url: 'https://www.antikvariat-vodnik.si/'},
-    {label: 'Antikvariat Antiqua', url: 'https://www.antikvariatantiqua.si/'},
 ];
 
 /** Shops the cell can actually ask, and where the reader goes when it cannot. */

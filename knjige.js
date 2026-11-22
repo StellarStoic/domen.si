@@ -2,11 +2,12 @@
 //
 // The cube carries stats: "knjige". Two modes share the same search box:
 //   • nove knjige — asks knjige.domen.si, a Worker that queries Mladinska knjiga and, on request, Bolha
-//   • antikvariat — the used-book shops. They refuse Tor, and a page cannot cross-origin them, so the
-//     cell shows the most recent recorded sweep (data/antikvariat.json) with its date and links into
-//     each shop's own search. A dated answer the reader can weigh beats a live-looking one nobody took.
+//   • antikvariat — the used-book shops. A page cannot cross-origin them, so the cell shows the most
+//     recent recorded sweep (data/antikvariat.json) with its date, and links into each shop's own
+//     search with the title already in the address. Nothing about how any of that works is printed in
+//     the cell: the reader gets results and links, not an account of the plumbing.
 
-import {relevantRows, priceLabel, countLabel, shopSearches, trackedEntry} from './knjigeModel.mjs?v=3';
+import {relevantRows, priceLabel, countLabel, shopSearches, trackedEntry} from './knjigeModel.mjs?v=4';
 
 (function initKnjige(global) {
     const ENDPOINT = 'https://knjige.domen.si/';
@@ -210,10 +211,7 @@ import {relevantRows, priceLabel, countLabel, shopSearches, trackedEntry} from '
                 box.appendChild(el('p', 'knjige-note',
                     `Takrat pri nobenem od pregledanih antikvariatov ni bilo izvoda za »${entry.label}«.`));
             }
-            if (entry.notSearchable?.length) {
-                box.appendChild(el('p', 'knjige-note',
-                    `Nepregledano: ${entry.notSearchable.join(', ')} — strani ne odgovorijo programu.`));
-            }
+
         }
 
         box.appendChild(launcherBlock(query, true));
@@ -221,26 +219,13 @@ import {relevantRows, priceLabel, countLabel, shopSearches, trackedEntry} from '
 
     function launcherBlock(query, used) {
         const shops = shopSearches(query).filter(shop => !shop.searchable);
-        const waitlist = shops.find(shop => shop.waitlist);
         const block = el('div', 'knjige-antikvariati');
         block.innerHTML = `
-            <strong>${used ? 'Antikviati — odprite in poiščite' : 'Rabljeno pri antikvariatih'}</strong>
-            <span class="knjige-antikvariati__why">
-                Iskalniki teh trgovin ne odgovorijo programu (Tor zavrnejo, stran pa jih ne more
-                vprašati), zato jih odprete sami. Kjer iskalnik sprejme naslov v povezavi, se odpre že
-                z vpisanim naslovom.
-            </span>
+            <strong>${used ? 'Antikviati' : 'Rabljeno pri antikvariatih'}</strong>
             <ul>${shops.map(shop => `<li>
                 <a href="${escapeHtml(shop.url)}" target="_blank" rel="noopener noreferrer">${escapeHtml(shop.label)}</a>
-                ${shop.prefilled ? '<span class="knjige-antikvariati__tag">išči</span>' : ''}
                 ${shop.waitlist ? '<span class="knjige-antikvariati__tag">seznam čakajočih</span>' : ''}
-            </li>`).join('')}</ul>
-            ${waitlist && query ? `<p class="knjige-antikvariati__note">
-                ${escapeHtml(waitlist.label)} vodi seznam iskalcev: pišite jim, da iščete
-                »${escapeHtml(query)}« — vpis ne obvezuje k nakupu in cene ne dvignejo.
-                <a href="${escapeHtml(waitlist.waitlistUrl || waitlist.url)}" target="_blank"
-                   rel="noopener noreferrer">pogoji</a>
-            </p>` : ''}`;
+            </li>`).join('')}</ul>`;
         return block;
     }
 

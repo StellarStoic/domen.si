@@ -72,28 +72,35 @@ test('the antiquariats are links, never pretend searches', () => {
     // other shop opens at its front page, because an invented ?s= lands on a 404 and looks broken.
     for (const shop of manual) {
         if (shop.prefilled) {
-            assert.match(shop.url, /\?s=Ubijanje%20dr%C5%BEave$/, `unexpected shape: ${shop.url}`);
+            // whatever the shop's own shape is (?s=, /iskanje?q=, /search?q=), the title is in it
+            assert.match(shop.url, /Ubijanje%20dr%C5%BEave$/, `the title is not in the address: ${shop.url}`);
         } else {
             assert.match(shop.url, /^https:\/\/[^?]+$/, `a query was invented for ${shop.label}`);
         }
         assert.equal(shop.manual, 'Ubijanje države', 'the reader is told what to paste');
     }
-    // the four shops whose search address was verified are prefilled, the rest are not
-    assert.deepEqual(manual.filter(s => s.prefilled).map(s => s.label).sort(),
-        ['Antikvariat Alef', 'Bukvarna Ciproš (Maribor)', 'Bukvarna.net', 'Knjigoljub']);
+    // every shop but one takes the title in its address, so a click lands on results, not a front page
+    const prefilled = manual.filter(s => s.prefilled).map(s => s.label).sort();
+    assert.deepEqual(manual.filter(s => !s.prefilled).map(s => s.label), ['Rabljene-Knjige.si'],
+        'only the shop with a JavaScript-only search opens at its front page');
+    assert.ok(prefilled.length === 8, `expected 8 prefilled, got ${prefilled.length}`);
+    // the non-WordPress ones need their own shape
+    const byLabel = Object.fromEntries(manual.map(s => [s.label, s.url]));
+    assert.match(byLabel['Antika.si'], /antika\.si\/search\?q=Ubijanje/);
+    assert.match(byLabel['Antikvariat Glavan = Antiquariat.si'], /antiquariat\.si\/iskanje\?q=Ubijanje/);
     // exactly one shop keeps a list of wanted titles, and it is Alef
     const waitlists = manual.filter(s => s.waitlist);
     assert.deepEqual(waitlists.map(s => s.label), ['Antikvariat Alef']);
-    assert.match(waitlists[0].waitlistUrl, /rabljene-knjige/);
     // Bolha does get a real search address, because its markup is known
     assert.match(searchable[1].url, /bolha\.com\/\?ctl=search_ads&keywords=Ubijanje/);
 });
 
-test('the cell says plainly which shops it cannot search', () => {
-    // Tor refusal is the real reason: the shops answer a home address, which is why the sweep exists
-    assert.match(VIEW, /Tor zavrnejo/);
-    assert.match(VIEW, /ne odgovorijo programu/);
-    // a shop giving nothing usable is a note, not a silent empty list
+test('the cell states results and never explains its own machinery', () => {
+    // no prose about transports, blockers or how the search works — D asked for none of it on the page
+    assert.doesNotMatch(VIEW, /Tor\b/);
+    assert.doesNotMatch(VIEW, /ne odgovorijo programu/);
+    assert.doesNotMatch(VIEW, /Nepregledano/);
+    // a shop giving nothing usable is still a note, not a silent empty list
     assert.match(VIEW, /Ni zadetkov za/);
     // the heading names the shops that answered, never one we merely asked
     assert.match(VIEW, /shops\.join\(', '\)/);
