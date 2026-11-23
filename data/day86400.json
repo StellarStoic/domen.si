@@ -1,23 +1,23 @@
 {
- "builtAt": "2026-11-23T06:20:05.009606+00:00",
+ "builtAt": "2026-11-23T16:20:04.530421+00:00",
  "window": {
   "hours": 24,
-  "from": "2026-11-22T06:20:05.009606+00:00",
-  "to": "2026-11-23T06:20:05.009606+00:00"
+  "from": "2026-11-22T16:20:04.530421+00:00",
+  "to": "2026-11-23T16:20:04.530421+00:00"
  },
  "counts": {
-  "total": 13,
-  "cz": 11,
-  "policija": 2
+  "total": 12,
+  "cz": 6,
+  "policija": 6
  },
  "bulletin": {
-  "day": "22. 11. 2026",
-  "url": "https://www.gov.si/novice/2026-11-22-dnevni-informativni-bilten-centra-za-obvescanje/"
+  "day": "23. 11. 2026",
+  "url": "https://www.gov.si/novice/2026-11-23-dnevni-informativni-bilten-centra-za-obvescanje/"
  },
  "sources": {
   "cz": {
    "label": "CZ — dnevni informativni bilten",
-   "url": "https://www.gov.si/novice/2026-11-22-dnevni-informativni-bilten-centra-za-obvescanje/"
+   "url": "https://www.gov.si/novice/2026-11-23-dnevni-informativni-bilten-centra-za-obvescanje/"
   },
   "policija": {
    "label": "Policija — sporočila in dogodki",
@@ -26,14 +26,10 @@
  },
  "failures": [],
  "categories": [
-  "Delovne in rudniške nesreče",
+  "Generalna policijska uprava",
   "Nesreče v cestnem prometu",
-  "Nesreče v gorah",
-  "Plazovi",
   "Policija",
-  "Potresi",
-  "Požari na prometnih sredstvih",
-  "Požari v komunalnih in drugih zabojnikih",
+  "Poplavljanje morja",
   "Požari v naravi oziroma na prostem",
   "Požari v objektih",
   "Tehnična in druga pomoč",
@@ -45,99 +41,90 @@
    "topic": "bilten",
    "category": "Uvod",
    "title": "Uvod",
-   "text": "Pomembnejši dogodki s področja sistema varstva pred naravnimi in drugimi nesrečami dne 21. novembra 2026.",
-   "url": "https://www.gov.si/novice/2026-11-22-dnevni-informativni-bilten-centra-za-obvescanje/",
-   "published": "2026-11-22T05:00:00+00:00"
+   "text": "Pomembnejši dogodki s področja sistema varstva pred naravnimi in drugimi nesrečami dne 22. novembra 2026.",
+   "url": "https://www.gov.si/novice/2026-11-23-dnevni-informativni-bilten-centra-za-obvescanje/",
+   "published": "2026-11-23T05:00:00+00:00"
   },
   {
    "source": "cz",
    "topic": "bilten",
-   "category": "Potresi",
-   "title": "Potresi",
-   "text": "Regijski center Nova Gorica Ob 9.46 so po podatkih Urada za seizmologijo, Agencije RS za okolje, seizmografi državne mreže potresnih opazovalnic zabeležili potres magnitude 2,3 v bližini Tolmina. Po prvih podatkih so potres čutili prebivalci Soče, Tolmina, Bohinja in okolice. Ocenjujejo, da intenziteta (učinki) potresa ni presegla IV. EMS-98.",
-   "url": "https://www.gov.si/novice/2026-11-22-dnevni-informativni-bilten-centra-za-obvescanje/",
-   "published": "2026-11-22T05:00:00+00:00"
-  },
-  {
-   "source": "cz",
-   "topic": "bilten",
-   "category": "Plazovi",
-   "title": "Plazovi",
-   "text": "Regijski center za obveščanje Koper Ob 18.58 je v Dantejevi ulici v Piranu krajan opozoril na možnost proženja plazu. Gasilci JZ GB Koper so skupaj s poveljnikom Civilne zaščite Piran opravili ogled in ugotovili, da se je z urejene brežine odkrušila večja količina kamenja in cementne prevleke. Odkrušeni material je ostal ujet v zaščitni mreži, ki se je naslonila na zaščitni zid in stanovanjsko hišo. Sanacijo bodo izvedli v prihodnjih dneh.",
-   "url": "https://www.gov.si/novice/2026-11-22-dnevni-informativni-bilten-centra-za-obvescanje/",
-   "published": "2026-11-22T05:00:00+00:00"
-  },
-  {
-   "source": "cz",
-   "topic": "bilten",
-   "category": "Nesreče v gorah",
-   "title": "Nesreče v gorah",
-   "text": "Regijski center za obveščanje Kranj Ob 14.34 je na poti med Viševnikom in Blejsko kočo na Lipanci v občini Gorje obolela oseba potrebovala zdravniško pomoč. Prvo pomoč so ji do prihoda reševalcev GRS Radovljica in združene ekipe GRS-HNMP nudili naključni mimoidoči. Kljub nudeni pomoči je oseba preminula. Združena ekipa GRS-HNMP Brnik jo je s helikopterjem LPE prepeljala v dolino in predala pogrebni službi. Ob 20.10 se je na Planini Spodnja Grintovica v občini Bohinj izgubila tuja planinka. Med iskanjem poti je zdrsnila. Reševalci GRS Bohinj so jo našli nepoškodovano, jo s pomočjo vrvne tehnike potegnili nazaj na planinsko pot in jo peš pospremili v dolino.",
-   "url": "https://www.gov.si/novice/2026-11-22-dnevni-informativni-bilten-centra-za-obvescanje/",
-   "published": "2026-11-22T05:00:00+00:00"
-  },
-  {
-   "source": "cz",
-   "topic": "bilten",
-   "category": "Delovne in rudniške nesreče",
-   "title": "Delovne in rudniške nesreče",
-   "text": "Regijski center za obveščanje Celje Ob 9.34 se je na Starem trgu v Velenju občanu med delom s traktorjem prevrnila tovorna prikolica. Gasilci PGE Velenje so s tehničnim posegom prikolico postavili nazaj na kolesa in pomagali naložiti razsuti tovor. Regijski center za obveščanje Ljubljana Ob 11.54 si je v naselju Logarji v občini Velike Lašče občan med mletjem mesa poškodoval prste na roki. Gasilci PGD Karlovica so mu nudili pomoč do prihoda reševalcev NMP.",
-   "url": "https://www.gov.si/novice/2026-11-22-dnevni-informativni-bilten-centra-za-obvescanje/",
-   "published": "2026-11-22T05:00:00+00:00"
+   "category": "Poplavljanje morja",
+   "title": "Poplavljanje morja",
+   "text": "Ob 6.19 je morje v Piranu prestopilo obalno črto in zalilo cestišča na Kidričevem, Cankarjevem in Prešernovem nabrežju.",
+   "url": "https://www.gov.si/novice/2026-11-23-dnevni-informativni-bilten-centra-za-obvescanje/",
+   "published": "2026-11-23T05:00:00+00:00"
   },
   {
    "source": "cz",
    "topic": "bilten",
    "category": "Nesreče v cestnem prometu",
    "title": "Nesreče v cestnem prometu",
-   "text": "Regijski center za obveščanje Brežice Ob 14.38 sta na Zdolski cesti v Krškem trčili osebni vozili. Gasilci PGE Krško so zavarovali kraj dogodka in odklopili baterijo električnega vozila. Poškodovanih ni bilo. Regijski center za obveščanje Celje Ob 3.26 je v Ulici XIV. divizije v Celju osebno vozilo v krožišču trčilo in se prevrnilo na bok. Gasilci PGE Celje so zavarovali kraj dogodka, pregledali okolico, odklopili akumulator, razlite motorne tekočine posuli z vpojnim sredstvom in vozilo postavili nazaj na kolesa. Ob prihodu gasilcev v vozilu ni bilo nikogar. Regijski center za obveščanje Ljubljana Ob 14.57 je pred naseljem Brest v občini Ig osebno vozilo zapeljalo s cestišča in se prevrnilo na streho. Gasilci GB Ljubljana so zavarovali kraj dogodka in odklopili akumulator. Mimoidoči so vozilo postavili nazaj na kolesa. Poškodovanih ni bilo. Ob 16.51 sta v križišču Rožne doline, ceste VI in Rožne doline, ceste VII v Ljubljani trčila osebno vozilo in avtobus LPP. Osebno vozilo je nato trčilo še v vhod trgovine. Gasilci GB Ljubljana so zavarovali kraj dogodka in do prihoda reševalcev NMP nudili pomoč eni poškodovani osebi. Voznik in preostali potniki so iz avtobusa izstopili sami. Gasilci so reševalcem pomagali pri prenosu poškodovane osebe iz avtobusa. Regijski center za obveščanje Murska Sobota Ob 19.45 sta pri naselju Lukavci v občini Križevci trčili osebni vozili. Gasilci PGD Ljutomer so zavarovali in razsvetljevali kraj dogodka, odklopili akumulatorja ter nevtralizirali razlite motorne tekočine. Reševalci NMP so pregledali in oskrbeli tri poškodovane osebe. Regijski center za obveščanje Nova Gorica Ob 2.39 je na gozdni poti med naseljema Labinje in Dolenji Novaki v občini Cerkno osebno vozilo zapeljalo s cestišča in se prevrnilo na streho. Gasilci PGD Cerkno so zavarovali kraj dogodka, preverili ali iz vozila iztekajo motorne tekočine in odklopili akumulator. Poškodovanih ni bilo. Regijski center za obveščanje Slovenj Gradec Ob 2.59 je na Mariborski cesti v Radljah ob Dravi osebno vozilo zapeljalo s cestišča, trčilo v betonsko ograjo in se prevrnilo na bok. Gasilci PGD Radlje ob Dravi so zavarovali kraj dogodka, odklopili akumulator, razlite motorne tekočine posuli z vpojnim sredstvom, očistili cestišče in vozilo postavili nazaj na kolesa. Ob prihodu gasilcev v vozilu ni bilo nikogar.",
-   "url": "https://www.gov.si/novice/2026-11-22-dnevni-informativni-bilten-centra-za-obvescanje/",
-   "published": "2026-11-22T05:00:00+00:00"
+   "text": "Regijski center za obveščanje Ljubljana Ob 1.05 je na gorenjski avtocesti pri počivališču Povodje osebno vozilo zapeljalo v obcestni jarek. Gasilci GB Ljubljana in PGD Vodice so zavarovali kraj dogodka, pregledali vozilo, oskrbeli poškodovano osebo in odklopili akumulator. Regijski center za obveščanje Novo mesto Ob 0.32 je na avtocestnem priključku Kronovo v smeri Ljubljane osebno vozilo trčilo v odbojno ograjo. Gasilci GRC Novo mesto so zavarovali kraj dogodka in odklopili akumulator. V nesreči ni bilo poškodovanih. Na kraju so posredovali tudi delavci DARS-a.",
+   "url": "https://www.gov.si/novice/2026-11-23-dnevni-informativni-bilten-centra-za-obvescanje/",
+   "published": "2026-11-23T05:00:00+00:00"
   },
   {
    "source": "cz",
    "topic": "bilten",
    "category": "Požari v objektih",
    "title": "Požari v objektih",
-   "text": "Regijski center za obveščanje Celje Ob 4.02 je v industrijskem obratu na Partizanski cesti v Velenju zagorel polizdelek v delovnem stroju. Požar so pogasili zaposleni. Gasilci PGE Velenje so zavarovali kraj dogodka in ga pregledali s termovizijsko kamero. Ob 15.29 so v naselju Gostinca v občini Podčetrtek gorele saje v dimniku stanovanjskega objekta. Gasilci PGD Sela Verače Virštanj so zavarovali kraj dogodka, pregledali in prezračili objekt ter izvajali požarno stražo do izgoretja saj v dimniku. Ob 19.43 se je v naselju Proseniško v občini Šentjur kadilo iz transformatorske postaje pri Osnovni šoli Blagovna. Gasilci PGD Lokarje so zavarovali kraj dogodka in pogasili požar. Za nadaljnjo sanacijo bodo poskrbeli dežurni delavci pristojnega elektrodistribucijskega podjetja. Regijski center za obveščanje Koper Ob 20.39 je v Bernetičevi ulici v Kopru gorel karton v garažni hiši. Gasilci JZ GB Koper so zavarovali kraj dogodka in pogasili požar. Regijski center za obveščanje Ljubljana Ob 19.18 je v naselju Spodnje Pirniče v občini Medvode zagorel lesen vikend. Požar, ki je objekt v celoti uničil, so pogasili gasilci PGD Spodnje Pirniče–Vikrče–Zavrh, Zgornje Pirniče, Preska Medvode in Smlednik. Ob 23.08 je v stanovanju v Škrabčevi ulici v Ljubljani razneslo steklo kamina na drva. Gasilci GB Ljubljana in PGD Vič so žerjavico iznesli na prosto in jo ohladili. Lastniku so do odprave napake prepovedali uporabo kamina. Regijski center za obveščanje Novo mesto Ob 19.48 se je v ulici Naselje Borisa Kidriča v Metliki kadilo v stanovanju v večstanovanjskem objektu. Gasilci PGD Metlika so ob prihodu na kraj ugotovili, da je zagorela električna pipa za toplo vodo na kuhinjskem pultu. Zaprli so dovod vode, izklopili električno energijo, pogasili požar, okolico pregledali s termovizijsko kamero in prezračili prostor.",
-   "url": "https://www.gov.si/novice/2026-11-22-dnevni-informativni-bilten-centra-za-obvescanje/",
-   "published": "2026-11-22T05:00:00+00:00"
-  },
-  {
-   "source": "cz",
-   "topic": "bilten",
-   "category": "Požari na prometnih sredstvih",
-   "title": "Požari na prometnih sredstvih",
-   "text": "Regijski center za obveščanje Brežice Ob 1.35 je v naselju Kerinov Grm v občini Krško gorelo osebno vozilo. Gasilci PGE Krško so požar pogasili. Regijski center za obveščanje Ljubljana Ob 12.02 je na severni ljubljanski obvoznici pri BTC-ju v smeri Zadobrove, občina Ljubljana, gorelo tovorno vozilo. Lastnik je sam začel gasiti požar, dokončno pa so ga pogasili gasilci GB Ljubljana. Regijski center za obveščanje Nova Gorica Ob 15.23 je na hitri cesti Vipava–Razdrto v občini Vipava zagorelo osebno vozilo. Gasilci PGD Postojna so zavarovali kraj dogodka in začeli gasiti požar. Skupaj z gasilci GRC Ajdovščina, PGD Vipava in PGD Razdrto so požar dokončno pogasili.",
-   "url": "https://www.gov.si/novice/2026-11-22-dnevni-informativni-bilten-centra-za-obvescanje/",
-   "published": "2026-11-22T05:00:00+00:00"
+   "text": "Regijski center za obveščanje Murska Sobota Ob 10.07 je v naselju Ocinje, občina Rogašovci, gorel leseni strop ob dimniku v kuhinji stanovanjske hiše. Gasilci PGD Sveti Jurij in Kramarovci so požar pogasili, prezračili prostore, jih pregledali s termovizijsko kamero in odstranili okoli dva kvadratna metra lesenega stropa. Regijski center za obveščanje Novo mesto Ob 0.50 so v naselju Dolž, občina Novo mesto, gorele saje v dimniški tuljavi poslovnega objekta. Gasilci PGD Dolž so preprečili širjenje ognja, okolico pregledali s termovizijsko kamero in nadzorovali izgorevanje saj.",
+   "url": "https://www.gov.si/novice/2026-11-23-dnevni-informativni-bilten-centra-za-obvescanje/",
+   "published": "2026-11-23T05:00:00+00:00"
   },
   {
    "source": "cz",
    "topic": "bilten",
    "category": "Požari v naravi oziroma na prostem",
    "title": "Požari v naravi oziroma na prostem",
-   "text": "Regijski center za obveščanje Celje Ob 11.31 je na Primorski cesti v Šoštanju zagorelo ostrešje manjšega nestanovanjskega objekta. Gasilci PGD Šoštanj so požar pogasili.",
-   "url": "https://www.gov.si/novice/2026-11-22-dnevni-informativni-bilten-centra-za-obvescanje/",
-   "published": "2026-11-22T05:00:00+00:00"
-  },
-  {
-   "source": "cz",
-   "topic": "bilten",
-   "category": "Požari v komunalnih in drugih zabojnikih",
-   "title": "Požari v komunalnih in drugih zabojnikih",
-   "text": "Regijski center za obveščanje Kranj Ob 17.53 sta na glavni avtobusni postaji v Radovljici gorela zabojnika za komunalne odpadke. Gasilci PGD Radovljica so požar pogasili in preventivno pregledali okolico. Regijski center za obveščanje Ljubljana Ob 20.52 so na Jurčkovi cesti v Ljubljani na strehi parkirne hiše trgovskega centra gorele smeti. Ogenj se je razširil tudi na del električne napeljave. Požar so pogasili gasilci GB Ljubljana in PGD Ljubljana Rudnik, nato pa požarišče pregledali s termovizijsko kamero. Regijski center za obveščanje Maribor Ob 22.16 sta v Kersnikovi ulici v Mariboru pri Osnovni šoli Franca Rozmana Staneta gorela dva zabojnika za komunalne odpadke. Požar, ki se je razširil na bližnjo živo mejo in uničil oba zabojnika, so pogasili gasilci JZ GB Maribor.",
-   "url": "https://www.gov.si/novice/2026-11-22-dnevni-informativni-bilten-centra-za-obvescanje/",
-   "published": "2026-11-22T05:00:00+00:00"
+   "text": "Regijski center za obveščanje Maribor Ob 16.41 so v naselju Cigonca v občini Slovenska Bistrica gasilci PGD Videž pogasili manjši kup odpadnega materiala.",
+   "url": "https://www.gov.si/novice/2026-11-23-dnevni-informativni-bilten-centra-za-obvescanje/",
+   "published": "2026-11-23T05:00:00+00:00"
   },
   {
    "source": "cz",
    "topic": "bilten",
    "category": "Tehnična in druga pomoč",
    "title": "Tehnična in druga pomoč",
-   "text": "Regijski center za obveščanje Celje Ob 13.26 se je na Stari Dečkovi cesti v Celju v večstanovanjskem objektu občan zaklenil na balkonu stanovanja. Gasilci PGE Celje so s tehničnim posegom odprli balkonska vrata in ga rešili. Ob 17.17 so na Goriški cesti v Velenju gasilci PGE Velenje s tehničnim posegom iz okvarjenega dvigala rešili eno osebo. Regijski center za obveščanje Koper Ob 9.07 so na Dolinski cesti v Kopru gasilci JZ GB Koper zaradi poplavljenega stanovanja zaprli glavni vodovodni ventil in tako preprečili nadaljnje poplavljanje. Ob 12.32 so v Ulici Oktobrske revolucije v Izoli gasilci JZ GB Koper s tehničnim posegom iz dvigala rešili ujeto osebo, nato pa dvigalo izklopili in o tem obvestili pristojno strokovno službo. Ob 15.18 je v naselju Puče v občini Koper z drevesa nad cestišče visela večja veja. Gasilci JZ GB Koper so jo odstranili. Regijski center za obveščanje Kranj Ob 14.32 so v Krašnovi ulici v Kranju gasilci GARS Kranj s tehničnim posegom odprli vrata stanovanjskega objekta in stanovalcem omogočili vstop vanj. Ob 17.46 sta na Pokljuki v občini Gorje pohodnika prosila za pomoč reševalce GRS Radovljica pri iskanju parkirišča, kjer sta parkirala osebno vozilo. Gorski reševalci so ju s terenskim vozilom prepeljali do parkirišča. Regijski center za obveščanje Ljubljana Ob 10.39 so v Turjaškem naselju v občini Kočevje gasilci PGD Kočevje zavarovali kraj pristanka helikopterja in pomagali reševalcem NMP pri prenosu obolele osebe do helikopterja. Ob 21.27 so v Komacovi ulici v Ljubljani gasilci GB Ljubljana pomagali reševalcem NMP Ljubljana pri oskrbi poškodovane osebe in njenem spremstvu do reševalnega vozila.",
-   "url": "https://www.gov.si/novice/2026-11-22-dnevni-informativni-bilten-centra-za-obvescanje/",
-   "published": "2026-11-22T05:00:00+00:00"
+   "text": "Regijski center za obveščanje Celje Ob 2.50 so v naselju Slatina v občini Šmartno ob Paki gasilci PGD Šmartno ob Paki izčrpali vodo iz stanovanjske hiše. Ob 11.36 je na Ljubljanski cesti v Celju v poslovnem objektu iz poškodovane cevi iztekala voda. Gasilci PGE Celje so zavarovali kraj dogodka in zaprli ventil za dovod vode. Regijski center za obveščanje Kranj Ob 7.27 je na Partizanski cesti v Kranju v stanovanjskem objektu iz poškodovane cevi iztekala voda. Gasilci GARS Kranj so zaprli dovod vode in s sesalnikom posesali izteklo vodo. Regijski center za obveščanje Ljubljana Ob 21.09 je v Komendi pri domu starejših občanov drevo padlo čez šolsko pot in poškodovalo ograjo. Gasilci PGD Komenda so drevo razžagali in ga odstranili s poti ter zavarovali nevarno območje. Regijski center za obveščanje Maribor Ob 19.21 so v Ulici slovenskih španskih borcev v Mariboru gasilci s tehničnim posegom odprli vrata stanovanja. Ob 20.59 je v naselju Kočno ob Ložnici, občina Slovenska Bistrica, drevo padlo na cestišče. Gasilci PGD Laporje so drevo razžagali in odstranili s cestišča. Regijski center za obveščanje Murska Sobota Ob 17.06 so v Porabski ulici v Gornji Radgoni gasilci PGD Gornja Radgona nudili pomoč reševalcem NMP pri prenosu obolele osebe iz stanovanjskega objekta. Ob 19.18 so v naselju Pušča v občini Murska Sobota gasilci PGD Pušča zaradi puščanja strehe prekrili streho s folijo na površini okoli 40 kvadratnih metrov. Regijski center za obveščanje Nova Gorica Ob 4.13 so na Vojkovi cesti v Novi Gorici gasilci JZ GRD GE Nova Gorica s tehničnim posegom odprli vrata kombiniranega vozila, v katerem je bila zaradi tehnične okvare ujeta oseba. Regijski center za obveščanje Slovenj Gradec Ob 21.37 je na cesti Ravne na Koroškem–Prevalje podrto drevo oviralo promet. Gasilci KGZ Ravne na Koroškem in dežurni delavci cestnega podjetja so drevo razžagali in odstranili ter očistili cestišče.",
+   "url": "https://www.gov.si/novice/2026-11-23-dnevni-informativni-bilten-centra-za-obvescanje/",
+   "published": "2026-11-23T05:00:00+00:00"
+  },
+  {
+   "source": "policija",
+   "topic": "sporocila",
+   "category": "Generalna policijska uprava",
+   "title": "Dr. Simon Slokan prevzel vodenje policije: \"Varnost lahko gradimo skupaj z vsemi deležniki\"",
+   "text": "Dr. Simon Slokan je danes, 23. novembra 2026, prevzel vodenje policije kot vršilec dolžnosti generalnega direktorja policije. Po jutranji primopredaji poslov z dosedanjim vršilcem dolžnosti Danijelom Lorbkom je v izjavi za medije predstavil prednostne naloge: zagotavljanje varnosti ljudi in premoženja, kadrovsko krepitev in posodabljanje policije ter dobre odnose med zaposlenimi.",
+   "url": "https://www.policija.si/medijsko-sredisce/sporocila-za-javnost/sporocila-za-javnost-gpue/129566-dr-simon-slokan-prevzel-vodenje-policije-varnost-lahko-gradimo-skupaj-z-vsemi-delezniki",
+   "published": "2026-11-23T14:16:07+00:00"
+  },
+  {
+   "source": "policija",
+   "topic": "sporocila",
+   "category": "Generalna policijska uprava",
+   "title": "Vodenje policije prevzema dr. Simon Slokan – vabilo medijem",
+   "text": "Potem ko je bila danes zjutraj, 23. novembra 2026, že opravljena primopredaja poslov med dosedanjim vršilcem dolžnosti generalnega direktorja policije Danijelom Lorbkom in novim vršilcem dolžnosti dr. Simonom Slokanom, predstavnike medijev danes ob 13. uri vabimo na izjavo novega v. d. generalnega direktorja policije dr. Simona Slokana.",
+   "url": "https://www.policija.si/medijsko-sredisce/sporocila-za-javnost/sporocila-za-javnost-gpue/129563-vodenje-policije-prevzema-dr-simon-slokan-vabilo-medijem",
+   "published": "2026-11-23T09:59:35+00:00"
+  },
+  {
+   "source": "policija",
+   "topic": "dogodki",
+   "category": "Policija",
+   "title": "V Kopru ukradeno motorno kolo Yamaha",
+   "text": "V noči na 23. 11. 2026 je bilo v Kopru ukradeno motorno kolo Yamaha XP500A, rjave barve, letnik 2014, registrskih oznak KPSI-43.",
+   "url": "https://www.policija.si/medijsko-sredisce/dogodki-v-zadnjih-24-urah/129557-v-kopru-ukradeno-motorno-kolo-yamaha-3",
+   "published": "2026-11-23T08:49:44+00:00"
+  },
+  {
+   "source": "policija",
+   "topic": "dogodki",
+   "category": "Policija",
+   "title": "Stanje prometne varnosti 2026 (od 16. do 22. novembra)",
+   "text": "V preteklem tednu na slovenskih cestah ni bilo smrtnih prometnih nesreč. V letošnjem letu so slovenske ceste terjale 81 smrtnih žrtev, v enakem obdobju lanskega leta pa 86 smrtnih žrtev.",
+   "url": "https://www.policija.si/medijsko-sredisce/dogodki-v-zadnjih-24-urah/129554-stanje-prometne-varnosti-2026-od-16-do-22-novembra",
+   "published": "2026-11-23T08:23:42+00:00"
   },
   {
    "source": "policija",
