@@ -1,9 +1,9 @@
 {
- "builtAt": "2026-11-22T16:20:04.371447+00:00",
+ "builtAt": "2026-11-23T06:20:05.009606+00:00",
  "window": {
   "hours": 24,
-  "from": "2026-11-21T16:20:04.371447+00:00",
-  "to": "2026-11-22T16:20:04.371447+00:00"
+  "from": "2026-11-22T06:20:05.009606+00:00",
+  "to": "2026-11-23T06:20:05.009606+00:00"
  },
  "counts": {
   "total": 13,
@@ -144,18 +144,18 @@
    "topic": "dogodki",
    "category": "Policija",
    "title": "Kratek statistični pregled dogodkov v zadnjih 24 urah",
-   "text": "V zadnjih 24 urah je bilo na interventni številki policije '113' zabeleženih 2269 klicev. Med 666 interventnimi dogodki smo policisti med drugim obravnavali 135 prometnih nesreč, 91 kršitev javnega reda in miru ter 65 kaznivih dejanj. V 121 prometnih nesrečah je nastala premoženjska škoda, v 14 nesrečah so bili udeleženci lažje telesno poškodovani. Zaradi storitve hujših prekrškov v cestnem prometu smo 7 voznikom zasegli vozilo, zaradi vožnje pod vplivom alkohola pa smo pridržali 3 voznike. Zaradi kršitve javnega reda in miru smo opravili 67 intervencij na javnem kraju, 24 v zasebnih prostorih. 4 kršitelje, ki so kljub opozorilu nadaljevali s prekrškom, smo pridržali. Da bi zaščitili žrtve nasilja v družini smo 1 osebi izrekli ukrep prepovedi približevanja. Med kaznivimi dejanji smo zabeležili 20 vlomov, 14 tatvin, 9 poškodovanj tuje stvari, 8 povzročitev telesne poškodbe, 6 groženj, 2 drzni tatvini, 2 kaznivi dejanji v zvezi s prepovedanimi drogami, 2 kaznivi dejanji nasilja v družini, 1 rop. V zadnjih 24 urah je bilo obravnavanih 42 oseb zaradi nezakonitega vstopa na meji z Republiko Hrvaško in sicer 36 na območju PU Novo mesto, 4 na območju PU Nova Gorica, 2 na območju PU Koper. Med njimi smo obravnavali največ državljanov Bangladeša (19), Afganistana (9), Maroka (5).",
-   "url": "https://www.policija.si/medijsko-sredisce/dogodki-v-zadnjih-24-urah/129545-kratek-statisticni-pregled-dogodkov-v-zadnjih-24-urah-1937",
-   "published": "2026-11-22T05:03:06+00:00"
+   "text": "V zadnjih 24 urah je bilo na interventni številki policije '113' zabeleženih 1214 klicev. Med 353 interventnimi dogodki smo policisti med drugim obravnavali 56 prometnih nesreč, 31 kršitev javnega reda in miru ter 38 kaznivih dejanj. V 49 prometnih nesrečah je nastala premoženjska škoda, v 7 nesrečah so bili udeleženci lažje telesno poškodovani. Zaradi storitve hujših prekrškov v cestnem prometu smo 2 voznikoma zasegli vozilo, zaradi vožnje pod vplivom alkohola pa smo pridržali 2 voznika. Zaradi kršitve javnega reda in miru smo opravili 24 intervencij na javnem kraju, 7 pa v zasebnih prostorih. 2 kršitelja, ki sta kljub opozorilu nadaljevala s prekrškom, smo pridržali. Da bi zaščitili žrtve nasilja v družini smo 2 osebama izrekli ukrep prepovedi približevanja. Med kaznivimi dejanji smo zabeležili 16 tatvin, 14 vlomov, 4 poškodovanja tuje stvari, 2 kaznivi dejanji nasilja v družini, 1 povzročitev telesne poškodbe, 1 grožnjo. V zadnjih 24 urah je bilo obravnavanih 2 oseb zaradi nezakonitega vstopa na meji z Republiko Hrvaško in sicer 1 na območju PU Koper, 1 na območju PU Maribor. Med njimi smo obravnavali največ državljanov Albanije (1), Severna Makedonije (1).",
+   "url": "https://www.policija.si/medijsko-sredisce/dogodki-v-zadnjih-24-urah/129551-kratek-statisticni-pregled-dogodkov-v-zadnjih-24-urah-1938",
+   "published": "2026-11-23T04:27:39+00:00"
   },
   {
    "source": "policija",
    "topic": "dogodki",
    "category": "Policija",
-   "title": "V Mariboru ukraden Renault clio",
-   "text": "20. 11. 2026 je bil v Mariboru ukraden osebni avtomobil znamke Renault clio, črne barve, letnik 2009, reg. št. MB15-HRZ.",
-   "url": "https://www.policija.si/medijsko-sredisce/dogodki-v-zadnjih-24-urah/129542-v-mariboru-ukraden-renault-clio-6",
-   "published": "2026-11-21T21:58:54+00:00"
+   "title": "V Iljaševcih ukraden BMW 525 Touring",
+   "text": "V noči na 23. 11. 2026 je bil v Iljaševcih ukraden osebni avtomobil BMW 525 Touring, svetlo sive barve, reg. št. MB 34-TIR, letnik 2014.",
+   "url": "https://www.policija.si/medijsko-sredisce/dogodki-v-zadnjih-24-urah/129548-v-iljasevcih-ukraden-bmw-525-touring",
+   "published": "2026-11-23T03:29:16+00:00"
   }
  ]
 }
