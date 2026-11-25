@@ -10,7 +10,8 @@
 // renderBrain() before the container is cleared, left by goBack() first, and the shell needs its own
 // [hidden] rule because it sets display: flex.
 
-import {decorate, prettyBytes, tagStats, tokenize, windowTokens} from './podInspectorModel.mjs';
+import {decorate, podcasting20Stats, prettyBytes, tagStats, tokenize, windowTokens}
+    from './podInspectorModel.mjs?v=3';
 
 (function initPodInspector(global) {
     const FIRST_WINDOW = 3000;      // tokens painted on the first pass
@@ -27,6 +28,7 @@ import {decorate, prettyBytes, tagStats, tokenize, windowTokens} from './podInsp
         tokens: [],
         shown: FIRST_WINDOW,
         selected: new Set(),
+        highlightP20: true,     // Podcasting 2.0 marked in green until the reader turns it off
     };
 
     function element(tag, className, text) {
@@ -88,6 +90,18 @@ import {decorate, prettyBytes, tagStats, tokenize, windowTokens} from './podInsp
         details.appendChild(summary);
         details.appendChild(element('div', 'pod-inspector-tags__menu'));
         tools.appendChild(details);
+        // Podcasting 2.0 is the whole point of inspecting a feed in 2026, so it is on by default and
+        // gets one control to take the green away when it drowns everything else out.
+        const p20 = element('button', 'pod-inspector-p20', 'highlight podcasting 2.0');
+        p20.type = 'button';
+        p20.setAttribute('aria-pressed', 'true');
+        p20.addEventListener('click', () => {
+            state.highlightP20 = !state.highlightP20;
+            renderTags();
+            renderCode();
+        });
+        tools.appendChild(p20);
+
         const clear = element('button', 'pod-inspector-clear', 'clear selection');
         clear.type = 'button';
         clear.addEventListener('click', () => {
@@ -161,6 +175,23 @@ import {decorate, prettyBytes, tagStats, tokenize, windowTokens} from './podInsp
             : `tags (${stats.length})`;
         details.hidden = stats.length === 0;
 
+        // the toggle carries the count, so the reader can see how much of the feed is Podcasting 2.0
+        // before deciding to highlight it
+        const p20 = root.querySelector('.pod-inspector-p20');
+        if (p20) {
+            const tags20 = podcasting20Stats(state.tokens);
+            const count = tags20.reduce((sum, tag) => sum + tag.count, 0);
+            p20.textContent = count
+                ? `highlight podcasting 2.0 (${count})`
+                : 'highlight podcasting 2.0';
+            p20.disabled = count === 0;
+            p20.classList.toggle('is-on', state.highlightP20 && count > 0);
+            p20.setAttribute('aria-pressed', state.highlightP20 ? 'true' : 'false');
+            p20.title = tags20.length
+                ? tags20.map(tag => `${tag.name} x${tag.count}`).join(', ')
+                : 'this document carries no Podcasting 2.0 tags';
+        }
+
         if (!stats.length) return;
         const all = element('button', 'pod-inspector-tags__all', 'vse');
         all.type = 'button';
@@ -207,6 +238,7 @@ import {decorate, prettyBytes, tagStats, tokenize, windowTokens} from './podInsp
                 continue;
             }
             const span = element('span', `pod-inspector-tag is-${token.type}`
+                + (token.p20 && state.highlightP20 ? ' is-p20' : '')
                 + (token.hot ? ' is-hot' : ''), token.text);
             fragment.appendChild(span);
         }

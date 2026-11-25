@@ -222,6 +222,33 @@
     border-color: var(--active);
 }
 
+/* The Podcasting 2.0 switch: same shape as the other tool buttons, green while it is on. */
+.pod-inspector-p20 {
+    padding: 0.16rem 0.5rem;
+    font-family: inherit;
+    font-size: 0.66rem;
+    background: var(--surface);
+    color: var(--muted);
+    border: 1px solid var(--cube-edge);
+    cursor: pointer;
+}
+
+.pod-inspector-p20.is-on {
+    color: var(--active-text);
+    border-color: var(--active);
+}
+
+.pod-inspector-p20:hover,
+.pod-inspector-p20:focus-visible {
+    color: var(--ink);
+    border-color: var(--active);
+}
+
+.pod-inspector-p20:disabled {
+    opacity: 0.55;
+    cursor: default;
+}
+
 .pod-inspector-view__code {
     flex: 1 1 auto;
     margin: 0;
@@ -249,6 +276,15 @@
 .pod-inspector-tag.is-decl,
 .pod-inspector-tag.is-pi {
     color: var(--muted);
+}
+
+/* Podcasting 2.0 lives under a single namespace, so it earns a single colour: green, the palette role
+   that means "this one is alive". It is a text colour, not a fill, because the green fill already means
+   "picked from the dropdown" — and when both apply the fill has to win, which is why this rule sits
+   above the is-hot rule rather than after it. */
+.pod-inspector-tag.is-p20 {
+    color: var(--active-text);
+    font-weight: 600;
 }
 
 /* A tag picked from the dropdown: green, because D marks what is chosen in green. */

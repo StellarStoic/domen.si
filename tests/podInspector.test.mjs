@@ -11,8 +11,8 @@ import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {fileURLToPath} from 'node:url';
 import {dirname, join} from 'node:path';
-import {decorate, normaliseTag, prettyBytes, tagStats, tokenize, windowTokens}
-    from '../podInspectorModel.mjs';
+import {decorate, isPodcasting20, normaliseTag, podcasting20Prefixes, podcasting20Stats, prettyBytes,
+        tagStats, tokenize, windowTokens} from '../podInspectorModel.mjs';
 
 const ROOT = dirname(dirname(fileURLToPath(import.meta.url)));
 const read = name => readFileSync(join(ROOT, name), 'utf8');
@@ -177,4 +177,146 @@ test('the tool speaks English, and only the tool', () => {
   const day = read('day86400.js');
   assert.match(day, /ni zadetkov/, 'the 86400 view stays Slovene');
   assert.match(day, /objava|objav/);
+});
+
+
+test('Podcasting 2.0 is recognised by its namespace, not by a list of names', () => {
+    const tokens = tokenize(FEED);
+    const marked = decorate(tokens, []).filter(token => token.p20);
+    assert.ok(marked.length >= 2, `only ${marked.length} tokens marked`);
+
+    const transcript = tokens.find(token => normaliseTag(token.name) === 'podcast:transcript');
+    assert.ok(isPodcasting20(transcript), 'podcast:transcript is Podcasting 2.0');
+    // the declaration is where the namespace enters the document, and it is marked too
+    const declaration = tokens.find(token => /xmlns:podcast/.test(token.text || ''));
+    assert.ok(declaration && isPodcasting20(declaration), 'the xmlns:podcast declaration is marked');
+    // Apple's namespace is not Podcasting 2.0, and neither is content
+    const itunes = tokens.find(token => /itunes:/i.test(token.name || ''));
+    if (itunes) assert.ok(!isPodcasting20(itunes), 'itunes namespace must not be marked');
+    // raw tokens have no `markup` field — that is what decorate() adds — so the check has to walk
+    // the decorated set or it counts every token as content
+    const decorated = decorate(tokens, []);
+    assert.ok(decorated.filter(token => !token.markup).every(token => !token.p20), 'text is never marked');
+    // every marked token really is markup carrying the prefix or the declaration
+    assert.ok(marked.every(token => token.markup));
+});
+
+test('the Podcasting 2.0 count names its tags, most used first', () => {
+    const stats = podcasting20Stats(tokenize(FEED));
+    assert.ok(stats.length >= 1);
+    assert.ok(stats.every(entry => entry.count >= 1 && entry.name));
+    const counts = stats.map(entry => entry.count);
+    assert.deepEqual(counts, [...counts].sort((a, b) => b - a), 'sorted by use');
+    // closing tags are the far end of an element, never a second tag
+    assert.equal(podcasting20Stats(tokenize('<rss xmlns:podcast="x"><podcast:guid>a</podcast:guid></rss>'))
+        .find(entry => entry.key === 'podcast:guid').count, 1);
+    assert.deepEqual(podcasting20Stats(tokenize('<rss><channel/></rss>')), []);
+});
+
+test('the green is a switch the reader can turn off', () => {
+    // the mark exists, but only while the toggle says so
+    assert.match(VIEW, /highlightP20: true/);
+    assert.match(VIEW, /pod-inspector-p20/);
+    assert.match(VIEW, /aria-pressed/);
+    assert.match(VIEW, /token\.p20 && state\.highlightP20 \? ' is-p20' : ''/);
+    assert.match(VIEW, /state\.highlightP20 = !state\.highlightP20/);
+    // and it carries how much of the document is Podcasting 2.0
+    assert.match(VIEW, /highlight podcasting 2\.0 \(\$\{count\}\)/);
+    assert.match(VIEW, /p20\.disabled = count === 0/);
+    // green comes from the palette, and the selected-tag fill still wins when both apply
+    const green = CSS.indexOf('.pod-inspector-tag.is-p20');
+    const fill = CSS.indexOf('.pod-inspector-tag.is-hot');
+    assert.ok(green > 0 && fill > 0 && green < fill, 'is-p20 must be declared before is-hot');
+    assert.match(CSS, /\.pod-inspector-tag\.is-p20 \{[^}]*color: var\(--active-text\)/);
+    assert.match(CSS, /\.pod-inspector-p20\.is-on \{[^}]*border-color: var\(--active\)/);
+});
+
+
+// The full documented Podcasting 2.0 element list (podcast-namespace 1.0). Production code marks by
+// namespace rather than by this list — this test exists to prove the namespace rule really covers every
+// tag the specification defines, so "all of them" is a measurement and not a promise.
+const P20_TAGS = [
+    'alternateEnclosure', 'atproto', 'block', 'chapters', 'chat', 'contentLink', 'episode', 'funding',
+    'guid', 'image', 'images', 'integrity', 'license', 'liveItem', 'location', 'locked', 'person',
+    'podroll', 'publisher', 'season', 'socialInteract', 'soundbite', 'source', 'trailer', 'transcript',
+    'txt', 'update', 'value', 'valueRecipient', 'valueTimeSplit',
+];
+
+test('every documented Podcasting 2.0 tag is marked, whatever prefix the feed binds it to', () => {
+    const body = P20_TAGS.map(tag => `<podcast:${tag} />`).join('\n');
+    const tokens = tokenize(`<rss xmlns:podcast="https://podcastindex.org/namespace/1.0">${body}</rss>`);
+    const marked = new Set(decorate(tokens, []).filter(token => token.p20)
+        .map(token => (token.name || '').toLowerCase()));
+    for (const tag of P20_TAGS) {
+        assert.ok(marked.has(`podcast:${tag.toLowerCase()}`), `not marked: podcast:${tag}`);
+    }
+    // the count names every one of them, and no tag is counted twice for its closing end
+    const stats = podcasting20Stats(tokens);
+    assert.equal(stats.filter(entry => entry.key.startsWith('podcast:')).length, P20_TAGS.length);
+    assert.ok(stats.every(entry => entry.count === 1));
+});
+
+test('the same namespace under a different prefix is still Podcasting 2.0', () => {
+    // XML does not care what the prefix is called, so neither may this tool
+    const feed = '<rss xmlns:p20="https://podcastindex.org/namespace/1.0">'
+        + '<p20:transcript url="a"/><p20:value type="lightning"/><title>t</title></rss>';
+    const tokens = tokenize(feed);
+    const marked = decorate(tokens, []).filter(token => token.p20).map(token => token.name.toLowerCase());
+    assert.ok(marked.includes('p20:transcript'), 'a non-standard prefix must be marked');
+    assert.ok(marked.includes('p20:value'));
+    assert.ok(podcasting20Stats(tokens).some(entry => entry.key === 'p20:transcript'));
+    // and the prefixes are read off the document, not assumed
+    assert.ok(podcasting20Prefixes(tokens).has('p20'));
+
+    // the URI's spelling varies in the wild: http, a trailing slash, the GitHub address of the spec
+    for (const uri of ['http://podcastindex.org/namespace/1.0',
+                       'https://podcastindex.org/namespace/1.0/',
+                       'https://github.com/Podcastindex-org/podcast-namespace/blob/main/docs/1.0.md']) {
+        const alt = tokenize(`<rss xmlns:pc="${uri}"><pc:chapters url="c"/></rss>`);
+        assert.ok(decorate(alt, []).some(token => token.p20 && /pc:chapters/i.test(token.name || '')),
+            `not marked for ${uri}`);
+    }
+
+    // a different namespace, and a prefix with no Podcasting 2.0 binding, stay unmarked
+    const other = tokenize('<rss xmlns:itunes="http://www.itunes.com/dtds/podcast-1.0.dtd">'
+        + '<itunes:author>a</itunes:author><podcast:guid>g</podcast:guid></rss>');
+    const otherMarked = decorate(other, []).filter(token => token.p20)
+        .map(token => (token.name || '').toLowerCase());
+    assert.ok(!otherMarked.some(name => name.startsWith('itunes:')), 'itunes is not Podcasting 2.0');
+    // `podcast:` is marked even in a document that never declares it
+    assert.ok(otherMarked.includes('podcast:guid'));
+});
+
+
+test('two namespaces on one tag stay apart — Apple is not Podcasting 2.0', () => {
+    // This is the shape every real feed has, and it is one token: both declarations share the <rss> tag.
+    // Taking every prefix from a token that mentions the P2.0 URI marked itunes:author and itunes:duration
+    // green as well, and the tooltip listed xmlns:itunes as a Podcasting 2.0 tag.
+    const feed = '<rss version="2.0" xmlns:itunes="http://www.itunes.com/dtds/podcast-1.0.dtd"'
+        + ' xmlns:podcast="https://podcastindex.org/namespace/1.0">'
+        + '<channel><title>t</title><itunes:author>a</itunes:author>'
+        + '<podcast:guid>g</podcast:guid><item><itunes:duration>60</itunes:duration>'
+        + '<podcast:transcript url="x"/></item></channel></rss>';
+    const tokens = tokenize(feed);
+    const prefixes = podcasting20Prefixes(tokens);
+    assert.ok(prefixes.has('podcast'));
+    assert.ok(!prefixes.has('itunes'), 'the itunes prefix was pulled in beside the P2.0 one');
+
+    const green = decorate(tokens, []).filter(token => token.p20)
+        .map(token => (token.name || '').toLowerCase());
+    assert.ok(green.includes('podcast:guid'));
+    assert.ok(green.includes('podcast:transcript'));
+    assert.ok(!green.some(name => name.startsWith('itunes:')), 'itunes must never be green');
+
+    const stats = podcasting20Stats(tokens);
+    assert.ok(!stats.some(entry => entry.key === 'itunes:author' || entry.key === 'itunes:duration'));
+    assert.ok(!stats.some(entry => entry.key === 'xmlns:itunes'), 'xmlns:itunes is not P2.0');
+    assert.ok(stats.some(entry => entry.key === 'xmlns:podcast'));
+
+    // and the same in the other order, with the P2.0 declaration first
+    const swapped = tokenize('<rss xmlns:p20="https://podcastindex.org/namespace/1.0"'
+        + ' xmlns:itunes="http://www.itunes.com/dtds/podcast-1.0.dtd"><itunes:author>a</itunes:author>'
+        + '<p20:guid>g</p20:guid></rss>');
+    assert.ok(!podcasting20Prefixes(swapped).has('itunes'));
+    assert.ok(decorate(swapped, []).some(token => token.p20 && /p20:guid/i.test(token.name || '')));
 });
