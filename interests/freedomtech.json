@@ -305,6 +305,12 @@
                     "name": "BITCHAT",
                     "description": "bitchat is a decentralized peer-to-peer messaging application that operates over bluetooth mesh networks. no internet required, no servers, no phone numbers.",
                     "url": "https://bitchat.free/"
+                },
+                {
+                    "id": "white-noise",
+                    "name": "WHITE NOISE",
+                    "description": "A private messenger you can start using in seconds: no phone number, no email. Every message end-to-end encrypted with MLS, one to one or in a group. Free, open source and ad-free.",
+                    "url": "https://www.whitenoise.chat/"
                 }
             ]
         },
