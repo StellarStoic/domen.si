@@ -1,0 +1,29 @@
+<article class="nips-doc" id="nip-03">
+<blockquote>
+<p><strong>Warning</strong>  <code>unrecommended</code>: vulnerable to one specific attack, needs update</p>
+</blockquote>
+<h1>NIP-03</h1>
+<h2>OpenTimestamps Attestations for Events</h2>
+<p><code>draft</code> <code>unrecommended</code> <code>optional</code></p>
+<p>This NIP defines an event with <code>kind:1040</code> that can contain an <a href="https://opentimestamps.org/" target="_blank" rel="noopener noreferrer">OpenTimestamps</a> proof for any other event:</p>
+<pre><code class="language-json">{
+  &quot;kind&quot;: 1040
+  &quot;tags&quot;: [
+    [&quot;e&quot;, &lt;target-event-id&gt;, &lt;relay-url&gt;],
+    [&quot;k&quot;, &quot;&lt;target-event-kind&gt;&quot;]
+  ],
+  &quot;content&quot;: &lt;base64-encoded OTS file data&gt;
+}
+</code></pre>
+<ul>
+<li>The OpenTimestamps proof MUST prove the referenced <code>e</code> event id as its digest.</li>
+<li>The <code>content</code> MUST be the full content of an <code>.ots</code> file containing at least one Bitcoin attestation. This file SHOULD contain a <strong>single</strong> Bitcoin attestation (as not more than one valid attestation is necessary and less bytes is better than more) and no reference to "pending" attestations since they are useless in this context.</li>
+</ul>
+<h3>Example OpenTimestamps proof verification flow</h3>
+<p>Using <a href="https://github.com/fiatjaf/nak" target="_blank" rel="noopener noreferrer"><code>nak</code></a>, <a href="https://jqlang.github.io/jq/" target="_blank" rel="noopener noreferrer"><code>jq</code></a> and <a href="https://github.com/fiatjaf/ots" target="_blank" rel="noopener noreferrer"><code>ots</code></a>:</p>
+<pre><code class="language-bash">~&gt; nak req -i e71c6ea722987debdb60f81f9ea4f604b5ac0664120dd64fb9d23abc4ec7c323 wss://nostr-pub.wellorder.net | jq -r .content | ots verify
+&gt; using an esplora server at https://blockstream.info/api
+- sequence ending on block 810391 is valid
+timestamp validated at block [810391]
+</code></pre>
+</article>

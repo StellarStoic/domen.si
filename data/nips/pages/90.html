@@ -1,0 +1,231 @@
+<article class="nips-doc" id="nip-90">
+<blockquote>
+<p><strong>Warning</strong>  <code>unrecommended</code>: this got totally out of control, prefer use-case-specific microstandards</p>
+</blockquote>
+<h1>NIP-90</h1>
+<h2>Data Vending Machine</h2>
+<p><code>draft</code> <code>unrecommended</code> <code>optional</code></p>
+<p>This NIP defines the interaction between customers and Service Providers for performing on-demand computation.</p>
+<p>Money in, data out.</p>
+<h2>Kinds</h2>
+<p>This NIP reserves the range <code>5000-7000</code> for data vending machine use.</p>
+<table>
+<thead>
+<tr>
+<th>Kind</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>5000-5999</td>
+<td>Job request kinds</td>
+</tr>
+<tr>
+<td>6000-6999</td>
+<td>Job result</td>
+</tr>
+<tr>
+<td>7000</td>
+<td>Job feedback</td>
+</tr>
+</tbody>
+</table>
+<p>Job results always use a kind number that is <code>1000</code> higher than the job request kind. (e.g. request: <code>kind:5001</code> gets a result: <code>kind:6001</code>).</p>
+<p>Job request types are defined <a href="https://github.com/nostr-protocol/data-vending-machines/tree/master/kinds" target="_blank" rel="noopener noreferrer">separately</a>.</p>
+<h2>Rationale</h2>
+<p>Nostr can act as a marketplace for data processing, where users request jobs to be processed in certain ways (e.g., "speech-to-text", "summarization", etc.), but they don't necessarily care about "who" processes the data.</p>
+<p>This NIP is not to be confused with a 1:1 marketplace; instead, it describes a flow where a user announces a desired output, willingness to pay, and service providers compete to fulfill the job requirement in the best way possible.</p>
+<h3>Actors</h3>
+<p>There are two actors in the workflow described in this NIP:
+* Customers (npubs who request a job)
+* Service providers (npubs who fulfill jobs)</p>
+<h2>Job request (<code>kind:5000-5999</code>)</h2>
+<p>A request to process data, published by a customer. This event signals that a customer is interested in receiving the result of some kind of compute.</p>
+<pre><code class="language-yaml">{
+    &quot;kind&quot;: 5xxx, // kind in 5000-5999 range
+    &quot;content&quot;: &quot;&quot;,
+    &quot;tags&quot;: [
+        [ &quot;i&quot;, &quot;&lt;data&gt;&quot;, &quot;&lt;input-type&gt;&quot;, &quot;&lt;relay&gt;&quot;, &quot;&lt;marker&gt;&quot; ],
+        [ &quot;output&quot;, &quot;&lt;mime-type&gt;&quot; ],
+        [ &quot;relays&quot;, &quot;wss://...&quot; ],
+        [ &quot;bid&quot;, &quot;&lt;msat-amount&gt;&quot; ],
+        [ &quot;t&quot;, &quot;bitcoin&quot; ]
+    ],
+    // other fields...
+}
+</code></pre>
+<p>All tags are optional.</p>
+<ul>
+<li><code>i</code> tag: Input data for the job (zero or more inputs)<ul>
+<li><code>&lt;data&gt;</code>: The argument for the input</li>
+<li><code>&lt;input-type&gt;</code>: The way this argument should be interpreted. MUST be one of:<ul>
+<li><code>url</code>: A URL to be fetched of the data that should be processed.</li>
+<li><code>event</code>: A Nostr event ID.</li>
+<li><code>job</code>: The output of a previous job with the specified event ID. The determination of which output to build upon is up to the service provider to decide (e.g. waiting for a signaling from the customer, waiting for a payment, etc.)</li>
+<li><code>text</code>: <code>&lt;data&gt;</code> is the value of the input, no resolution is needed</li>
+</ul>
+</li>
+<li><code>&lt;relay&gt;</code>: If <code>event</code> or <code>job</code> input-type, the relay where the event/job was published, otherwise optional or empty string</li>
+<li><code>&lt;marker&gt;</code>: An optional field indicating how this input should be used within the context of the job</li>
+</ul>
+</li>
+<li><code>output</code>: Expected output format. Different job request <code>kind</code> defines this more precisely.</li>
+<li><code>param</code>: Optional parameters for the job as key (first argument)/value (second argument). Different job request <code>kind</code> defines this more precisely. (e.g. <code>[ "param", "lang", "es" ]</code>)</li>
+<li><code>bid</code>: Customer MAY specify a maximum amount (in millisats) they are willing to pay</li>
+<li><code>relays</code>: List of relays where Service Providers SHOULD publish responses to</li>
+<li><code>p</code>: Service Providers the customer is interested in. Other SPs MIGHT still choose to process the job</li>
+</ul>
+<h3>Encrypted Params</h3>
+<p>If the user wants to keep the input parameters a secret, they can encrypt the <code>i</code> and <code>param</code> tags with the service provider's 'p' tag and add it to the content field. Add a tag <code>encrypted</code> as tags. Encryption for private tags will use <a href="#" data-nip="04">NIP-04 - Encrypted Direct Message encryption</a>, using the user's private and service provider's public key for the shared secret</p>
+<pre><code class="language-json">[
+  [&quot;i&quot;, &quot;what is the capital of France? &quot;, &quot;text&quot;],
+  [&quot;param&quot;, &quot;model&quot;, &quot;LLaMA-2&quot;],
+  [&quot;param&quot;, &quot;max_tokens&quot;, &quot;512&quot;],
+  [&quot;param&quot;, &quot;temperature&quot;, &quot;0.5&quot;],
+  [&quot;param&quot;, &quot;top-k&quot;, &quot;50&quot;],
+  [&quot;param&quot;, &quot;top-p&quot;, &quot;0.7&quot;],
+  [&quot;param&quot;, &quot;frequency_penalty&quot;, &quot;1&quot;]
+]
+</code></pre>
+<p>This param data will be encrypted and added to the <code>content</code> field and <code>p</code> tag should be present</p>
+<pre><code class="language-yaml">{
+  &quot;content&quot;: &quot;BE2Y4xvS6HIY7TozIgbEl3sAHkdZoXyLRRkZv4fLPh3R7LtviLKAJM5qpkC7D6VtMbgIt4iNcMpLtpo...&quot;,
+  &quot;tags&quot;: [
+    [&quot;p&quot;, &quot;04f74530a6ede6b24731b976b8e78fb449ea61f40ff10e3d869a3030c4edc91f&quot;],
+    [&quot;encrypted&quot;]
+  ],
+  // other fields...
+}
+</code></pre>
+<h2>Job result (<code>kind:6000-6999</code>)</h2>
+<p>Service providers publish job results, providing the output of the job result. They should tag the original job request event id as well as the customer's pubkey.</p>
+<pre><code class="language-yaml">{
+  &quot;pubkey&quot;: &quot;&lt;service-provider pubkey&gt;&quot;,
+  &quot;content&quot;: &quot;&lt;payload&gt;&quot;,
+  &quot;kind&quot;: 6xxx,
+  &quot;tags&quot;: [
+    [&quot;request&quot;, &quot;&lt;job-request&gt;&quot;],
+    [&quot;e&quot;, &quot;&lt;job-request-id&gt;&quot;, &quot;&lt;relay-hint&gt;&quot;],
+    [&quot;i&quot;, &quot;&lt;input-data&gt;&quot;],
+    [&quot;p&quot;, &quot;&lt;customer's-pubkey&gt;&quot;],
+    [&quot;amount&quot;, &quot;requested-payment-amount&quot;, &quot;&lt;optional-bolt11&gt;&quot;]
+  ],
+  // other fields...
+}
+</code></pre>
+<ul>
+<li><code>request</code>: The job request event stringified-JSON.</li>
+<li><code>amount</code>: millisats that the Service Provider is requesting to be paid. An optional third value can be a bolt11 invoice.</li>
+<li><code>i</code>: The original input(s) specified in the request.</li>
+</ul>
+<h3>Encrypted Output</h3>
+<p>If the request has encrypted params, then output should be encrypted and placed in  <code>content</code> field. If the output is encrypted, then avoid including <code>i</code> tag with input-data as clear text.
+Add a tag encrypted to mark the output content as <code>encrypted</code></p>
+<pre><code class="language-yaml">{
+  &quot;pubkey&quot;: &quot;&lt;service-provider pubkey&gt;&quot;,
+  &quot;content&quot;: &quot;&lt;encrypted payload&gt;&quot;,
+  &quot;kind&quot;: 6xxx,
+  &quot;tags&quot;: [
+    [&quot;request&quot;, &quot;&lt;job-request&gt;&quot;],
+    [&quot;e&quot;, &quot;&lt;job-request-id&gt;&quot;, &quot;&lt;relay-hint&gt;&quot;],
+    [&quot;p&quot;, &quot;&lt;customer's-pubkey&gt;&quot;],
+    [&quot;amount&quot;, &quot;requested-payment-amount&quot;, &quot;&lt;optional-bolt11&gt;&quot;],
+    [&quot;encrypted&quot;]
+  ],
+  // other fields...
+}
+</code></pre>
+<h2>Job feedback</h2>
+<p>Service providers can give feedback about a job back to the customer.</p>
+<pre><code class="language-yaml">{
+  &quot;kind&quot;: 7000,
+  &quot;content&quot;: &quot;&lt;empty-or-payload&gt;&quot;,
+  &quot;tags&quot;: [
+    [&quot;status&quot;, &quot;&lt;status&gt;&quot;, &quot;&lt;extra-info&gt;&quot;],
+    [&quot;amount&quot;, &quot;requested-payment-amount&quot;, &quot;&lt;bolt11&gt;&quot;],
+    [&quot;e&quot;, &quot;&lt;job-request-id&gt;&quot;, &quot;&lt;relay-hint&gt;&quot;],
+    [&quot;p&quot;, &quot;&lt;customer's-pubkey&gt;&quot;],
+  ],
+  // other fields...
+}
+</code></pre>
+<ul>
+<li><code>content</code>: Either empty or a job-result (e.g. for partial-result samples)</li>
+<li><code>amount</code> tag: as defined in the <a href="#job-result-kind6000-6999">Job Result</a> section.</li>
+<li>
+<p><code>status</code> tag: Service Providers SHOULD indicate what this feedback status refers to. <a href="#job-feedback-status">Job Feedback Status</a> defines status. Extra human-readable information can be added as an extra argument.</p>
+</li>
+<li>
+<p>NOTE: If the input params requires input to be encrypted, then <code>content</code> field will have encrypted payload with <code>p</code> tag as key.</p>
+</li>
+</ul>
+<h3>Job feedback status</h3>
+<table>
+<thead>
+<tr>
+<th>status</th>
+<th>description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>payment-required</code></td>
+<td>Service Provider requires payment before continuing.</td>
+</tr>
+<tr>
+<td><code>processing</code></td>
+<td>Service Provider is processing the job.</td>
+</tr>
+<tr>
+<td><code>error</code></td>
+<td>Service Provider was unable to process the job.</td>
+</tr>
+<tr>
+<td><code>success</code></td>
+<td>Service Provider successfully processed the job.</td>
+</tr>
+<tr>
+<td><code>partial</code></td>
+<td>Service Provider partially processed the job. The <code>.content</code> might include a sample of the partial results.</td>
+</tr>
+</tbody>
+</table>
+<p>Any job feedback event MIGHT include results in the <code>.content</code> field, as described in the <a href="#job-result-kind6000-6999">Job Result</a> section. This is useful for service providers to provide a sample of the results that have been processed so far.</p>
+<h2>Protocol Flow</h2>
+<ul>
+<li>Customer publishes a job request (e.g. <code>kind:5000</code> speech-to-text).</li>
+<li>Service Providers MAY submit <code>kind:7000</code> job-feedback events (e.g. <code>payment-required</code>, <code>processing</code>, <code>error</code>, etc.).</li>
+<li>Upon completion, the service provider publishes the result of the job with a <code>kind:6000</code> job-result event.</li>
+<li>At any point, if there is an <code>amount</code> pending to be paid as instructed by the service provider, the user can pay the included <code>bolt11</code> or zap the job result event the service provider has sent to the user.</li>
+</ul>
+<p>Job feedback (<code>kind:7000</code>) and Job Results (<code>kind:6000-6999</code>) events MAY include an <code>amount</code> tag, this can be interpreted as a suggestion to pay. Service Providers MUST use the <code>payment-required</code> feedback event to signal that a payment is required and no further actions will be performed until the payment is sent.</p>
+<p>Customers can always either pay the included <code>bolt11</code> invoice or zap the event requesting the payment and service providers should monitor for both if they choose to include a bolt11 invoice.</p>
+<h3>Notes about the protocol flow</h3>
+<p>The flow is deliberately ambiguous, allowing vast flexibility for the interaction between customers and service providers so that service providers can model their behavior based on their own decisions/perceptions of risk.</p>
+<p>Some service providers might choose to submit a <code>payment-required</code> as the first reaction before sending a <code>processing</code> or before delivering results, some might choose to serve partial results for the job (e.g. a sample), send a <code>payment-required</code> to deliver the rest of the results, and some service providers might choose to assess likelihood of payment based on an npub's past behavior and thus serve the job results before requesting payment for the best possible UX.</p>
+<p>It's not up to this NIP to define how individual vending machines should choose to run their business.</p>
+<h2>Cancellation</h2>
+<p>A job request might be canceled by publishing a <code>kind:5</code> delete request event tagging the job request event.</p>
+<h2>Appendix 1: Job chaining</h2>
+<p>A Customer MAY request multiple jobs to be processed as a chain, where the output of a job is the input of another job. (e.g. podcast transcription -&gt; summarization of the transcription). This is done by specifying as input an event id of a different job with the <code>job</code> type.</p>
+<p>Service Providers MAY begin processing a subsequent job the moment they see the prior job's result, but they will likely wait for a zap to be published first. This introduces a risk that Service Provider of job #1 might delay publishing the zap event in order to have an advantage. This risk is up to Service Providers to mitigate or to decide whether the service provider of job #1 tends to have good-enough results so as to not wait for an explicit zap to assume the job was accepted.</p>
+<p>This gives a higher level of flexibility to service providers (which sophisticated service providers would take anyway).</p>
+<h2>Appendix 2: Service provider discoverability</h2>
+<p>Service Providers MAY use NIP-89 announcements to advertise their support for job kinds:</p>
+<pre><code class="language-yaml">{
+  &quot;kind&quot;: 31990,
+  &quot;pubkey&quot;: &quot;&lt;pubkey&gt;&quot;,
+  &quot;content&quot;: &quot;{
+    \&quot;name\&quot;: \&quot;Translating DVM\&quot;,
+    \&quot;about\&quot;: \&quot;I'm a DVM specialized in translating Bitcoin content.\&quot;
+  }&quot;,
+  &quot;tags&quot;: [
+    [&quot;k&quot;, &quot;5005&quot;], // e.g. translation
+    [&quot;t&quot;, &quot;bitcoin&quot;] // e.g. optionally advertises it specializes in bitcoin audio transcription that won't confuse &quot;Drivechains&quot; with &quot;Ridechains&quot;
+  ],
+  // other fields...
+}
+</code></pre>
+<p>Customers can use NIP-89 to see what service providers their follows use.</p>
+</article>

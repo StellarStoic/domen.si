@@ -1,0 +1,211 @@
+<article class="nips-doc" id="nip-86">
+<p>Relays may provide an API for performing management tasks. This is made available as a JSON-RPC-like request-response protocol over HTTP, on the same URI as the relay's websocket.</p>
+<p>When a relay receives an HTTP(s) request with a <code>Content-Type</code> header of <code>application/nostr+json+rpc</code> to a URI supporting WebSocket upgrades, it should parse the request as a JSON document with the following fields:</p>
+<pre><code class="language-json">{
+  &quot;method&quot;: &quot;&lt;method-name&gt;&quot;,
+  &quot;params&quot;: [&quot;&lt;array&gt;&quot;, &quot;&lt;of&gt;&quot;, &quot;&lt;parameters&gt;&quot;]
+}
+</code></pre>
+<p>Then it should return a response in the format</p>
+<pre><code class="language-json">{
+  &quot;result&quot;: {&quot;&lt;arbitrary&gt;&quot;: &quot;&lt;value&gt;&quot;},
+  &quot;error&quot;: &quot;&lt;optional error message, if the call has errored&gt;&quot;
+}
+</code></pre>
+<p>This is the list of <strong>methods</strong> that may be supported:</p>
+<h3><code>supportedmethods</code></h3>
+<p>Lists the methods supported by the relay. May be customized to match permissions assigned to the authenticated user.</p>
+<ul>
+<li>params: <code>[]</code></li>
+<li>result: <code>["&lt;method-name&gt;", "&lt;method-name&gt;", ...]</code> (an array with the names of all the other supported methods)</li>
+</ul>
+<h3><code>banpubkey</code></h3>
+<p>Bans a pubkey from the relay. Should automatically remove the pubkey from the allow list.</p>
+<ul>
+<li>params: <code>["&lt;32-byte-hex-public-key&gt;", "&lt;optional-reason&gt;"]</code></li>
+<li>result: <code>true</code> (a boolean always set to <code>true</code>)</li>
+</ul>
+<h3><code>unbanpubkey</code></h3>
+<p>Removes a pubkey from the relay's ban list. Should not automatically add the pubkey to the allow list.</p>
+<ul>
+<li>params: <code>["&lt;32-byte-hex-public-key&gt;", "&lt;optional-reason&gt;"]</code></li>
+<li>result: <code>true</code> (a boolean always set to <code>true</code>)</li>
+</ul>
+<h3><code>listbannedpubkeys</code></h3>
+<p>Lists pubkeys banned from the relay.</p>
+<ul>
+<li>params: <code>[]</code></li>
+<li>result: <code>[{"pubkey": "&lt;32-byte-hex&gt;", "reason": "&lt;optional-reason&gt;"}, ...]</code>, an array of objects</li>
+</ul>
+<h3><code>allowpubkey</code></h3>
+<p>Adds a pubkey to the relay's allow list. Should automatically remove the pubkey from the ban list.</p>
+<ul>
+<li>params: <code>["&lt;32-byte-hex-public-key&gt;", "&lt;optional-reason&gt;"]</code></li>
+<li>result: <code>true</code> (a boolean always set to <code>true</code>)</li>
+</ul>
+<h3><code>unallowpubkey</code></h3>
+<p>Removes a pubkey from the relay's allow list. Should not automatically add the pubkey to the ban list.</p>
+<ul>
+<li>params: <code>["&lt;32-byte-hex-public-key&gt;", "&lt;optional-reason&gt;"]</code></li>
+<li>result: <code>true</code> (a boolean always set to <code>true</code>)</li>
+</ul>
+<h3><code>listallowedpubkeys</code></h3>
+<p>Lists pubkeys on the relay's allow list.</p>
+<ul>
+<li>params: <code>[]</code></li>
+<li>result: <code>[{"pubkey": "&lt;32-byte-hex&gt;", "reason": "&lt;optional-reason&gt;"}, ...]</code>, an array of objects</li>
+</ul>
+<h3><code>createrole</code></h3>
+<p>Creates a new role.</p>
+<ul>
+<li>params: <code>[id, label, description, color, order]</code></li>
+<li>result: <code>true</code> (boolean true)</li>
+</ul>
+<h3><code>editrole</code></h3>
+<p>Updates an existing role.</p>
+<ul>
+<li>params: <code>[id, label, description, color, order]</code></li>
+<li>result: <code>true</code> (boolean true)</li>
+</ul>
+<h3><code>deleterole</code></h3>
+<p>Deletes a role.</p>
+<ul>
+<li>params: <code>[id]</code></li>
+<li>result: <code>true</code> (boolean true)</li>
+</ul>
+<h3><code>assignrole</code></h3>
+<p>Assigns a role to a pubkey.</p>
+<ul>
+<li>params: <code>["&lt;32-byte-hex-public-key&gt;", "&lt;role-id&gt;"]</code></li>
+<li>result: <code>true</code> (a boolean always set to <code>true</code>)</li>
+</ul>
+<h3><code>unassignrole</code></h3>
+<p>Removes a role from a pubkey.</p>
+<ul>
+<li>params: <code>["&lt;32-byte-hex-public-key&gt;", "&lt;role-id&gt;"]</code></li>
+<li>result: <code>true</code> (a boolean always set to <code>true</code>)</li>
+</ul>
+<h3><code>listclaims</code></h3>
+<p>Lists <a href="./43.md">NIP 43</a> invite codes currently accepted by the relay.</p>
+<ul>
+<li>params: <code>[]</code></li>
+<li>result: <code>[claim, ...]</code>, an array of NIP 43 invite codes</li>
+</ul>
+<h3><code>createclaim</code></h3>
+<p>Creates a new <a href="./43.md">NIP 43</a> invite code.</p>
+<ul>
+<li>params: <code>[claim]</code></li>
+<li>result: <code>true</code> (boolean true)</li>
+</ul>
+<h3><code>deleteclaim</code></h3>
+<p>Revokes a <a href="./43.md">NIP 43</a> invite code.</p>
+<ul>
+<li>params: <code>[claim]</code></li>
+<li>result: <code>true</code> (boolean true)</li>
+</ul>
+<h3><code>listeventsneedingmoderation</code></h3>
+<p>Lists events awaiting moderation.</p>
+<ul>
+<li>params: <code>[]</code></li>
+<li>result: <code>[{"id": "&lt;32-byte-hex&gt;", "reason": "&lt;optional-reason&gt;"}]</code>, an array of objects</li>
+</ul>
+<h3><code>allowevent</code></h3>
+<p>Adds an event to the relay's allow list. Should automatically remove the event from the ban list.</p>
+<ul>
+<li>params: <code>["&lt;32-byte-hex-event-id&gt;", "&lt;optional-reason&gt;"]</code></li>
+<li>result: <code>true</code> (a boolean always set to <code>true</code>)</li>
+</ul>
+<h3><code>unallowevent</code></h3>
+<p>Removes an event from the relay's allow list. Should not automatically add the event to the ban list.</p>
+<ul>
+<li>params: <code>["&lt;32-byte-hex-event-id&gt;", "&lt;optional-reason&gt;"]</code></li>
+<li>result: <code>true</code> (a boolean always set to <code>true</code>)</li>
+</ul>
+<h3><code>banevent</code></h3>
+<p>Bans an event from the relay. Should automatically remove the event from the allow list.</p>
+<ul>
+<li>params: <code>["&lt;32-byte-hex-event-id&gt;", "&lt;optional-reason&gt;"]</code></li>
+<li>result: <code>true</code> (a boolean always set to <code>true</code>)</li>
+</ul>
+<h3><code>unbanevent</code></h3>
+<p>Removes an event from the relay's ban list. Should not automatically add the event to the allow list.</p>
+<ul>
+<li>params: <code>["&lt;32-byte-hex-event-id&gt;", "&lt;optional-reason&gt;"]</code></li>
+<li>result: <code>true</code> (a boolean always set to <code>true</code>)</li>
+</ul>
+<h3><code>listbannedevents</code></h3>
+<p>Lists events banned from the relay.</p>
+<ul>
+<li>params: <code>[]</code></li>
+<li>result: <code>[{"id": "&lt;32-byte hex&gt;", "reason": "&lt;optional-reason&gt;"}, ...]</code>, an array of objects</li>
+</ul>
+<h3><code>listallowedevents</code></h3>
+<p>Lists events on the relay's allow list.</p>
+<ul>
+<li>params: <code>[]</code></li>
+<li>result: <code>[{"id": "&lt;32-byte-hex&gt;", "reason": "&lt;optional-reason&gt;"}, ...]</code>, an array of objects</li>
+</ul>
+<h3><code>changerelayname</code></h3>
+<p>Changes the relay's name.</p>
+<ul>
+<li>params: <code>["&lt;new-name&gt;"]</code></li>
+<li>result: <code>true</code> (a boolean always set to <code>true</code>)</li>
+</ul>
+<h3><code>changerelaydescription</code></h3>
+<p>Changes the relay's description.</p>
+<ul>
+<li>params: <code>["&lt;new-description&gt;"]</code></li>
+<li>result: <code>true</code> (a boolean always set to <code>true</code>)</li>
+</ul>
+<h3><code>changerelayicon</code></h3>
+<p>Changes the relay's icon.</p>
+<ul>
+<li>params: <code>["&lt;new-icon-url&gt;"]</code></li>
+<li>result: <code>true</code> (a boolean always set to <code>true</code>)</li>
+</ul>
+<h3><code>allowkind</code></h3>
+<p>Adds an event kind to the relay's allow list.</p>
+<ul>
+<li>params: <code>[&lt;kind-number&gt;]</code></li>
+<li>result: <code>true</code> (a boolean always set to <code>true</code>)</li>
+</ul>
+<h3><code>disallowkind</code></h3>
+<p>Disallows an event kind.</p>
+<ul>
+<li>params: <code>[&lt;kind-number&gt;]</code></li>
+<li>result: <code>true</code> (a boolean always set to <code>true</code>)</li>
+</ul>
+<h3><code>listallowedkinds</code></h3>
+<p>Lists event kinds on the relay's allow list.</p>
+<ul>
+<li>params: <code>[]</code></li>
+<li>result: <code>[&lt;kind-number&gt;, ...]</code>, an array of numbers</li>
+</ul>
+<h3><code>listdisallowedkinds</code></h3>
+<p>Lists event kinds the relay disallows.</p>
+<ul>
+<li>params: <code>[]</code></li>
+<li>result: <code>[&lt;kind-number&gt;, ...]</code>, an array of numbers</li>
+</ul>
+<h3><code>blockip</code></h3>
+<p>Adds an IP address to the relay's block list.</p>
+<ul>
+<li>params: <code>["&lt;ip-address&gt;", "&lt;optional-reason&gt;"]</code></li>
+<li>result: <code>true</code> (a boolean always set to <code>true</code>)</li>
+</ul>
+<h3><code>unblockip</code></h3>
+<p>Removes an IP address from the relay's block list.</p>
+<ul>
+<li>params: <code>["&lt;ip-address&gt;"]</code></li>
+<li>result: <code>true</code> (a boolean always set to <code>true</code>)</li>
+</ul>
+<h3><code>listblockedips</code></h3>
+<p>Lists IP addresses blocked by the relay.</p>
+<ul>
+<li>params: <code>[]</code></li>
+<li>result: <code>[{"ip": "&lt;ip-address&gt;", "reason": "&lt;optional-reason&gt;"}, ...]</code>, an array of objects</li>
+</ul>
+<h3>Authorization</h3>
+<p>The request must contain an <code>Authorization</code> header with a valid <a href="./98.md">NIP-98</a> event, except the <code>payload</code> tag is required. The <code>u</code> tag is the relay URL.</p>
+<p>If <code>Authorization</code> is not provided or is invalid, the endpoint should return a 401 response.</p>
+</article>

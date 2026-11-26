@@ -1,0 +1,65 @@
+<article class="nips-doc" id="nip-25">
+<p>A reaction is a <code>kind 7</code> event that is used to indicate user reactions to other events. A
+reaction's <code>content</code> field MUST include user-generated-content indicating the value of the
+reaction (conventionally <code>+</code>, <code>-</code>, or an emoji).</p>
+<p>A reaction with <code>content</code> set to <code>+</code> or an empty string MUST be interpreted as a "like" or "upvote".
+A reaction with <code>content</code> set to <code>-</code> MUST be interpreted as a "dislike" or "downvote".</p>
+<p>A reaction with <code>content</code> set to an emoji or <a href="#" data-nip="30">NIP-30</a> custom emoji SHOULD NOT be interpreted
+as a "like" or "dislike". Clients MAY instead display this emoji reaction on the post.</p>
+<h2>Tags</h2>
+<p>There MUST be always an <code>e</code> tag set to the <code>id</code> of the event that is being reacted to. The <code>e</code> tag SHOULD include a relay hint pointing to a relay where the event being reacted to can be found. If a client decides to include other <code>e</code>, which not recommended, the target event <code>id</code> should be last of the <code>e</code> tags.</p>
+<p>There SHOULD be a <code>p</code> tag set to the <code>pubkey</code> of the event being reacted to. If a client decides to include other <code>p</code> tags, which not recommended, the target event <code>pubkey</code> should be last the <code>p</code> tags.</p>
+<p>If the event being reacted to is an addressable event, an <code>a</code> SHOULD be included together with the <code>e</code> tag, it must be set to the coordinates (<code>kind:pubkey:d-tag</code>) of the event being reacted to.</p>
+<p>The <code>e</code> and <code>a</code> tags SHOULD include relay and pubkey hints. The <code>p</code> tags SHOULD include relay hints.</p>
+<p>The reaction event MAY include a <code>k</code> tag with the stringified kind number of the reacted event as its value.</p>
+<p><strong>Example code</strong></p>
+<pre><code class="language-swift">func make_like_event(pubkey: String, privkey: String, liked: NostrEvent, hint: String) -&gt; NostrEvent {
+    var tags: [[String]] = []
+    tags.append([&quot;e&quot;, liked.id, hint, liked.pubkey])
+    tags.append([&quot;p&quot;, liked.pubkey, hint])
+    tags.append([&quot;k&quot;, String(liked.kind)])
+    let ev = NostrEvent(content: &quot;+&quot;, pubkey: pubkey, kind: 7, tags: tags)
+    ev.calculate_id()
+    ev.sign(privkey: privkey)
+    return ev
+}
+</code></pre>
+<h2>External Content Reactions</h2>
+<p>If the target of a reaction is not a native nostr event, the reaction MUST be a <code>kind 17</code> event and MUST include <a href="#" data-nip="73">NIP-73</a> external content <code>k</code> + <code>i</code> tags to properly reference the content.</p>
+<p><em>Reacting to a website:</em></p>
+<pre><code class="language-yaml">{
+  &quot;kind&quot;: 17,
+  &quot;content&quot;: &quot;⭐&quot;,
+  &quot;tags&quot;: [
+    [&quot;k&quot;, &quot;web&quot;],
+    [&quot;i&quot;, &quot;https://example.com&quot;]
+  ],
+}
+</code></pre>
+<p><em>Reacting to a podcast episode:</em></p>
+<pre><code class="language-yaml">{
+  &quot;kind&quot;: 17,
+  &quot;content&quot;: &quot;+&quot;,
+  &quot;tags&quot;: [
+    [&quot;k&quot;, &quot;podcast:guid&quot;],
+    [&quot;i&quot;, &quot;podcast:guid:917393e3-1b1e-5cef-ace4-edaa54e1f810&quot;, &quot;https://fountain.fm/show/QRT0l2EfrKXNGDlRrmjL&quot;],
+    [&quot;k&quot;, &quot;podcast:item:guid&quot;],
+    [&quot;i&quot;, &quot;podcast:item:guid:PC20-229&quot;, &quot;https://fountain.fm/episode/DQqBg5sD3qFGMCZoSuLF&quot;]
+  ],
+}
+</code></pre>
+<h2>Custom Emoji Reaction</h2>
+<p>The client may specify a custom emoji (<a href="#" data-nip="30">NIP-30</a>) <code>:shortcode:</code> in the
+reaction content. The client should refer to the emoji tag and render the
+content as an emoji if shortcode is specified.</p>
+<pre><code class="language-yaml">{
+  &quot;kind&quot;: 7,
+  &quot;content&quot;: &quot;:soapbox:&quot;,
+  &quot;tags&quot;: [
+    [&quot;emoji&quot;, &quot;soapbox&quot;, &quot;https://gleasonator.com/emoji/Gleasonator/soapbox.png&quot;]
+  ],
+  // other fields...
+}
+</code></pre>
+<p>The content can be set only one <code>:shortcode:</code>. And emoji tag should be one.</p>
+</article>

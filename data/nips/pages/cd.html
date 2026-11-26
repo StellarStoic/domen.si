@@ -1,0 +1,85 @@
+<article class="nips-doc" id="nip-CD">
+<p>A slash command is an interface published by a service, invoked as plain text in the content of any event. Invocations carry no tags and require no client support.</p>
+<h2>Slash command definition</h2>
+<p>A kind <code>31992</code> event defines a slash command using the following tags:</p>
+<ul>
+<li><code>command</code> - the trigger, without a leading slash. Required.</li>
+<li><code>title</code> - short human-readable name. Required.</li>
+<li><code>description</code> - usage, including any reply or context conventions. Required.</li>
+<li><code>arg</code> - one argument. Ordered.</li>
+<li><code>s</code> - a <code>scope</code> (defined below) indicating what events trigger this slash command.</li>
+</ul>
+<p>An <code>arg</code> tag is <code>["arg", &lt;name&gt;, &lt;type&gt;, "required" | "optional", &lt;label&gt;, &lt;choice&gt;...]</code>. <code>&lt;choice&gt;</code> elements apply to type <code>enum</code> only.</p>
+<p>Arguments are positional. Optional/text arguments MUST come after required arguments, and there can be at most one of either.</p>
+<p><code>scopes</code> are defined as follows:</p>
+<ul>
+<li><code>kind:&lt;kind&gt;</code> - an invocation's <code>kind</code> must match <code>&lt;kind&gt;</code>.</li>
+<li><code>relay:&lt;url&gt;</code> - the executor only listens on the given <code>&lt;url&gt;</code>.</li>
+<li><code>author:&lt;pubkey&gt;</code> - an invocation must have an <code>author</code> matching <code>&lt;pubkey&gt;</code>.</li>
+<li><code>tag:&lt;tag&gt;</code> - an invocation must include a non-empty <code>&lt;tag&gt;</code> tag.</li>
+<li><code>tag:&lt;tag&gt;:&lt;value&gt;</code> - an invocation must have a <code>&lt;tag&gt;</code> tag matching <code>{value}</code>.</li>
+</ul>
+<p>Scopes combine like a filter: those of the same type (grouped by tag name, for <code>tag</code> scopes) are alternatives, scopes of different types must all match, and an absent type is unrestricted.</p>
+<pre><code class="language-json">{
+  &quot;kind&quot;: 31992,
+  &quot;tags&quot;: [
+    [&quot;d&quot;, &quot;8f2c1a&quot;],
+    [&quot;command&quot;, &quot;ban&quot;],
+    [&quot;title&quot;, &quot;Ban a user&quot;],
+    [&quot;description&quot;, &quot;Removes a user. Reply to a message to ban its author.&quot;],
+    [&quot;arg&quot;, &quot;target&quot;, &quot;pubkey&quot;, &quot;required&quot;, &quot;Who to ban&quot;],
+    [&quot;arg&quot;, &quot;reason&quot;, &quot;text&quot;, &quot;optional&quot;, &quot;Why&quot;],
+    [&quot;s&quot;, &quot;kind:9&quot;],
+    [&quot;s&quot;, &quot;kind:11&quot;],
+    [&quot;s&quot;, &quot;tag:h:62af9b0&quot;],
+    [&quot;s&quot;, &quot;relay:wss://relay.example&quot;]
+  ]
+}
+</code></pre>
+<h2>Invocation</h2>
+<pre><code>/&lt;command&gt;[@nostr:&lt;pubkey&gt;] [&lt;arg&gt;...] [&lt;text&gt;]
+</code></pre>
+<p>Invocations appear in the <code>content</code> of any event and carry no tags.</p>
+<ul>
+<li>An invocation MUST begin at index <code>0</code> of <code>content</code>.</li>
+<li><code>&lt;pubkey&gt;</code> is <code>npub1…</code>, and terminates at the end of the bech32 character set.</li>
+<li>Without <code>&lt;pubkey&gt;</code>, the invocation targets every slash command whose <code>command</code> tag matches and whose scope includes the event, which may result in multiple invocations across different executors.</li>
+<li>Arguments are separated by whitespace. A <code>text</code> argument consumes the remainder of <code>content</code> verbatim, including whitespace and newlines.</li>
+</ul>
+<pre><code>/ban@nostr:npub1qqqs... nostr:npub1abcd... repeatedly spamming links
+</code></pre>
+<h2>Argument types</h2>
+<ul>
+<li><code>pubkey</code> - hex, <code>nostr:npub1…</code>, <code>nostr:nprofile1…</code></li>
+<li><code>event</code> - hex, <code>nostr:note1…</code>, <code>nostr:nevent1…</code></li>
+<li><code>address</code> - <code>nostr:naddr1…</code></li>
+<li><code>relay</code> - websocket URL</li>
+<li><code>number</code> - decimal digits</li>
+<li><code>bool</code> - <code>true|false|yes|no|1|0|t|f|y|n</code></li>
+<li><code>enum</code> - one of the <code>&lt;choice&gt;</code> values on the <code>arg</code> tag</li>
+<li><code>word</code> - any run of non-whitespace characters</li>
+<li><code>text</code> - the remainder of <code>content</code></li>
+</ul>
+<h2>Executor behavior</h2>
+<p>An executor reads events within the scope it declares and matches invocations against its own definitions. It MUST ignore content not beginning at index <code>0</code>, and MUST accept both the bare and <code>nostr:</code>-prefixed forms of a qualifier and of any argument.</p>
+<p>Executors may document additional trigger conditions, reply conventions, or ways to bring in additional context in the <code>description</code>. For example, a bot may take a <code>q</code> tagged event into consideration, or respond multiple times with emojis, zaps, comments, emails, etc.</p>
+<h2>Client behavior</h2>
+<p>All client support is optional.</p>
+<p>Clients MAY offer autocomplete for definitions in scope, insert arguments through a picker appropriate to each type, and render recognized invocations as a chip. A client SHOULD omit <code>@nostr:&lt;pubkey&gt;</code> and MAY insert it to target a single executor. Where a trigger resolves to more than one definition, a client SHOULD present all of them.</p>
+<p>A client MUST NOT require its own support to send an invocation, and MUST send content that fails to parse as ordinary text.</p>
+<h2>Installed slash commands</h2>
+<p>Users MAY keep a kind <code>10992</code> <a href="#" data-nip="51">NIP-51</a> list of <code>a</code> tags pointing to the definitions they want available. Clients SHOULD use it as the source for autocomplete and for rendering invocations as chips, and MAY offer to add or remove a definition from it wherever one is displayed.</p>
+<pre><code class="language-json">{
+  &quot;kind&quot;: 10992,
+  &quot;tags&quot;: [
+    [&quot;a&quot;, &quot;31992:&lt;executor-pubkey&gt;:8f2c1a&quot;, &quot;wss://relay.example&quot;]
+  ]
+}
+</code></pre>
+<h2>Slash command discovery</h2>
+<p>Slash commands should be published to relays where they can be discovered by the relevant users:</p>
+<ul>
+<li>For slash commands related to relays-as-groups or nip29 groups, slash command definitions and invocations should be published to the group relay</li>
+<li>For slash commands related to broadcast social media use cases, slash command definitions should be published to executor outboxes and optionally slash-command-specific indexing relays, while slash command invocations should be published to executor inboxes.</li>
+</ul>
+</article>

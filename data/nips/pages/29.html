@@ -1,0 +1,323 @@
+<article class="nips-doc" id="nip-29">
+<p>This NIP defines a standard for groups that are only writable by a closed set of users. They can be public for reading by external users or not.</p>
+<p>Groups are identified by a random string of any length that serves as an <em>id</em>.</p>
+<p>There is no way to create a group, what happens is just that relays (most likely when asked by users) will create rules around some specific ids so these ids can serve as an actual group, henceforth messages sent to that group will be subject to these rules.</p>
+<p>Normally a group will originally belong to one specific relay, but the community may choose to move the group to other relays or even fork the group so it exists in different forms -- still using the same <em>id</em> -- across different relays.</p>
+<h2>Group identity, migration and forking</h2>
+<p>A group is held together by two things: the group <em>id</em> and the relay that currently enforces access rules over that <em>id</em> on behalf of one or more group owners or admins. Because enforcement is tied to a specific relay, the group is only as durable as that relay's willingness and ability to keep hosting it.</p>
+<h3>Moving a group to another relay</h3>
+<p>If the relay hosting a group becomes unresponsive, goes offline permanently, or simply becomes untrustworthy, the group can be migrated by copying the existing events to a different relay, as long as that new relay agrees to receive the old group and to continue enforcing the same rules and acknowledging the same admins.</p>
+<h3>Forking a group</h3>
+<p>Another situation in which it might be desirable to move a relay to a different group is that of a disagreement between members of the original group.</p>
+<p>A dissident faction within a group can take the group's history to a different relay that agrees to <em>change</em> the rules of that group and assign admin powers to a different set of users. This is a group <em>fork</em>: the new relay keeps the same <em>id</em> but enforces a different set of moderation policies and a different admin roster than the original relay.</p>
+<p>Forks are not bugs. It's a feature of this NIP that the same <em>id</em> can simultaneously identify different communities with different governance, hosted by different relays, each with their own <code>kind:39000</code> metadata event, their own <code>kind:39001</code> admin list and their own message history.</p>
+<h3>Detecting migrations and forks</h3>
+<p>In order to check whether a group has migrated or whether a fork exists, clients SHOULD periodically -- and MUST, if their primary relay for a group is offline or unreachable -- look at the <code>kind:10009</code> event of the group's admins and of trusted friends. The pubkeys of the admins of the groups the user is in SHOULD be cached locally so this check can be performed even when the original relay is down.</p>
+<p>If a <code>kind:10009</code> entry for a group now points to a different relay hint than the one the client was previously using, the client SHOULD notify the user that the group may have moved or been forked, and offer to fetch the group's events from the new relay and, if the user wishes, to migrate their participation to that relay as well, updating the current user's <code>kind:10009</code> in the process.</p>
+<h3>Replicating a group for resilience</h3>
+<p>Groups that do not want to lose history in case their primary relay goes down SHOULD set up a live backup/replica of all of the group's events on a second relay. The replica relay does not need to enforce any moderation rules of its own -- it exists only to preserve the event history so that, if the primary relay disappears, a new authoritative relay can be chosen and the historical events copied over from the replica.</p>
+<h2>Relay-generated events</h2>
+<p>Relays are supposed to generate the events that describe group metadata and group admins. These are <em>addressable</em> events signed by the relay keypair directly, with the group <em>id</em> as the <code>d</code> tag.</p>
+<h2>Group referencing</h2>
+<p>A group may be identified by a <code>naddr1...</code> code to its <code>kind:39000</code> metadata event, with the public key set to the relay <code>self</code> public key, the <code>d</code> identifier set to the group id, the kind set to <code>39000</code> and a relay hint to the relay that is hosting the group.</p>
+<p>An invite code may be appended to the group identifier:</p>
+<pre><code>naddr1...?invite=&lt;code&gt;
+</code></pre>
+<p>Clients should use this code in the <code>code</code> tag of the <code>kind:9021</code> join request. Since the bech32 charset doesn't include <code>?</code>, everything before the <code>?</code> is still a valid identifier on its own, so clients that don't understand the suffix can just ignore it.</p>
+<h2>The <code>h</code> tag</h2>
+<p>Events sent by users to groups (chat messages, text notes, moderation events etc) MUST have an <code>h</code> tag with the value set to the group <em>id</em>.</p>
+<h2>Timeline references</h2>
+<p>In order to not be used out of context, events sent to these groups may contain references to previous events seen from the same relay in the <code>previous</code> tag. The choice of which previous events to pick belongs to the clients. The references are to be made using the first 8 characters (4 bytes) of any event in the last 50 events seen by the user in the relay, excluding events by themselves. There can be any number of references (including zero), but it's recommended that clients include at least 3 and that relays enforce this.</p>
+<p>This is a hack to prevent messages from being broadcasted to external relays that have forks of one group out of context. Relays are expected to reject any events that contain timeline references to events not found in their own database. Clients should also check these to keep relays honest about them.</p>
+<h3>Example</h3>
+<pre><code class="language-json">  [&quot;previous&quot;, &quot;eb96c864&quot;, &quot;2db75638&quot;, &quot;b5d1065f&quot;]
+</code></pre>
+<h2>Late publication</h2>
+<p>Relays should prevent late publication (messages published now with a timestamp from days or even hours ago) unless they are open to receive a group forked or moved from another relay.</p>
+<h2>Group management</h2>
+<p>Groups can have any number of users with elevated access. These users are identified by role labels which are arbitrarily defined by the relays (see also the description of <code>kind:39003</code>). What each role is capable of not defined in this NIP either, it's a relay policy that can vary. Roles can be assigned by other users (as long as they have the capability to add roles) by publishing a <code>kind:9000</code> event with that user's pubkey in a <code>p</code> tag and the roles afterwards (even if the user is already a group member a <code>kind:9000</code> can be issued and the user roles must just be updated).</p>
+<p>The roles supported by the group as to having some special privilege assigned to them should be accessible on the event <code>kind:39003</code>, but the relay may also accept other role names, arbitrarily defined by clients, and just not do anything with them.</p>
+<p>Users with any roles that have any privilege can be considered <em>admins</em> in a broad sense and be returned in the <code>kind:39001</code> event for a group.</p>
+<h2>Live audio/video (AV) spaces</h2>
+<p>Groups may indicate they support live audio and/or video chat by means of a <a href="https://docs.livekit.io/transport/" target="_blank" rel="noopener noreferrer">LiveKit</a> server by having the tag <code>livekit</code> in the group announcement event. An empty <code>supported_kinds</code> tag should be used if the group doesn't support text messages, only live AV chat. This setup allows for both Discord-style independent AV rooms and text rooms and Telegram-style single-roomgroup with support for both text and AV.</p>
+<p>Upon seeing a <code>livekit</code> tag in a group, clients that want to take part in the AV space should call the <a href="https://docs.livekit.io/frontends/build/authentication/endpoint/" target="_blank" rel="noopener noreferrer">token endpoint</a> at the relay path <code>/.well-known/nip29/livekit/&lt;group-id&gt;</code> with a <a href="#" data-nip="98">NIP-98</a>-style <code>Authorization</code> header to get back the LiveKit JWT and the URL of the LiveKit server and proceed with the standard LiveKit flow there.</p>
+<p>The <code>Authorization</code> event should be of kind <code>27235</code> and contain a tag <code>["u", "https://relay.tld/.well-known/nip29/livekit/&lt;group-id&gt;"]</code>.</p>
+<p>Relays should enforce access control at the LiveKit JWT creation time according to the group settings.</p>
+<p>Relays MUST set the <code>sub</code> property on the issued JWT (called "identity" in the standard LiveKit libraries) such that the initial 64 characters correspond to the lowercase hex public key of the Nostr user. The same user can be issued multiple JWTs and join the same LiveKit room multiple times, so relays are expected to appending a random identifier to those 64 characters.</p>
+<p>In order to inform clients about relay support for AV (so they can display that option for users when creating or editing groups) relays should serve a status code <code>204</code> at <code>https://relay.tld/.well-known/nip29/livekit</code>.</p>
+<h2>Event definitions</h2>
+<p>These are the events expected to be found in NIP-29 groups.</p>
+<h3>Normal user-created events</h3>
+<p>Groups may accept any event kind, including chats, threads, long-form articles, calendar, livestreams, market announcements and so on. These should be as defined in their respective NIPs, with the addition of the <code>h</code> tag.</p>
+<h3>User-related group management events</h3>
+<p>These are events that can be sent by users to manage their situation in a group, they also require the <code>h</code> tag.</p>
+<ul>
+<li><em>join request</em> (<code>kind:9021</code>)</li>
+</ul>
+<p>Any user can send a kind <code>9021</code> event to the relay in order to request admission to the group. Relays MUST reject the request if the user has not been added to the group. The accompanying error message SHOULD explain whether the rejection is final, if the request is pending review, or if some other special handling is relevant (e.g. if payment is required). If a user is already a member, the event MUST be rejected with <code>duplicate:</code> as the error message prefix.</p>
+<pre><code class="language-json">{
+  &quot;kind&quot;: 9021,
+  &quot;content&quot;: &quot;optional reason&quot;,
+  &quot;tags&quot;: [
+    [&quot;h&quot;, &quot;&lt;group-id&gt;&quot;],
+    [&quot;code&quot;, &quot;&lt;optional-invite-code&gt;&quot;]
+  ]
+}
+</code></pre>
+<p>The optional <code>code</code> tag may be used by the relay to preauthorize acceptance, together with the <code>kind:9009</code> <code>create-invite</code> moderation event.</p>
+<ul>
+<li><em>leave request</em> (<code>kind:9022</code>)</li>
+</ul>
+<p>Any user can send one of these events to the relay in order to be automatically removed from the group. The relay will automatically issue a <code>kind:9001</code> in response removing this user.</p>
+<pre><code class="language-json">{
+  &quot;kind&quot;: 9022,
+  &quot;content&quot;: &quot;optional reason&quot;,
+  &quot;tags&quot;: [
+    [&quot;h&quot;, &quot;&lt;group-id&gt;&quot;]
+  ]
+}
+</code></pre>
+<h3>Group state -- or moderation</h3>
+<p>These are events expected to be sent by the relay master key or by group admins -- and relays should reject them if they don't come from an authorized admin. They also require the <code>h</code> tag.</p>
+<ul>
+<li><em>moderation events</em> (<code>kinds:9000-9020</code>) (optional)</li>
+</ul>
+<p>Clients can send these events to a relay in order to accomplish a moderation action. Relays must check if the pubkey sending the event is capable of performing the given action based on its role and the relay's internal policy (see also the description of <code>kind:39003</code>).</p>
+<pre><code class="language-yaml">{
+  &quot;kind&quot;: 90xx,
+  &quot;content&quot;: &quot;optional reason&quot;,
+  &quot;tags&quot;: [
+    [&quot;h&quot;, &quot;&lt;group-id&gt;&quot;],
+    [&quot;previous&quot;, /*...*/]
+  ]
+}
+</code></pre>
+<p>Each moderation action uses a different kind and requires different arguments, which are given as tags. These are defined in the following table:</p>
+<table>
+<thead>
+<tr>
+<th>kind</th>
+<th>name</th>
+<th>tags</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>9000</td>
+<td><code>put-user</code></td>
+<td><code>p</code> with pubkey hex and optional roles</td>
+</tr>
+<tr>
+<td>9001</td>
+<td><code>remove-user</code></td>
+<td><code>p</code> with pubkey hex</td>
+</tr>
+<tr>
+<td>9002</td>
+<td><code>edit-metadata</code></td>
+<td>all the fields of <em>group-metadata</em></td>
+</tr>
+<tr>
+<td>9005</td>
+<td><code>delete-event</code></td>
+<td><code>e</code> with event id hex</td>
+</tr>
+<tr>
+<td>9007</td>
+<td><code>create-group</code></td>
+<td></td>
+</tr>
+<tr>
+<td>9008</td>
+<td><code>delete-group</code></td>
+<td></td>
+</tr>
+<tr>
+<td>9009</td>
+<td><code>create-invite</code></td>
+<td>arbitrary <code>code</code></td>
+</tr>
+<tr>
+<td>9010</td>
+<td><code>update-pin-list</code></td>
+<td>zero or more <code>e</code> with event id hex or <code>a</code> with event address</td>
+</tr>
+</tbody>
+</table>
+<p>It's expected that the group state (of who is an allowed member or not, who is an admin and with which permission or not, what are the group name and picture etc) can be fully reconstructed from the canonical sequence of these events.</p>
+<h3>Group metadata events</h3>
+<p>These events contain the group id in a <code>d</code> tag instead of the <code>h</code> tag. They MUST be created by the relay master key only (as stated by the <a href="#" data-nip="11">NIP-11</a> <code>"self"</code> pubkey) and a single instance of each (or none) should exist at all times for each group. They are merely informative but should reflect the latest group state (as it was changed by moderation events over time).</p>
+<ul>
+<li><em>group metadata</em> (<code>kind:39000</code>) (optional)</li>
+</ul>
+<p>This event defines the metadata for the group -- basically how clients should display it. It must be generated and signed by the relay in which is found. Relays shouldn't accept these events if they're signed by anyone else.</p>
+<p>If the group is forked and hosted in multiple relays, there will be multiple versions of this event in each different relay and so on.</p>
+<pre><code class="language-yaml">{
+  &quot;kind&quot;: 39000,
+  &quot;content&quot;: &quot;&quot;,
+  &quot;tags&quot;: [
+    [&quot;d&quot;, &quot;&lt;group-id&gt;&quot;],
+    [&quot;name&quot;, &quot;Pizza Lovers&quot;],
+    [&quot;picture&quot;, &quot;https://pizza.com/pizza.png&quot;],
+    [&quot;banner&quot;, &quot;https://pizza.com/banner.png&quot;],
+    [&quot;about&quot;, &quot;a group for people who love pizza&quot;],
+    [&quot;private&quot;],
+    [&quot;closed&quot;],
+    [&quot;supported_kinds&quot;, &quot;9&quot;, &quot;11&quot;]
+  ]
+  // other fields...
+}
+</code></pre>
+<ul>
+<li><code>name</code>, <code>picture</code>, <code>banner</code> and <code>about</code> are basic metadata for the group for display purposes.</li>
+<li><code>private</code> indicates that only members can <em>read</em> group messages. Omitting this tag indicates that anyone can read group messages.</li>
+<li><code>restricted</code> indicates that only members can <em>write</em> messages to the group. Omitting this tag indicates that anyone can send messages to the group.</li>
+<li><code>hidden</code> indicates that relays should hide group metadata from non-members. Omitting this tag indicates that anyone can request group metadata events.</li>
+<li><code>closed</code> indicates that join requests are ignored. Omitting this tag indicates that users can expect join requests to be honored.</li>
+<li><code>livekit</code> indicates that a group supports LiveKit-powered media rooms (live audio/video).</li>
+<li>
+<p><code>supported_kinds</code> is a list of stringified kinds numbers the group supports. When not specified all kinds are assumed to be supported. It can contain no items, in which case no kinds are supported (this is the case for AV-only groups, for example).</p>
+</li>
+<li>
+<p><em>group admins</em> (<code>kind:39001</code>) (optional)</p>
+</li>
+</ul>
+<p>Each admin is listed along with one or more roles. These roles SHOULD have a correspondence with the roles supported by the relay, as advertised by the <code>kind:39003</code> event.</p>
+<pre><code class="language-yaml">{
+  &quot;kind&quot;: 39001,
+  &quot;content&quot;: &quot;list of admins for the pizza lovers group&quot;,
+  &quot;tags&quot;: [
+    [&quot;d&quot;, &quot;&lt;group-id&gt;&quot;],
+    [&quot;p&quot;, &quot;&lt;pubkey1-as-hex&gt;&quot;, &quot;ceo&quot;],
+    [&quot;p&quot;, &quot;&lt;pubkey2-as-hex&gt;&quot;, &quot;secretary&quot;, &quot;gardener&quot;],
+    // other pubkeys...
+  ],
+  // other fields...
+}
+</code></pre>
+<ul>
+<li><em>group members</em> (<code>kind:39002</code>) (optional)</li>
+</ul>
+<p>It's a list of pubkeys that are members of the group. Relays might choose to not to publish this information, to restrict what pubkeys can fetch it or to only display a subset of the members in it.</p>
+<p>Clients should not assume this will always be present or that it will contain a full list of members.</p>
+<pre><code class="language-yaml">{
+  &quot;kind&quot;: 39002,
+  &quot;content&quot;: &quot;list of members for the pizza lovers group&quot;,
+  &quot;tags&quot;: [
+    [&quot;d&quot;, &quot;&lt;group-id&gt;&quot;],
+    [&quot;p&quot;, &quot;&lt;admin1&gt;&quot;],
+    [&quot;p&quot;, &quot;&lt;member-pubkey1&gt;&quot;],
+    [&quot;p&quot;, &quot;&lt;member-pubkey2&gt;&quot;],
+    // other pubkeys...
+  ],
+  // other fields...
+}
+</code></pre>
+<ul>
+<li><em>group roles</em> (<code>kind:39003</code>) (optional)</li>
+</ul>
+<p>This is an event that MAY be published by the relay informing users and clients about what are the roles supported by this relay according to its internal logic.</p>
+<p>For example, a relay may choose to support the roles <code>"admin"</code> and <code>"moderator"</code>, in which the <code>"admin"</code> will be allowed to edit the group metadata, delete messages and remove users from the group, while the <code>"moderator"</code> can only delete messages (or the relay may choose to call these roles <code>"ceo"</code> and <code>"secretary"</code> instead, the exact role name is not relevant).</p>
+<p>The process through which the relay decides what roles to support and how to handle moderation events internally based on them is specific to each relay and not specified here.</p>
+<pre><code class="language-yaml">{
+  &quot;kind&quot;: 39003,
+  &quot;content&quot;: &quot;list of roles supported by this group&quot;,
+  &quot;tags&quot;: [
+    [&quot;d&quot;, &quot;&lt;group-id&gt;&quot;],
+    [&quot;role&quot;, &quot;&lt;role-name&gt;&quot;, &quot;&lt;optional-description&gt;&quot;],
+    [&quot;role&quot;, &quot;&lt;role-name&gt;&quot;, &quot;&lt;optional-description&gt;&quot;],
+    // other roles...
+  ],
+  // other fields...
+}
+</code></pre>
+<ul>
+<li><em>livekit participants</em> (<code>kind:39004</code>) (optional)</li>
+</ul>
+<p>This is an event that MAY be published by the relay informing users and clients about who is live in an AV room.</p>
+<p>This should be updated whenever a new user leaves or joins a group, clients are expected to be actively subscribed to it.</p>
+<p>The event MUST contain zero or more <code>participant</code> tags with the participant's public key as lowercase hex.</p>
+<pre><code class="language-yaml">{
+  &quot;kind&quot;: 39004,
+  &quot;content&quot;: &quot;&quot;,
+  &quot;tags&quot;: [
+    [&quot;d&quot;, &quot;&lt;group-id&gt;&quot;],
+    [&quot;participant&quot;, &quot;&lt;pubkey&gt;&quot;],
+    // other participants...
+  ],
+  // other fields...
+}
+</code></pre>
+<ul>
+<li><em>group pinned events</em> (<code>kind:39005</code>) (optional)</li>
+</ul>
+<p>It's a list of events pinned in the group, in the order they should be displayed. The <code>kind:9010</code> moderation event carries the full list as <code>e</code> tags (regular events) and <code>a</code> tags (addressable events), so pinning, unpinning, reordering and clearing pins are all done by submitting a new list. Whenever one is accepted the relay regenerates this event to mirror it. The relay may choose to limit the number of pins.</p>
+<p>Clients may display these events at the top of the group view.</p>
+<pre><code class="language-jsonc">{
+  &quot;kind&quot;: 39005,
+  &quot;content&quot;: &quot;&quot;,
+  &quot;tags&quot;: [
+    [&quot;d&quot;, &quot;&lt;group-id&gt;&quot;],
+    [&quot;e&quot;, &quot;&lt;event-id1-as-hex&gt;&quot;],
+    [&quot;a&quot;, &quot;&lt;kind&gt;:&lt;pubkey&gt;:&lt;d-identifier&gt;&quot;],
+    [&quot;e&quot;, &quot;&lt;event-id2-as-hex&gt;&quot;],
+    // other event references...
+  ],
+  // other fields...
+}
+</code></pre>
+<h2>Subgroups</h2>
+<p>Groups MAY be organized hierarchically. A subgroup is an ordinary NIP-29 group (same <code>kind:39000</code>, same moderation events, same <code>h</code> tag mechanics) whose metadata carries a <code>parent</code> tag pointing at its parent's <code>d</code> identifier:</p>
+<pre><code class="language-jsonc">// root group
+{ &quot;kind&quot;: 39000, &quot;tags&quot;: [[&quot;d&quot;, &quot;tech&quot;], [&quot;name&quot;, &quot;Tech&quot;], [&quot;child&quot;, &quot;nostr&quot;]] }
+
+// subgroup
+{ &quot;kind&quot;: 39000, &quot;tags&quot;: [[&quot;d&quot;, &quot;nostr&quot;], [&quot;name&quot;, &quot;Nostr&quot;], [&quot;parent&quot;, &quot;tech&quot;], [&quot;child&quot;, &quot;nip29&quot;]] }
+
+// sub-subgroup
+{ &quot;kind&quot;: 39000, &quot;tags&quot;: [[&quot;d&quot;, &quot;nip29&quot;], [&quot;name&quot;, &quot;NIP-29&quot;], [&quot;parent&quot;, &quot;nostr&quot;]] }
+</code></pre>
+<p>A group without a <code>parent</code> tag is a root group. To build the tree, clients fetch <code>{"kinds":[39000]}</code> and assemble it locally: events without a <code>parent</code> tag are roots; the rest are grouped under the <code>d</code> referenced by their <code>parent</code> tag. The tree is scoped to a single relay. When aggregating across relays a client MAY see conflicting <code>parent</code> values for the same <code>d</code>; in that case the <code>kind:39000</code> from the relay currently serving the group's events is authoritative.</p>
+<h3>Relay support detection</h3>
+<p>A relay that supports subgroups SHOULD advertise it in its NIP-11 relay information document under a <code>nip29</code> object:</p>
+<pre><code class="language-json">{
+  &quot;supported_nips&quot;: [29],
+  &quot;nip29&quot;: { &quot;subgroups&quot;: true }
+}
+</code></pre>
+<h3>Rules</h3>
+<ul>
+<li>Parenting and promotion to root are triggered by a <code>kind:9002</code> (<code>edit-metadata</code>) event from an authorized admin with the desired <code>parent</code> value (or no <code>parent</code> tag to detach); the relay then updates the group's <code>kind:39000</code> accordingly. The relay also updates the parent's <code>kind:39000</code> to include the newly added child as a <code>child</code> tag (and vice-versa). If a group is switching from one parent to another parent the relay also updates the previous parent accordingly.</li>
+<li>Historical events under the group's <code>h</code> tag remain valid across these transitions.</li>
+<li>A <code>kind:9002</code> MAY carry at most one <code>parent</code> tag. The resulting <code>kind:39000</code> therefore also carries at most one <code>parent</code> tag.</li>
+<li>Absence of the <code>parent</code> tag makes the group a root.</li>
+<li>Relays MUST reject a <code>kind:9002</code> whose <code>parent</code> value would create a cycle, including self-reference.</li>
+<li>If a group's declared parent does not exist on the relay the <code>kind:9002</code> MUST be rejected.</li>
+<li>When a parent is deleted (<code>kind:9008</code>), its remaining children automatically become roots.</li>
+<li>Relays MUST reject any <code>kind:9002</code> carrying <code>["parent", "X"]</code> unless the event author is also an admin of <code>X</code> (per <code>X</code>'s <code>kind:39001</code>).</li>
+<li>A parent group's <code>kind:39000</code> MUST include <code>["child", "&lt;id&gt;"]</code> tags as an ordered list of its children; the position of each tag in the array is the order. By default relays can just append new children to the list as they are created, but the list can be rearranged by the parent's admin via a <code>kind:9002</code> carrying the desired <code>["child", ...]</code> tags in order, and each edit replaces the previous list. <code>kind:9002</code> metadata edits that do not include all the children as <code>child</code> tags MUST be rejected.</li>
+</ul>
+<h3>Lifecycle example</h3>
+<pre><code class="language-jsonc">// &quot;social&quot; adopts &quot;nostr&quot; (was under &quot;tech&quot;)
+{ &quot;kind&quot;: 9002, &quot;tags&quot;: [[&quot;h&quot;, &quot;nostr&quot;], [&quot;name&quot;, &quot;Nostr&quot;], [&quot;parent&quot;, &quot;social&quot;]] }
+// Relay emits:
+{ &quot;kind&quot;: 39000, &quot;tags&quot;: [[&quot;d&quot;, &quot;nostr&quot;], [&quot;name&quot;, &quot;Nostr&quot;], [&quot;parent&quot;, &quot;social&quot;]] }
+{ &quot;kind&quot;: 39000, &quot;tags&quot;: [[&quot;d&quot;, &quot;social&quot;], [&quot;child&quot;, &quot;nostr&quot;]] }
+
+// Admin promotes &quot;nostr&quot; to root: edit-metadata without a parent tag
+{ &quot;kind&quot;: 9002, &quot;tags&quot;: [[&quot;h&quot;, &quot;nostr&quot;], [&quot;name&quot;, &quot;Nostr&quot;]] }
+// Relay emits:
+{ &quot;kind&quot;: 39000, &quot;tags&quot;: [[&quot;d&quot;, &quot;nostr&quot;], [&quot;name&quot;, &quot;Nostr&quot;]] }
+{ &quot;kind&quot;: 39000, &quot;tags&quot;: [[&quot;d&quot;, &quot;social&quot;]] }
+</code></pre>
+<h3>Membership</h3>
+<p>Each subgroup has its own independent membership: users join via <code>kind:9021</code> → <code>kind:9000</code> like any other group. Nothing is inherited across the parent-child link. Membership does not cascade: being a member of the parent grants no membership in any child, and each group's member list is defined solely by its own <code>kind:9000</code>/<code>kind:9001</code> events. Admin roles likewise do not inherit; each group's <code>kind:39001</code> is authoritative for its own scope, and being an admin of the parent grants no authority over any child unless the child's own <code>kind:39001</code> lists the same pubkey.</p>
+<p>This spec defines no automatic propagation of membership between parent and child. A relay that wants such behavior MAY emit the corresponding <code>kind:9000</code>/<code>kind:9001</code> moderation events itself, but clients MUST NOT assume it: the absence of a <code>kind:9000</code> in a child means the user is not a member of that child, regardless of parent membership.</p>
+<h2>Implementation quirks</h2>
+<h3>Checking your own membership in a group</h3>
+<p>The latest of either <code>kind:9000</code> or <code>kind:9001</code> events present in a group should tell a user that they are currently members of the group or if they were removed. In case none of these exist the user is assumed to not be a member of the group.</p>
+<h3>Adding yourself to a group</h3>
+<p>Anyone can send a <code>kind:9021</code> join request to a group. The relay may then generate a <code>kind:9000</code> event immediately, or defer that decision to an administrator. If a group is <code>closed</code>, join requests are not honored unless they include an invite code.</p>
+<h3>Storing your list of groups</h3>
+<p>A definition for <code>kind:10009</code> was included in <a href="#" data-nip="51">NIP-51</a> that allows clients to store the list of groups a user wants to remember being in.</p>
+</article>

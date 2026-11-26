@@ -1,0 +1,104 @@
+<article class="nips-doc" id="nip-72">
+<blockquote>
+<p><strong>Warning</strong>  <code>unrecommended</code>: try <a href="#" data-nip="29">NIP-29</a> instead</p>
+</blockquote>
+<h1>NIP-72</h1>
+<h2>Moderated Communities (Reddit Style)</h2>
+<p><code>draft</code> <code>unrecommended</code> <code>optional</code></p>
+<p>The goal of this NIP is to enable public communities. It defines the replaceable event <code>kind:34550</code> to define the community and the current list of moderators/administrators. Users that want to post into the community, simply tag any Nostr event with the community's <code>a</code> tag. Moderators may issue an approval event <code>kind:4550</code>.</p>
+<h2>Community Definition</h2>
+<p><code>Kind:34550</code> SHOULD include any field that helps define the community and the set of moderators. <code>relay</code> tags MAY be used to describe the preferred relay to download requests and approvals. A community definition event's <code>d</code> tag MAY double as its name, but if a <code>name</code> tag is provided, it SHOULD be displayed instead of the <code>d</code> tag.</p>
+<pre><code class="language-yaml">{
+  &quot;created_at&quot;: &lt;Unix timestamp in seconds&gt;,
+  &quot;kind&quot;: 34550,
+  &quot;tags&quot;: [
+    [&quot;d&quot;, &quot;&lt;community-d-identifier&gt;&quot;],
+    [&quot;name&quot;, &quot;&lt;Community name&gt;&quot;],
+    [&quot;description&quot;, &quot;&lt;Community description&gt;&quot;],
+    [&quot;image&quot;, &quot;&lt;Community image url&gt;&quot;, &quot;&lt;Width&gt;x&lt;Height&gt;&quot;],
+
+    //.. other tags relevant to defining the community
+
+    // moderators
+    [&quot;p&quot;, &quot;&lt;32-bytes hex of a pubkey1&gt;&quot;, &quot;&lt;optional recommended relay URL&gt;&quot;, &quot;moderator&quot;],
+    [&quot;p&quot;, &quot;&lt;32-bytes hex of a pubkey2&gt;&quot;, &quot;&lt;optional recommended relay URL&gt;&quot;, &quot;moderator&quot;],
+    [&quot;p&quot;, &quot;&lt;32-bytes hex of a pubkey3&gt;&quot;, &quot;&lt;optional recommended relay URL&gt;&quot;, &quot;moderator&quot;],
+
+    // relays used by the community (w/optional marker)
+    [&quot;relay&quot;, &quot;&lt;relay hosting author kind 0&gt;&quot;, &quot;author&quot;],
+    [&quot;relay&quot;, &quot;&lt;relay where to send and receive requests&gt;&quot;, &quot;requests&quot;],
+    [&quot;relay&quot;, &quot;&lt;relay where to send and receive approvals&gt;&quot;, &quot;approvals&quot;],
+    [&quot;relay&quot;, &quot;&lt;relay where to post requests to and fetch approvals from&gt;&quot;]
+  ],
+  // other fields...
+}
+</code></pre>
+<h2>Posting to a community</h2>
+<p><a href="#" data-nip="22">NIP-22</a> kind 1111 events SHOULD be used for text notes posted to a community, with the <code>A</code> tag always scoped to the community definition.</p>
+<h3>Top-level posts</h3>
+<p>For top-level posts, the uppercase and lowercase NIP-22 tags should both refer to the community definition itself.</p>
+<pre><code class="language-yaml">{
+  &quot;kind&quot;: 1111,
+  &quot;tags&quot;: [
+    [&quot;A&quot;, &quot;34550:&lt;community-author-pubkey&gt;:&lt;community-d-identifier&gt;&quot;, &quot;&lt;optional-relay-url&gt;&quot;],
+    [&quot;a&quot;, &quot;34550:&lt;community-author-pubkey&gt;:&lt;community-d-identifier&gt;&quot;, &quot;&lt;optional-relay-url&gt;&quot;],
+    [&quot;P&quot;, &quot;&lt;community-author-pubkey&gt;&quot;, &quot;&lt;optional-relay-url&gt;&quot;],
+    [&quot;p&quot;, &quot;&lt;community-author-pubkey&gt;&quot;, &quot;&lt;optional-relay-url&gt;&quot;],
+    [&quot;K&quot;, &quot;34550&quot;],
+    [&quot;k&quot;, &quot;34550&quot;],
+  ],
+  &quot;content&quot;: &quot;Hi everyone. It's great to be here!&quot;,
+  // other fields...
+}
+</code></pre>
+<h3>Nested replies</h3>
+<p>For nested replies, the uppercase tags should still refer to the community definition, while the lowercase tags should refer to the parent post or reply.</p>
+<pre><code class="language-yaml">{
+  &quot;kind&quot;: 1111,
+  &quot;tags&quot;: [
+    // community definition itself
+    [&quot;A&quot;, &quot;34550:&lt;community-author-pubkey&gt;:&lt;community-d-identifier&gt;&quot;, &quot;&lt;optional-relay-url&gt;&quot;],
+    [&quot;P&quot;, &quot;&lt;community-author-pubkey&gt;&quot;, &quot;&lt;optional-relay-url&gt;&quot;],
+    [&quot;K&quot;, &quot;34550&quot;],
+
+    // parent post or reply
+    [&quot;e&quot;, &quot;&lt;parent-event-id&gt;&quot;, &quot;&lt;optional-relay-url&gt;&quot;],
+    [&quot;p&quot;, &quot;&lt;parent-event-author-pubkey&gt;&quot;, &quot;&lt;optional-relay-url&gt;&quot;],
+    [&quot;k&quot;, &quot;&lt;parent-event-kind&gt;&quot;] // most likely &quot;1111&quot;
+  ],
+  &quot;content&quot;: &quot;Agreed! Welcome everyone!&quot;,
+  // other fields...
+}
+</code></pre>
+<h3>Backwards compatibility note</h3>
+<p>Previously kind 1 events were used for posts in communities, with an "a" tag pointing to the community. For backwards compatibility, clients MAY still query for kind 1 events, but SHOULD NOT use them for new posts. Instead, clients SHOULD use kind 1111 events with the <code>A</code> and <code>a</code> tags as described above.</p>
+<h2>Moderation</h2>
+<p>Anyone may issue an approval event to express their opinion that a post is appropriate for a community. Clients MAY choose which approval events to honor, but SHOULD at least use ones published by the group's defined moderators.</p>
+<p>An approval event MUST include one or more community <code>a</code> tags, an <code>e</code> or <code>a</code> tag pointing to the post, and the <code>p</code> tag of the author of the post (for approval notifications). <code>a</code> tag prefixes can be used to disambiguate between community and replaceable event pointers (community <code>a</code> tags always begin with <code>34550</code>).</p>
+<p>The event SHOULD also include the JSON-stringified <code>post request</code> event inside the <code>.content</code>, and a <code>k</code> tag with the original post's event kind to allow filtering of approved posts by kind.</p>
+<p>Moderators MAY request deletion of their approval of a post at any time using <a href="#" data-nip="09">NIP-09 event deletion requests</a>.</p>
+<pre><code class="language-yaml">{
+  &quot;pubkey&quot;: &quot;&lt;32-bytes lowercase hex-encoded public key of the event creator&gt;&quot;,
+  &quot;kind&quot;: 4550,
+  &quot;tags&quot;: [
+    [&quot;a&quot;, &quot;34550:&lt;event-author-pubkey&gt;:&lt;community-d-identifier&gt;&quot;, &quot;&lt;optional-relay-url&gt;&quot;],
+    [&quot;e&quot;, &quot;&lt;post-id&gt;&quot;, &quot;&lt;optional-relay-url&gt;&quot;],
+    [&quot;p&quot;, &quot;&lt;port-author-pubkey&gt;&quot;, &quot;&lt;optional-relay-url&gt;&quot;],
+    [&quot;k&quot;, &quot;&lt;post-request-kind&gt;&quot;]
+  ],
+  &quot;content&quot;: &quot;&lt;the full approved event, JSON-encoded&gt;&quot;,
+  // other fields...
+}
+</code></pre>
+<p>It's recommended that multiple moderators approve posts to avoid deleting them from the community when a moderator is removed from the owner's list. In case the full list of moderators must be rotated, the new moderator set must sign new approvals for posts in the past or the community will restart. The owner can also periodically copy and re-sign of each moderator's approval events to make sure posts don't disappear with moderators.</p>
+<p>Approvals of replaceable events can be created in three ways:</p>
+<ol>
+<li>By tagging the replaceable event as an <code>e</code> tag if moderators want to approve each individual change to the replaceable event</li>
+<li>By tagging the replaceable event as an <code>a</code> tag if the moderator authorizes the replaceable event author to make changes without additional approvals and</li>
+<li>By tagging the replaceable event with both its <code>e</code> and <code>a</code> tag which empowers clients to display the original and updated versions of the event, with appropriate remarks in the UI.</li>
+</ol>
+<p>Since relays are instructed to delete old versions of a replaceable event, the <code>content</code> of an approval using an <code>e</code> tag MUST have the specific version of the event or clients might not be able to find that version of the content anywhere.</p>
+<p>Clients SHOULD evaluate any non-<code>34550:*</code> <code>a</code> tag as posts to be approved for all <code>34550:*</code> <code>a</code> tags.</p>
+<h2>Cross-posting</h2>
+<p>Clients MAY support cross-posting between communities by posting a NIP 18 <code>kind 6</code> or <code>kind 16</code> repost to one or more communities using <code>a</code> tags as described above. The <code>content</code> of the repost MUST be the original event, not the approval event.</p>
+</article>

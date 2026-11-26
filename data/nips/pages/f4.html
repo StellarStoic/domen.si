@@ -1,0 +1,79 @@
+<article class="nips-doc" id="nip-F4">
+<p>This NIP defines how podcast episodes can be fetched from relays. It's intended to fit easily into existing podcast players.</p>
+<h2>Rationale</h2>
+<p>RSS feeds are great, but they have some problems that are solved by moving feeds from RSS URLs to multiple Nostr events, one for each episode:</p>
+<ul>
+<li>they depend on a URL and that is hard for most people, so podcasters tend to use service providers that can</li>
+<li>charge money -- which isn't a bad thing per se but it turns out that with a Nostr-native podcast feed protocol it would be much simpler to host feeds and infinitely cheaper to host the media, so the ecosystem could be more decentralized</li>
+<li>seal them into their walled gardens (like Spotify has been doing), slowly turning a previously open ecosystem into a centralized system captured by big corporations</li>
+<li>censor podcasters and prevent them from migrating (on Nostr this wouldn't be a problem even if a relay banned someone as moving to other relays would be trivial as long as the podcaster held their key and podcast clients could easily discover the new relay URLs)</li>
+<li>they can only be loaded in full, with no pagination or filtering of any kind, which means that</li>
+<li>the sync process in normal RSS clients is slow and cumbersome (which also nudges people into using centralized solutions)<ul>
+<li>this has also led to the creation of broken schemes like <a href="https://podping.org/" target="_blank" rel="noopener noreferrer">Podping</a>, which wouldn't be necessary in a Nostr-native podcast feed</li>
+</ul>
+</li>
+<li>It's impossible to reference a single episode directly (since it only exists as a member in the full RSS list of episodes), this means there is no way to share a podcast episode with friends or on social media, so people tend to share links to centralized platforms or to YouTube videos of the same podcast content, which is an antipattern</li>
+<li>they cannot be interacted with in any way: listeners cannot "like" or comment or signal that they have listened to the episode, which is also another factor in the push towards centralized closed platforms: better analytics and insights and possibilities of engagement with the public</li>
+</ul>
+<h2>Concept</h2>
+<p>The idea is that each podcast is its own Nostr keypair. This is simple and allows podcasts to combine their <em>podcasting</em> presence with a normal <code>kind:0</code>/<code>kind:1</code> microblogging presence.</p>
+<p>It also allows podcasts to have shared ownership (via MuSig2 or just common agreements between friends) and to change that ownership over time (again, based on human trust over handling of key material).</p>
+<h2>Event definitions</h2>
+<h3>Podcast Metadata</h3>
+<p>Podcast metadata is stored in <code>kind:10154</code> <em>replaceable</em> events. This event contains the show-level information that podcast clients need to display the podcast.</p>
+<p>Similar information may exist in the <code>kind:0</code> profile for the podcast, but podcast-specific clients should be able to read directly from <code>kind:10154</code> and ignore <code>kind:0</code> entirely.</p>
+<pre><code class="language-yaml">{
+  &quot;id&quot;: &quot;...&quot;,
+  &quot;pubkey&quot;: &quot;&lt;podcast-pubkey&gt;&quot;,
+  &quot;kind&quot;: 10154,
+  &quot;created_at&quot;: 1700682555,
+  &quot;tags&quot;: [
+    [&quot;title&quot;, &quot;&lt;podcast-title&gt;&quot;],
+    [&quot;image&quot;, &quot;&lt;podcast-cover-image-URL&gt;&quot;],
+    [&quot;description&quot;, &quot;&lt;podcast-description&gt;&quot;],
+    [&quot;website&quot;, &quot;&lt;podcast-website-URL&gt;&quot;], // optional, multiple
+    [&quot;p&quot;, &quot;&lt;podcast-author-pubkey&gt;&quot;, &quot;&lt;role&gt;&quot;] // optional, multiple
+  ],
+  &quot;content&quot;: &quot;&quot;,
+  &quot;sig&quot;: &quot;...&quot;
+}
+</code></pre>
+<p><code>&lt;role&gt;</code> is optional, can be <code>"host"</code>, <code>"cohost"</code> or <code>"editor"</code>.</p>
+<h3>Authored Podcasts</h3>
+<p>The <code>p</code> tag in <code>kind:10154</code> shouldn't be blindly trusted as implying authorship, since any podcast can falsely claim anyone to be their author, so before it is displayed as information by clients it must be checked against an equivalent counter-claim by the podcast authors themselves.</p>
+<p>This is the <code>kind:10164</code> event. Here podcast authors can list the public keys of the podcasts they author.</p>
+<pre><code class="language-yaml">{
+  &quot;id&quot;: &quot;...&quot;,
+  &quot;pubkey&quot;: &quot;&lt;user-pubkey&gt;&quot;,
+  &quot;kind&quot;: 10064,
+  &quot;created_at&quot;: 1700682555,
+  &quot;tags&quot;: [
+    [&quot;p&quot;, &quot;&lt;podcast-pubkey-1&gt;&quot;],
+    [&quot;p&quot;, &quot;&lt;podcast-pubkey-2&gt;&quot;]
+  ],
+  &quot;content&quot;: &quot;&quot;,
+  &quot;sig&quot;: &quot;...&quot;
+}
+</code></pre>
+<p>Clients can also use this to discover all podcasts authored by a given user.</p>
+<h3>Podcast Episodes</h3>
+<p>Podcast episodes are <code>kind:54</code> events authored by the podcast public key directly.</p>
+<pre><code class="language-yaml">{
+  &quot;id&quot;: &quot;...&quot;,
+  &quot;pubkey&quot;: &quot;&lt;podcast-pubkey&gt;&quot;,
+  &quot;kind&quot;: 54,
+  &quot;created_at&quot;: 1700682555,
+  &quot;tags&quot;: [
+    [&quot;title&quot;, &quot;&lt;episode title&gt;&quot;],
+    [&quot;image&quot;, &quot;&lt;optional episode image&gt;&quot;],
+    [&quot;description&quot;, &quot;&lt;a brief description&gt;&quot;],
+    [&quot;audio&quot;, &quot;&lt;audio-url&gt;&quot;, &quot;&lt;optional_media_type&gt;&quot;], // can be specified multiple times
+    // ...other important fields to be specified here later after further discovery
+  ],
+  &quot;content&quot;: &quot;&lt;markdown content&gt;&quot;,
+  &quot;sig&quot;: &quot;...&quot;,
+}
+</code></pre>
+<h3>Favorite podcasts</h3>
+<p>See <a href="#" data-nip="51">NIP-51</a> for the description of a <code>kind:10054</code> event in which any user can list the podcasts they publicly advertise to listening to, as a soft recommendation.</p>
+</article>

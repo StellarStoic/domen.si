@@ -1,0 +1,49 @@
+<article class="nips-doc" id="nip-94">
+<p>The purpose of this NIP is to allow an organization and classification of shared files. So that relays can filter and organize in any way that is of interest. With that, multiple types of filesharing clients can be created. NIP-94 support is not expected to be implemented by "social" clients that deal with <code>kind:1</code> notes or by longform clients that deal with <code>kind:30023</code> articles.</p>
+<h2>Event format</h2>
+<p>This NIP specifies the use of the <code>1063</code> event kind, having in <code>content</code> a description of the file content, and a list of tags described below:</p>
+<ul>
+<li><code>url</code> the url to download the file</li>
+<li><code>m</code> a string indicating the data type of the file. The <a href="https://developer.mozilla.org/en-US/docs/Web/HTTP/Basics_of_HTTP/MIME_types/Common_types" target="_blank" rel="noopener noreferrer">MIME types</a> format must be used, and they should be lowercase.</li>
+<li><code>x</code> containing the SHA-256 hexencoded string of the file.</li>
+<li><code>ox</code> containing the SHA-256 hexencoded string of the original file, before any transformations done by the upload server</li>
+<li><code>size</code> (optional) size of file in bytes</li>
+<li><code>dim</code> (optional) size of file in pixels in the form <code>&lt;width&gt;x&lt;height&gt;</code></li>
+<li><code>magnet</code> (optional) URI to magnet file</li>
+<li><code>i</code> (optional) torrent infohash</li>
+<li><code>blurhash</code>(optional) the <a href="https://github.com/woltapp/blurhash" target="_blank" rel="noopener noreferrer">blurhash</a> to show while the file is being loaded by the client</li>
+<li><code>thumb</code> (optional) url of thumbnail with same aspect ratio</li>
+<li><code>image</code> (optional) url of preview image with same dimensions</li>
+<li><code>summary</code> (optional) text excerpt</li>
+<li><code>alt</code> (optional) description for accessibility</li>
+<li><code>fallback</code> (optional) zero or more fallback file sources in case <code>url</code> fails</li>
+<li><code>service</code> (optional) service type which is serving the file (eg. <a href="#" data-nip="96">NIP-96</a>)</li>
+</ul>
+<pre><code class="language-yaml">{
+  &quot;kind&quot;: 1063,
+  &quot;tags&quot;: [
+    [&quot;url&quot;,&lt;string with URI of file&gt;],
+    [&quot;m&quot;, &lt;MIME type&gt;],
+    [&quot;x&quot;, &lt;Hash SHA-256&gt;],
+    [&quot;ox&quot;, &lt;Hash SHA-256&gt;],
+    [&quot;size&quot;, &lt;size of file in bytes&gt;],
+    [&quot;dim&quot;, &lt;size of file in pixels&gt;],
+    [&quot;magnet&quot;, &lt;magnet URI&gt; ],
+    [&quot;i&quot;, &lt;torrent infohash&gt;],
+    [&quot;blurhash&quot;, &lt;value&gt;],
+    [&quot;thumb&quot;, &lt;string with thumbnail URI&gt;, &lt;Hash SHA-256&gt;],
+    [&quot;image&quot;, &lt;string with preview URI&gt;, &lt;Hash SHA-256&gt;],
+    [&quot;summary&quot;, &lt;excerpt&gt;],
+    [&quot;alt&quot;, &lt;description&gt;]
+  ],
+  &quot;content&quot;: &quot;&lt;caption&gt;&quot;,
+  // other fields...
+}
+</code></pre>
+<h2>Suggested use cases</h2>
+<ul>
+<li>A relay for indexing shared files. For example, to promote torrents.</li>
+<li>A pinterest-like client where people can share their portfolio and inspire others.</li>
+<li>A simple way to distribute configurations and software updates.</li>
+</ul>
+</article>

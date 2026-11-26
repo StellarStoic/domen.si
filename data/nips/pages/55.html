@@ -1,0 +1,233 @@
+<article class="nips-doc" id="nip-55">
+<h2>Rationale</h2>
+<p>This NIP describes a method for 2-way communication between an Android signer and any Nostr client running on the same device, so that the client never needs to handle the user's private key. The signer is an Android application; the client may be another Android application or a web page.</p>
+<h2>Terminology</h2>
+<ul>
+<li><strong>user</strong>: A person trying to use Nostr.</li>
+<li><strong>client</strong>: A user-facing application that sends signing requests.</li>
+<li><strong>signer</strong>: An Android application that holds the user's private key and answers requests from <em>client</em>.</li>
+<li><strong>user-pubkey</strong>: The public key representing <em>user</em>, returned by <code>get_public_key</code>.</li>
+<li><strong>package name</strong>: The Android package name of the <em>signer</em> (e.g. <code>com.example.signer</code>), used by <em>client</em> to address subsequent requests.</li>
+</ul>
+<p>All pubkeys in this NIP are in hex format.</p>
+<h2>Communication methods</h2>
+<p>A <em>client</em> can talk to the <em>signer</em> in three ways:</p>
+<ul>
+<li><strong>Intents</strong> — used by Android clients. The <em>signer</em> opens, the <em>user</em> approves or rejects the request manually, and the result is returned to <em>client</em>.</li>
+<li><strong>Content Resolver</strong> — used by Android clients. Runs in the background without opening the <em>signer</em>, but only works for permissions the <em>user</em> has previously chosen to remember.</li>
+<li><strong>Web</strong> — used by web clients. The result is returned via a <code>callbackUrl</code> or copied to the clipboard.</li>
+</ul>
+<h2>Setup</h2>
+<p>To detect and call the <em>signer</em>, an Android <em>client</em> must declare the <code>nostrsigner</code> scheme in its <code>AndroidManifest.xml</code>:</p>
+<pre><code class="language-xml">&lt;queries&gt;
+  &lt;intent&gt;
+    &lt;action android:name=&quot;android.intent.action.VIEW&quot; /&gt;
+    &lt;category android:name=&quot;android.intent.category.BROWSABLE&quot; /&gt;
+    &lt;data android:scheme=&quot;nostrsigner&quot; /&gt;
+  &lt;/intent&gt;
+&lt;/queries&gt;
+</code></pre>
+<p>It can then check whether a <em>signer</em> is installed:</p>
+<pre><code class="language-kotlin">fun isExternalSignerInstalled(context: Context): Boolean {
+  val intent = Intent(Intent.ACTION_VIEW, Uri.parse(&quot;nostrsigner:&quot;))
+  return context.packageManager.queryIntentActivities(intent, 0).isNotEmpty()
+}
+</code></pre>
+<h2>Initiating a connection</h2>
+<ol>
+<li><em>client</em> sends a <code>get_public_key</code> request.</li>
+<li><em>signer</em> responds with the <code>user-pubkey</code> and its <code>package name</code>.</li>
+<li><em>client</em> stores both, and SHOULD NOT call <code>get_public_key</code> again while the <em>user</em> stays logged in.</li>
+<li><em>client</em> addresses all further requests to that <code>package name</code>.</li>
+</ol>
+<p>A <em>client</em> MAY pass a list of <code>permissions</code> with <code>get_public_key</code> so the <em>user</em> can pre-authorize methods (used by the Content Resolver to answer in the background). Each permission is an object with a <code>type</code> (a method name) and, for <code>sign_event</code>, an optional <code>kind</code>:</p>
+<pre><code class="language-json">[{ &quot;type&quot;: &quot;sign_event&quot;, &quot;kind&quot;: 22242 }, { &quot;type&quot;: &quot;nip44_decrypt&quot; }]
+</code></pre>
+<h2>Methods</h2>
+<p>Every request has a <code>type</code> (the method name) and a payload. The payload is passed differently per transport (see below) but its meaning is shared:</p>
+<table>
+<thead>
+<tr>
+<th>Method</th>
+<th>Payload</th>
+<th>Extra params</th>
+<th>Result</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>get_public_key</code></td>
+<td><em>(empty)</em></td>
+<td><code>permissions</code></td>
+<td><code>user-pubkey</code></td>
+</tr>
+<tr>
+<td><code>sign_event</code></td>
+<td>event JSON</td>
+<td><code>current_user</code></td>
+<td>the signature, and signed event</td>
+</tr>
+<tr>
+<td><code>nip04_encrypt</code></td>
+<td>plaintext</td>
+<td><code>pubkey</code>, <code>current_user</code></td>
+<td>the ciphertext</td>
+</tr>
+<tr>
+<td><code>nip44_encrypt</code></td>
+<td>plaintext</td>
+<td><code>pubkey</code>, <code>current_user</code></td>
+<td>the ciphertext</td>
+</tr>
+<tr>
+<td><code>nip04_decrypt</code></td>
+<td>ciphertext</td>
+<td><code>pubkey</code>, <code>current_user</code></td>
+<td>the plaintext</td>
+</tr>
+<tr>
+<td><code>nip44_decrypt</code></td>
+<td>ciphertext</td>
+<td><code>pubkey</code>, <code>current_user</code></td>
+<td>the plaintext</td>
+</tr>
+<tr>
+<td><code>decrypt_zap_event</code></td>
+<td>event JSON</td>
+<td><code>current_user</code></td>
+<td>the decrypted event JSON</td>
+</tr>
+</tbody>
+</table>
+<ul>
+<li><code>current_user</code> is the <code>user-pubkey</code> currently logged in to <em>client</em>, in hex format.</li>
+<li><code>pubkey</code> is the public key of the other party used for encryption/decryption, in hex format.</li>
+<li><code>id</code> is an optional client-chosen string echoed back in the result, used to match responses when several requests are sent without waiting.</li>
+</ul>
+<h2>Using Intents</h2>
+<p>The payload is the <code>nostrsigner:</code> URI data; all other params are intent extras. The result is returned via <code>registerForActivityResult</code> / <code>rememberLauncherForActivityResult</code>.</p>
+<pre><code class="language-kotlin">val intent = Intent(Intent.ACTION_VIEW, Uri.parse(&quot;nostrsigner:$payload&quot;)).apply {
+  `package` = signerPackageName        // omit only for get_public_key
+  putExtra(&quot;type&quot;, &quot;sign_event&quot;)
+  putExtra(&quot;id&quot;, event.id)             // optional, echoed back
+  putExtra(&quot;current_user&quot;, userPubkey)
+}
+launcher.launch(intent)
+</code></pre>
+<p>The result is read from the returned intent's extras:</p>
+<table>
+<thead>
+<tr>
+<th>Extra</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>result</code></td>
+<td>the method result (pubkey, signature, ciphertext, etc.)</td>
+</tr>
+<tr>
+<td><code>id</code></td>
+<td>the <code>id</code> sent in the request</td>
+</tr>
+<tr>
+<td><code>event</code></td>
+<td>the signed event JSON (<code>sign_event</code> only)</td>
+</tr>
+<tr>
+<td><code>package</code></td>
+<td>the <em>signer</em> package name (<code>get_public_key</code> only)</td>
+</tr>
+<tr>
+<td><code>rejected</code></td>
+<td><code>true</code> when the <em>user</em> rejected the request</td>
+</tr>
+</tbody>
+</table>
+<p>A <code>resultCode</code> other than <code>Activity.RESULT_OK</code> means the <em>signer</em> failed (e.g. it crashed), not that the <em>user</em> rejected the request. When the <em>user</em> rejects, the <em>signer</em> returns <code>RESULT_OK</code> with a <code>rejected</code> extra set to <code>true</code>.</p>
+<pre><code class="language-kotlin">onResult = { result -&gt;
+  if (result.resultCode != Activity.RESULT_OK) {
+    // signer error (e.g. crash)
+  } else if (result.data?.getBooleanExtra(&quot;rejected&quot;, false) == true) {
+    // user rejected the request
+  } else {
+    val value = result.data?.getStringExtra(&quot;result&quot;)
+  }
+}
+</code></pre>
+<p>To sign multiple events without reopening the <em>signer</em> for each one, <em>client</em> adds the flags below and the <em>signer</em> returns an array of results. The <em>signer</em> must declare <code>android:launchMode="singleTop"</code> for this to work.</p>
+<pre><code class="language-kotlin">intent.addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP or Intent.FLAG_ACTIVITY_CLEAR_TOP)
+
+// signer answers with:
+intent.putExtra(&quot;results&quot;, listOf(Result(package = signerPackageName, result = signature, id = intentId)).toJson())
+</code></pre>
+<h2>Using Content Resolver</h2>
+<p>The <em>client</em> queries <code>content://&lt;package-name&gt;.&lt;TYPE&gt;</code> (e.g. <code>SIGN_EVENT</code>, <code>NIP44_ENCRYPT</code>). The query's <code>selectionArgs</code> carry the payload and params in the order <code>[payload, pubkey, current_user]</code>:</p>
+<pre><code class="language-kotlin">val result = context.contentResolver.query(
+  Uri.parse(&quot;content://com.example.signer.SIGN_EVENT&quot;),
+  listOf(eventJson, &quot;&quot;, loggedInUserPubkey),
+  null, null, null,
+)
+</code></pre>
+<p>The cursor returns a <code>result</code> column (and, for <code>sign_event</code>, an <code>event</code> column with the signed event JSON). The query returns <code>null</code>, or a <code>rejected</code> column is present, when:</p>
+<ul>
+<li>the <em>user</em> did not enable "remember my choice" for this request,</li>
+<li>the <code>user-pubkey</code> is not present in the <em>signer</em>,</li>
+<li>the request <code>type</code> is not recognized, or</li>
+<li>the <em>user</em> chose to always reject this request (a <code>rejected</code> column is returned — <em>client</em> SHOULD NOT then fall back to an Intent).</li>
+</ul>
+<pre><code class="language-kotlin">if (result == null) return
+if (result.getColumnIndex(&quot;rejected&quot;) &gt; -1) return
+if (result.moveToFirst()) {
+  val value = result.getString(result.getColumnIndex(&quot;result&quot;))
+  // for sign_event also: result.getColumnIndex(&quot;event&quot;)
+}
+</code></pre>
+<p>Clients SHOULD store the <code>user-pubkey</code> locally and avoid calling <code>get_public_key</code> after the user is logged in.</p>
+<h2>Using Web Applications</h2>
+<p>Web clients can't receive a result from an intent, so the <em>signer</em> returns the result via a <code>callbackUrl</code> (appended to the URL) or, if none is given, by copying it to the clipboard. The request is a <code>nostrsigner:</code> URL whose path is the payload and whose query string carries the params:</p>
+<pre><code>nostrsigner:&lt;payload&gt;?type=&lt;method&gt;&amp;pubkey=&lt;hex_pubkey&gt;&amp;callbackUrl=https://example.com/?result=
+</code></pre>
+<p>Query parameters:</p>
+<ul>
+<li><code>type</code> — the method name.</li>
+<li><code>pubkey</code> — the other party's hex pubkey (encryption/decryption methods).</li>
+<li><code>callbackUrl</code> — where the <em>signer</em> appends the result. If omitted, the result is copied to the clipboard.</li>
+<li><code>returnType</code> — <code>signature</code> or <code>event</code>.</li>
+<li><code>compressionType</code> — <code>none</code> (default) or <code>gzip</code>. With <code>gzip</code> the returned event is <code>"Signer1"</code> + Base64(gzip(event json)); useful because intents and URLs have length limits.</li>
+</ul>
+<pre><code class="language-js">window.href = `nostrsigner:${eventJson}?compressionType=none&amp;returnType=signature&amp;type=sign_event&amp;callbackUrl=https://example.com/?event=`;
+</code></pre>
+<blockquote>
+<p>Consider using <a href="#" data-nip="46">NIP-46: Nostr Remote Signing</a> for web applications. With the approach here the web client can't call the <em>signer</em> in the background, so the <em>user</em> sees a popup for every request.</p>
+</blockquote>
+<h3>Example</h3>
+<pre><code class="language-html">&lt;!DOCTYPE html&gt;
+&lt;html lang=&quot;en&quot;&gt;
+&lt;head&gt;
+    &lt;meta charset=&quot;UTF-8&quot;&gt;
+    &lt;meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1.0&quot;&gt;
+    &lt;title&gt;Document&lt;/title&gt;
+&lt;/head&gt;
+&lt;body&gt;
+    &lt;h1&gt;Test&lt;/h1&gt;
+
+    &lt;script&gt;
+        window.onload = function() {
+            var params = new URL(window.location.href).searchParams;
+            var result = params.get(&quot;event&quot;);
+            if (result) alert(result);
+
+            var json = { kind: 1, content: &quot;test&quot; };
+            var encodedJson = encodeURIComponent(JSON.stringify(json));
+            var anchor = document.createElement(&quot;a&quot;);
+            anchor.href = `nostrsigner:${encodedJson}?compressionType=none&amp;returnType=signature&amp;type=sign_event&amp;callbackUrl=https://example.com/?event=`;
+            anchor.textContent = &quot;Open External Signer&quot;;
+            document.body.appendChild(anchor);
+        }
+    &lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+</code></pre>
+</article>

@@ -1,0 +1,78 @@
+<article class="nips-doc" id="nip-68">
+<p>This NIP defines event kind <code>20</code> for picture-first clients. Images must be self-contained. They are hosted externally and referenced using <code>imeta</code> tags.</p>
+<p>The idea is for this type of event to cater to Nostr clients resembling platforms like Instagram, Flickr, Snapchat, or 9GAG, where the picture itself takes center stage in the user experience.</p>
+<h2>Picture Events</h2>
+<p>Picture events contain a <code>title</code> tag and description in the <code>.content</code>.</p>
+<p>They may contain multiple images to be displayed as a single post.</p>
+<pre><code class="language-yaml">{
+  &quot;id&quot;: &lt;32-bytes lowercase hex-encoded SHA-256 of the the serialized event data&gt;,
+  &quot;pubkey&quot;: &lt;32-bytes lowercase hex-encoded public key of the event creator&gt;,
+  &quot;created_at&quot;: &lt;Unix timestamp in seconds&gt;,
+  &quot;kind&quot;: 20,
+  &quot;content&quot;: &quot;&lt;description of post&gt;&quot;,
+  &quot;tags&quot;: [
+    [&quot;title&quot;, &quot;&lt;short title of post&gt;&quot;],
+
+    // Picture Data
+    [
+      &quot;imeta&quot;,
+      &quot;url https://nostr.build/i/my-image.jpg&quot;,
+      &quot;m image/jpeg&quot;,
+      &quot;thumbhash zOcFFIIKmXdCinaXaHcmcHUFSA==&quot;,
+      &quot;blurhash eVF$^OI:${M{o#*0-nNFxakD-?xVM}WEWB%iNKxvR-oetmo#R-aen$&quot;,
+      &quot;dim 3024x4032&quot;,
+      &quot;alt A scenic photo overlooking the coast of Costa Rica&quot;,
+      &quot;x &lt;sha256 hash as specified in NIP 94&gt;&quot;,
+      &quot;fallback https://nostrcheck.me/alt1.jpg&quot;,
+      &quot;fallback https://void.cat/alt1.jpg&quot;
+    ],
+    [
+      &quot;imeta&quot;,
+      &quot;url https://nostr.build/i/my-image2.jpg&quot;,
+      &quot;m image/jpeg&quot;,
+      &quot;thumbhash zOcFFIIKmXgzmWaXWIcmcFQEGA&quot;,
+      &quot;dim 3024x4032&quot;,
+      &quot;alt Another scenic photo overlooking the coast of Costa Rica&quot;,
+      &quot;x &lt;sha256 hash as specified in NIP 94&gt;&quot;,
+      &quot;fallback https://nostrcheck.me/alt2.jpg&quot;,
+      &quot;fallback https://void.cat/alt2.jpg&quot;,
+
+      &quot;annotate-user &lt;32-bytes hex of a pubkey&gt;:&lt;posX&gt;:&lt;posY&gt;&quot; // Tag users in specific locations in the picture
+    ],
+
+    [&quot;content-warning&quot;, &quot;&lt;reason&gt;&quot;], // if NSFW
+
+    // Tagged users
+    [&quot;p&quot;, &quot;&lt;32-bytes hex of a pubkey&gt;&quot;, &quot;&lt;optional recommended relay URL&gt;&quot;],
+    [&quot;p&quot;, &quot;&lt;32-bytes hex of a pubkey&gt;&quot;, &quot;&lt;optional recommended relay URL&gt;&quot;],
+
+    // Specify the media type for filters to allow clients to filter by supported kinds
+    [&quot;m&quot;, &quot;image/jpeg&quot;],
+
+    // Hashes of each image to make them queryable
+    [&quot;x&quot;, &quot;&lt;sha256&gt;&quot;]
+
+    // Hashtags
+    [&quot;t&quot;, &quot;&lt;tag&gt;&quot;],
+    [&quot;t&quot;, &quot;&lt;tag&gt;&quot;],
+
+    // location
+    [&quot;location&quot;, &quot;&lt;location&gt;&quot;], // city name, state, country
+    [&quot;g&quot;, &quot;&lt;geohash&gt;&quot;],
+
+    // When text is written in the image, add the tag to represent the language
+    [&quot;L&quot;, &quot;ISO-639-1&quot;],
+    [&quot;l&quot;, &quot;en&quot;, &quot;ISO-639-1&quot;]
+  ]
+}
+</code></pre>
+<p>The <code>imeta</code> tag <code>annotate-user</code> places a user link in the specific position in the image.</p>
+<p>Only the following media types are accepted:
+- <code>image/apng</code>: Animated Portable Network Graphics (APNG)
+- <code>image/avif</code>: AV1 Image File Format (AVIF)
+- <code>image/gif</code>: Graphics Interchange Format (GIF)
+- <code>image/jpeg</code>: Joint Photographic Expert Group image (JPEG)
+- <code>image/png</code>: Portable Network Graphics (PNG)
+- <code>image/webp</code>: Web Picture format (WEBP)</p>
+<p>Picture events might be used with <a href="#" data-nip="71">NIP-71</a>'s kind <code>22</code> to display short vertical videos in the same feed.</p>
+</article>

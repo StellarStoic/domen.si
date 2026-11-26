@@ -1,0 +1,107 @@
+<article class="nips-doc" id="nip-87">
+<p>This NIP describes <code>kind:38173</code>, <code>kind:38172</code> and <code>kind:38000</code>: a way to discover ecash mints, their capabilities, and people who recommend them.</p>
+<h2>Rationale</h2>
+<p>Nostr's discoverability and transparent event interaction is one of its most interesting/novel mechanics.
+This NIP provides a simple way for users to discover ecash mints recommended by other users and to interact with them.</p>
+<h3>Parties involved</h3>
+<p>There are three actors to this workflow:</p>
+<ul>
+<li>An ecash mint operator, announces their mint and its capabilities.<ul>
+<li>Publishes <code>kind:38173</code> or <code>kind:38172</code>, detailing how to connect to it and its capabilities.</li>
+</ul>
+</li>
+<li>user A, who recommends an ecash mint<ul>
+<li>Publishes <code>kind:38000</code></li>
+</ul>
+</li>
+<li>user B, who seeks a recommendation for an ecash mint<ul>
+<li>Queries for <code>kind:38000</code> and, based on results, queries for <code>kind:38173</code>/<code>kind:38172</code></li>
+</ul>
+</li>
+</ul>
+<h2>Events</h2>
+<h3>Recommendation event</h3>
+<pre><code class="language-json">{
+  &quot;kind&quot;: 38000,
+  &quot;pubkey&quot;: &lt;recommender-user-pubkey&gt;,
+  &quot;tags&quot;: [
+    [&quot;k&quot;, &quot;38173&quot;],
+    [&quot;d&quot;, &quot;&lt;d-identifier&gt;&quot;],
+    [&quot;u&quot;, &lt;recommended-fedimint-invite-code&gt;],
+    [&quot;a&quot;, &quot;38173:fedimint-pubkey:&lt;d-identifier&gt;&quot;, &quot;wss://relay1&quot;]
+  ],
+  &quot;content&quot;: &quot;I trust this mint with my life&quot;
+}
+</code></pre>
+<p>The recommendation event is a parameterized-replaceable event so that a user can change edit their recommendation without creating a new event.</p>
+<p>The <code>d</code> tag in <code>kind:38000</code> is the <code>kind:38173</code>/<code>kind:38172</code> event identifier this event is recommending, if no event exists, the <code>d</code> tag can still be calculated from the mint's pubkey/id.
+The <code>k</code> tag is the kind number that corresponds to the event kind that the user is recommending, in this case <code>kind:38173</code> for fedimints and <code>kind:38172</code> for cashu mints.</p>
+<p>Optional <code>u</code> tags can be added to give a recommend way to connect to the mint.
+The value of the tag is the URL or invite code of the ecash mint.
+Multiple <code>u</code> tags can appear on the same <code>kind:38000</code>.</p>
+<p><code>a</code> tags are used to point to the <code>kind:38173</code>/<code>kind:38172</code> event of the ecash mint.
+The first value of the tag is the <code>kind:38173</code>/<code>kind:38172</code> event identifier, the second value of the tag is a relay hint.
+This is used to correctly point to the mint's <code>kind:38173</code>/<code>kind:38172</code> event in case there are duplicates claiming to be the same mint.</p>
+<p>The content can be used to give a review.</p>
+<h2>Mint Information</h2>
+<p>Cashu mints SHOULD publish <code>kind:38172</code> events to announce their capabilities and how to connect to them.</p>
+<p>For cashu mints, the <code>u</code> tag SHOULD be the URL to the cashu mint and it should list the nuts that the cashu mint supports.</p>
+<p>The <code>d</code> tag SHOULD be the mint's pubkey (found when querying <code>/v1/info</code>), this way users can query by pubkey and find the mint announcement.</p>
+<p>An <code>n</code> tag SHOULD be added to signify the network the cashu mint is on (either <code>mainnet</code>, <code>testnet</code>, <code>signet</code>, or <code>regtest</code>)</p>
+<pre><code class="language-json">{
+  &quot;kind&quot;: 38172,
+  &quot;pubkey&quot;: &quot;&lt;application-pubkey&gt;&quot;,
+  &quot;content&quot;: &quot;&lt;optional-kind:0-style-metadata&gt;&quot;,
+  &quot;tags&quot;: [
+    [&quot;d&quot;, &lt;cashu mint pubkey&gt;],
+    [&quot;u&quot;, &quot;https://cashu.example.com&quot;],
+    [&quot;nuts&quot;, &quot;1,2,3,4,5,6,7&quot;],
+    [&quot;n&quot;, &quot;mainnet&quot;]
+  ]
+}
+</code></pre>
+<p>Fedimints SHOULD publish <code>kind:38173</code> events to announce their capabilities and how to connect to them.</p>
+<p>For fedimints, it should list all known fedimint invite codes in <code>u</code> tags and it should list the modules it supports.</p>
+<p>The <code>d</code> tag SHOULD be the federation id, this way users can query by federation id and find the fedimint announcement.</p>
+<p>An <code>n</code> tag SHOULD be added to signify the network the fedimint is on (either <code>mainnet</code>, <code>testnet</code>, <code>signet</code>, or <code>regtest</code>)</p>
+<pre><code class="language-json">{
+  &quot;kind&quot;: 38173,
+  &quot;pubkey&quot;: &quot;&lt;application-pubkey&gt;&quot;,
+  &quot;content&quot;: &quot;&lt;optional-kind:0-style-metadata&gt;&quot;,
+  &quot;tags&quot;: [
+    [&quot;d&quot;, &lt;federation-id&gt;],
+    [&quot;u&quot;, &quot;fed11abc..&quot;],
+    [&quot;u&quot;, &quot;fed11xyz..&quot;],
+    [&quot;modules&quot;, &quot;lightning,wallet,mint&quot;],
+    [&quot;n&quot;, &quot;signet&quot;]
+  ]
+}
+</code></pre>
+<ul>
+<li><code>content</code> is an optional <code>metadata</code>-like stringified JSON object, as described in NIP-01. This content is useful when the pubkey creating the <code>kind:38173</code> is not a normal user. If <code>content</code> is empty, the <code>kind:0</code> of the pubkey should be used to display mint information (e.g. name, picture, web, LUD16, etc.)</li>
+</ul>
+<h2>Example</h2>
+<h3>User A recommends some mints</h3>
+<p>User A might be a user of a cashu mint. Using a client, user A publishes an event recommending the cashu mint they use.</p>
+<pre><code class="language-json">{
+  &quot;kind&quot;: 38000,
+  &quot;tags&quot;: [
+    [&quot;u&quot;, &quot;fed11abc..&quot;, &quot;fedimint&quot;],
+    [&quot;u&quot;, &quot;https://cashu.example.com&quot;, &quot;cashu&quot;],
+    [&quot;a&quot;, &quot;38173:fedimint-pubkey:&lt;d-identifier&gt;&quot;, &quot;wss://relay1&quot;, &quot;fedimint&quot;],
+    [&quot;a&quot;, &quot;38172:cashu-mint-pubkey:&lt;d-identifier&gt;&quot;, &quot;wss://relay2&quot;, &quot;cashu&quot;]
+  ],
+  ...
+}
+</code></pre>
+<h3>User B finds a mint</h3>
+<p>User B wants to use an ecash wallet, they need to find a mint.</p>
+<p>User B's wallet client queries for <code>kind:38000</code> events, looking for recommendations for ecash mints.</p>
+<pre><code class="language-json">[&quot;REQ&quot;, &lt;id&gt;, [{ &quot;kinds&quot;: [38000], &quot;authors&quot;: [&lt;user&gt;, &lt;users-contact-list&gt;], &quot;#k&quot;: [&quot;38173&quot;] }]]
+</code></pre>
+<p>User B, who follows User A, sees that <code>kind:38000</code> event and tries to connect to the corresponding mints.</p>
+<h3>Alternative query bypassing <code>kind:38000</code></h3>
+<p>Alternatively, users might choose to query directly for <code>kind:38173</code> for an event kind. Clients SHOULD be careful doing this and use spam-prevention mechanisms or querying high-quality restricted relays to avoid directing users to malicious handlers.</p>
+<pre><code class="language-json">[&quot;REQ&quot;, &lt;id&gt;, [{ &quot;kinds&quot;: [38173], &quot;authors&quot;: [...] }]]
+</code></pre>
+</article>

@@ -1,0 +1,117 @@
+<article class="nips-doc" id="nip-54">
+<p>This NIP defines <code>kind:30818</code> (an <em>addressable event</em>) for descriptions (or encyclopedia entries) of particular subjects, and it's expected that multiple people will write articles about the exact same subjects, with either small variations or completely independent content.</p>
+<p>Articles are identified by lowercase, normalized <code>d</code> tags.</p>
+<h2>Articles</h2>
+<pre><code class="language-json">{
+  &quot;content&quot;: &quot;A wiki is a hypertext publication collaboratively edited and managed by its own audience.&quot;,
+  &quot;tags&quot;: [
+    [&quot;d&quot;, &quot;wiki&quot;],
+    [&quot;title&quot;, &quot;Wiki&quot;]
+  ]
+}
+</code></pre>
+<h2><code>d</code> tag normalization rules</h2>
+<ul>
+<li>All letters with uppercase/lowercase variants MUST be converted to lowercase.</li>
+<li>Whitespace MUST be converted to <code>-</code>.</li>
+<li>Punctuation and symbols SHOULD be removed.</li>
+<li>Multiple consecutive <code>-</code> SHOULD be collapsed to a single <code>-</code>.</li>
+<li>Leading and trailing <code>-</code> SHOULD be removed.</li>
+<li>Non-ASCII letters (e.g., Japanese, Chinese, Arabic, Cyrillic) MUST be preserved as UTF-8.</li>
+<li>Numbers MUST be preserved.</li>
+</ul>
+<p>For example:
+- <code>"Wiki Article"</code> → <code>"wiki-article"</code>
+- <code>"What's Up?"</code> → <code>"whats-up"</code>
+- <code>"  Hello  World  "</code> → <code>"hello-world"</code>
+- <code>"Article 1"</code> → <code>"article-1"</code>
+- <code>"ウィキペディア"</code> → <code>"ウィキペディア"</code> (Japanese, no case change)
+- <code>"Ñoño"</code> → <code>"ñoño"</code> (Spanish, lowercased)
+- <code>"Москва"</code> → <code>"москва"</code> (Russian, lowercased)
+- <code>"日本語 Article"</code> → <code>"日本語-article"</code> (mixed scripts)</p>
+<h2>Content</h2>
+<p>The <code>content</code> should be <a href="https://djot.net/" target="_blank" rel="noopener noreferrer">Djot</a> with two special functionalities:</p>
+<ol>
+<li>Links can have target URIs in <a href="#" data-nip="21">NIP-21</a> format, like <code>[Bob](nostr:npub1...)</code>.</li>
+<li>When a reference can't be found for a reference-style link, it should link to the wiki article with that name instead (wikilink behavior). The target is normalized following the <code>d</code> tag normalization rules above.</li>
+</ol>
+<p>For example:</p>
+<pre><code class="language-djot">Bitcoin is a [cryptocurrency][] invented by [Satoshi Nakamoto][].
+
+See also: [proof of work][] and [lightning network][Lightning Network].
+
+[Satoshi Nakamoto]: nostr:npub1satoshi...
+</code></pre>
+<p>In the article above:
+- <code>[cryptocurrency][]</code> links to the wiki article with <code>d</code> tag <code>"cryptocurrency"</code> (no reference defined, so it becomes a wikilink)
+- <code>[Satoshi Nakamoto][]</code> links to the npub (reference is defined)
+- <code>[proof of work][]</code> links to the article with <code>d</code> tag <code>"proof-of-work"</code>
+- <code>[lightning network][Lightning Network]</code> links to <code>"lightning-network"</code>, displays as "lightning network"</p>
+<p>Wikilinks also work with non-Latin scripts following the same normalization rules:
+- <code>[ビットコイン][]</code> → links to article with <code>d</code> tag <code>"ビットコイン"</code>
+- <code>[Japanese Article][日本語 記事]</code> → links to <code>"日本語-記事"</code>, displays as "Japanese Article"
+- <code>[Биткойн][]</code> → links to article with <code>d</code> tag <code>"биткойн"</code> (Cyrillic, lowercased)</p>
+<p><a href="#" data-nip="21">NIP-21</a> <code>nostr:</code> links can also be used to link to profiles or arbitrary Nostr events. It is not recommended to link to specific versions of articles — the wikilink syntax should be preferred instead, since it should be left to the reader and their client to decide what version of any given article they want to read.</p>
+<h2>Optional extra tags</h2>
+<ul>
+<li><code>title</code>: for when the display title should be different from the <code>d</code> tag.</li>
+<li><code>summary</code>: for display in lists.</li>
+<li><code>a</code> and <code>e</code>: for referencing the original event a wiki article was forked from.</li>
+</ul>
+<h2>Merge Requests</h2>
+<p>Event <code>kind:818</code> represents a request to merge from a forked article into the source. It is directed to a pubkey and references the original article and the modified event.</p>
+<pre><code class="language-json">{
+  &quot;content&quot;: &quot;I added information about the block size limit&quot;,
+  &quot;kind&quot;: 818,
+  &quot;tags&quot;: [
+    [&quot;a&quot;, &quot;30818:&lt;destination-pubkey&gt;:bitcoin&quot;, &quot;&lt;relay-url&gt;&quot;],
+    [&quot;e&quot;, &quot;&lt;version-against-which-the-modification-was-made&gt;&quot;, &quot;&lt;relay-url&gt;&quot;],
+    [&quot;p&quot;, &quot;&lt;destination-pubkey&gt;&quot;],
+    [&quot;e&quot;, &quot;&lt;version-to-be-merged&gt;&quot;, &quot;&lt;relay-url&gt;&quot;, &quot;source&quot;]
+  ]
+}
+</code></pre>
+<ul>
+<li><code>.content</code>: an optional explanation detailing why this merge is being requested.</li>
+<li><code>a</code> tag: tag of the article which should be modified (i.e. the target of this merge request).</li>
+<li><code>e</code> tag: optional version of the article on which this modification is based.</li>
+<li><code>e</code> tag with <code>source</code> marker: the ID of the event that should be merged. This event id MUST be of a <code>kind:30818</code> as defined in this NIP.</li>
+</ul>
+<p>The destination pubkey can create <a href="#" data-nip="25">NIP-25</a> reactions that tag the <code>kind:818</code> event with <code>+</code> or <code>-</code> to accept or reject the merge request.</p>
+<h2>Redirects</h2>
+<p>Event <code>kind:30819</code> is also defined to stand for "wiki redirects", i.e. if one thinks "BTC" should redirect to "Bitcoin" they can issue one of these events instead of replicating the content. These events can be used for automatically redirecting between articles on a client, but also for generating crowdsourced "disambiguation" pages (<a href="https://en.wikipedia.org/wiki/Help:Disambiguation" target="_blank" rel="noopener noreferrer">common in Wikipedia</a>).</p>
+<pre><code class="language-json">{
+  &quot;kind&quot;: 30819,
+  &quot;tags&quot;: [
+    [&quot;d&quot;, &quot;btc&quot;],
+    [&quot;a&quot;, &quot;30818:&lt;pubkey&gt;:bitcoin&quot;, &quot;&lt;relay-url&gt;&quot;]
+  ],
+  &quot;content&quot;: &quot;&quot;
+}
+</code></pre>
+<h2>How to decide what article to display</h2>
+<p>As there could be many articles for each given name, some kind of prioritization must be done by clients. Criteria for this should vary between users and clients, but some means that can be used are described below:</p>
+<h3>Reactions</h3>
+<p><a href="#" data-nip="25">NIP-25</a> reactions are very simple and can be used to create a simple web-of-trust between wiki article writers and their content. While just counting a raw number of "likes" is unproductive, reacting to any wiki article event with a <code>+</code> can be interpreted as a recommendation for that article specifically and a partial recommendation of the author of that article. When 2 or 3-level deep recommendations are followed, suddenly a big part of all the articles may have some form of tagging.</p>
+<h3>Relays</h3>
+<p><a href="#" data-nip="51">NIP-51</a> lists of relays can be created with the kind 10102 and then used by wiki clients in order to determine where to query articles first and to rank these differently in relation to other events fetched from other relays.</p>
+<h3>Contact lists</h3>
+<p><a href="#" data-nip="02">NIP-02</a> contact lists can form the basis of a recommendation system that is then expanded with relay lists and reaction lists through nested queries. These lists form a good starting point only because they are so widespread.</p>
+<h3>Wiki-related contact lists</h3>
+<p><a href="#" data-nip="51">NIP-51</a> lists can also be used to create a list of users that are trusted only in the context of wiki authorship or wiki curationship.</p>
+<h2>Forks</h2>
+<p>Wiki-events can tag other wiki-events with a <code>fork</code> marker to specify that this event came from a different version. Both <code>a</code> and <code>e</code> tags SHOULD be used and have the <code>fork</code> marker applied, to identify the exact version it was forked from.</p>
+<h2>Deference</h2>
+<p>Wiki-events can tag other wiki-events with a <code>defer</code> marker to indicate that it considers someone else's entry as a "better" version of itself. If using a <code>defer</code> marker both <code>a</code> and <code>e</code> tags SHOULD be used.</p>
+<p>This is a stronger signal of trust than a <code>+</code> reaction.</p>
+<p>This marker is useful when a user edits someone else's entry; if the original author includes the editor's changes and the editor doesn't want to keep/maintain an independent version, the <code>defer</code> tag could effectively be considered a "deletion" of the editor's version and putting that pubkey's WoT weight behind the original author's version.</p>
+<h2>Why Djot?</h2>
+<p><a href="https://djot.net/" target="_blank" rel="noopener noreferrer">Djot</a> is a markup language created by John MacFarlane (author of Pandoc and co-author of CommonMark). It was chosen for the following reasons:</p>
+<ul>
+<li><strong>Well-defined spec</strong>: Unlike Markdown (many incompatible dialects) or Asciidoc (spec tied to Ruby implementation), Djot has a clear, standalone specification.</li>
+<li><strong>Native implementations</strong>: Available in JavaScript, Lua, Rust, Go, and other languages without transpilation.</li>
+<li><strong>Rich features</strong>: Supports superscript, subscript, footnotes, tables, definition lists, and math — features useful for encyclopedic content.</li>
+<li><strong>Familiar syntax</strong>: Similar to basic Markdown, making it easy to learn.</li>
+<li><strong>Fast parsing</strong>: Designed for efficient linear-time parsing.</li>
+</ul>
+</article>

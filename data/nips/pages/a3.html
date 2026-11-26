@@ -1,0 +1,51 @@
+<article class="nips-doc" id="nip-A3">
+<p>This NIP standardizes how payment addresses are declared across any network or platform.</p>
+<h2>Tag Format</h2>
+<p>Payment targets are specified using <code>payto</code> tags with the following structure:</p>
+<pre><code class="language-text">[&quot;payto&quot;, &quot;&lt;type&gt;&quot;, &quot;&lt;address&gt;&quot;]
+</code></pre>
+<p>Where:
+- The first element is always the literal string <code>"payto"</code>
+- The second element is the payment <code>type</code> (e.g., <code>"bitcoin"</code>, <code>"lightning"</code>), always lowercase.
+- The third element is the <code>address</code> (e.g., address, username)</p>
+<p>Clients may perform additional network- or platform-specific validation for recognized types.</p>
+<h2>Example</h2>
+<pre><code class="language-json">{
+  &quot;pubkey&quot;: &quot;afc93622eb4d79c0fb75e56e0c14553f7214b0a466abeba14cb38968c6755e6a&quot;,
+  &quot;kind&quot;: 10133,
+  &quot;content&quot;: &quot;&quot;,
+  &quot;tags&quot;: [
+    [&quot;payto&quot;, &quot;bitcoin&quot;, &quot;bc1qxq66e0t8d7ugdecwnmv58e90tpry23nc84pg9k&quot;],
+    [&quot;payto&quot;, &quot;nano&quot;, &quot;nano_1dctqbmqxfppo9pswbm6kg9d4s4mbraqn8i4m7ob9gnzz91aurmuho48jx3c&quot;],
+    [&quot;payto&quot;, &quot;unknowntype&quot;, &quot;l7tbta5b9xze6ckkfc99uohzxd009b0r&quot;]
+  ],
+  ...
+}
+</code></pre>
+<p>For each <code>payto</code> tag in kind <code>10133</code> events, clients can render the payment address as a button or link. Clients may use a specific URI scheme when one is available, such as <code>bitcoin:&lt;address&gt;</code> or <code>ethereum:&lt;address&gt;</code>. Otherwise fall back to the <code>payto</code> URI scheme defined by <a href="https://www.rfc-editor.org/rfc/rfc8905.html" target="_blank" rel="noopener noreferrer">RFC-8905</a>: <code>payto://&lt;type&gt;/&lt;address&gt;</code>.</p>
+<p>Possible rendered URIs:
+- <code>bitcoin:bc1qxq66e0t8d7ugdecwnmv58e90tpry23nc84pg9k</code>
+- <code>payto://nano/nano_1dctqbmqxfppo9pswbm6kg9d4s4mbraqn8i4m7ob9gnzz91aurmuho48jx3c</code>
+- <code>payto://unknowntype/l7tbta5b9xze6ckkfc99uohzxd009b0r</code></p>
+<h2>Commonly Used Tags</h2>
+<ul>
+<li><code>bip352</code> (silent payments)</li>
+<li><code>bip353</code> (DNS addresses)</li>
+<li><code>bitcoin</code></li>
+<li><code>bitcoincash</code></li>
+<li><code>cashme</code> (Cash App <code>$</code>-prefixed cashtag)</li>
+<li><code>ethereum</code></li>
+<li><code>lightning</code> (lightning address)</li>
+<li><code>litecoin</code></li>
+<li><code>monero</code></li>
+<li><code>nano</code></li>
+<li><code>paypal</code></li>
+<li><code>revolut</code></li>
+<li><code>solana</code></li>
+<li><code>tron</code></li>
+<li><code>venmo</code></li>
+<li><code>zcash</code></li>
+</ul>
+<p>New widely deployed formats can be added to this list later.</p>
+<p>For an unknown payment <code>type</code>, in case of ambiguities, a specific address URI scheme may be used when one is available (such as <code>bitcoincash</code> from <code>bitcoincash:&lt;address&gt;</code>).</p>
+</article>

@@ -1,0 +1,56 @@
+<article class="nips-doc" id="nip-A0">
+<p><strong>Status:</strong> Draft</p>
+<p>This NIP defines new events <code>kind: 1222</code> for root messages and <code>kind: 1244</code> for reply messages to be used for short voice messages, typically up to 60 seconds in length.</p>
+<h2>Specification</h2>
+<h3>Event Kind <code>1222</code> and Kind <code>1244</code></h3>
+<p>The <code>kind: 1222</code> event is defined as follows:</p>
+<ul>
+<li><code>content</code>: MUST be a URL pointing directly to an audio file.<ul>
+<li>The audio file SHOULD be in <code>audio/mp4</code> (.m4a) format using AAC or Opus encoding. Clients MAY support other common audio formats like <code>audio/ogg</code>, <code>audio/webm</code>, or <code>audio/mpeg</code> (mp3), but <code>audio/mp4</code> is recommended for broad compatibility and efficiency.</li>
+<li>The audio duration SHOULD be no longer than 60 seconds. Clients publishing <code>kind: 1222</code> events SHOULD enforce this limit or provide a clear warning to the user if exceeded.</li>
+</ul>
+</li>
+<li><code>tags</code>:<ul>
+<li>Tags MAY be included as per other NIPs (e.g., <code>t</code> for hashtags, <code>g</code> for geohash, etc.).</li>
+</ul>
+</li>
+</ul>
+<p>The <code>kind: 1244</code> event is defined as follows:</p>
+<ul>
+<li>To be used for replies, <code>kind: 1244</code> events MUST follow the structure of <code>NIP-22</code>.</li>
+<li><code>content</code>: MUST be a URL pointing directly to an audio file.<ul>
+<li>The audio file SHOULD be in <code>audio/mp4</code> (.m4a) format using AAC or Opus encoding. Clients MAY support other common audio formats like <code>audio/ogg</code>, <code>audio/webm</code>, or <code>audio/mpeg</code> (mp3), but <code>audio/mp4</code> is recommended for broad compatibility and efficiency.</li>
+<li>The audio duration SHOULD be no longer than 60 seconds. Clients publishing <code>kind: 1222</code> events SHOULD enforce this limit or provide a clear warning to the user if exceeded.</li>
+</ul>
+</li>
+<li><code>tags</code>:<ul>
+<li>Tags MAY be included as per other NIPs (e.g., <code>t</code> for hashtags, <code>g</code> for geohash, etc.).</li>
+</ul>
+</li>
+</ul>
+<h2>Visual representation with <code>imeta</code> (NIP-92) tag (optional)</h2>
+<p>The following imeta (NIP-92) tags MAY be included so clients can render a visual preview without having to download the audio file first:</p>
+<ul>
+<li><code>waveform</code>: amplitude values over time, space separated full integers, less than 100 values should be enough to render a nice visual</li>
+<li><code>duration</code>: audio length in seconds</li>
+</ul>
+<h2>Examples</h2>
+<h3>Root Voice Message Example</h3>
+<p>```json
+{
+  "content": "https://blossom.primal.net/5fe7df0e46ee6b14b5a8b8b92939e84e3ca5e3950eb630299742325d5ed9891b.mp4",
+  "created_at": 1752501052,
+  "id": "...",
+  "kind": 1222,
+  "pubkey": "...",
+  "sig": "...",
+  "tags": [
+    [
+      "imeta",
+      "url https://blossom.primal.net/5fe7df0e46ee6b14b5a8b8b92939e84e3ca5e3950eb630299742325d5ed9891b.mp4",
+      "waveform 0 7 35 8 100 100 49 8 4 16 8 10 7 2 20 10 100 100 100 100 100 100 15 100 100 100 25 60 5 4 3 1 0 100 100 15 100 29 88 0 33 11 39 100 100 19 4 100 42 35 5 0 1 5 0 0 11 38 100 94 17 11 44 58 5 100 100 100 55 14 72 100 100 57 6 1 14 2 16 100 100 40 16 100 100 6 32 14 13 41 36 16 14 6 3 0 1 2 1 6 0",
+      "duration 8"
+    ]
+  ]
+}</p>
+</article>

@@ -1,0 +1,161 @@
+<article class="nips-doc" id="nip-22">
+<p>A comment is a threading note always scoped to a root event or an <a href="#" data-nip="73"><code>I</code>-tag</a>.</p>
+<p>It uses <code>kind:1111</code> with plaintext <code>.content</code> (no HTML, Markdown, or other formatting).</p>
+<p>Comments MUST point to the root scope using uppercase tag names (e.g. <code>K</code>, <code>E</code>, <code>A</code> or <code>I</code>)
+and MUST point to the parent item with lowercase ones (e.g. <code>k</code>, <code>e</code>, <code>a</code> or <code>i</code>).</p>
+<p>Comments MUST point to the authors when one is available (i.e. tagging a nostr event). <code>P</code> for the root scope
+and <code>p</code> for the author of the parent item.</p>
+<pre><code class="language-yaml">{
+  &quot;kind&quot;: 1111,
+  &quot;content&quot;: &quot;&lt;comment&gt;&quot;,
+  &quot;tags&quot;: [
+    // root scope: event addresses, event ids, or I-tags.
+    [&quot;&lt;A, E, I&gt;&quot;, &quot;&lt;address, id or I-value&gt;&quot;, &quot;&lt;relay or web page hint&gt;&quot;, &quot;&lt;root event's pubkey, if an E tag&gt;&quot;],
+    // the root item kind
+    [&quot;K&quot;, &quot;&lt;root kind&gt;&quot;],
+
+    // pubkey of the author of the root scope event
+    [&quot;P&quot;, &quot;&lt;root-pubkey&gt;&quot;, &quot;relay-url-hint&quot;],
+
+    // parent item: event addresses, event ids, or i-tags.
+    [&quot;&lt;a, e, i&gt;&quot;, &quot;&lt;address, id or i-value&gt;&quot;, &quot;&lt;relay or web page hint&gt;&quot;, &quot;&lt;parent event's pubkey, if an e tag&gt;&quot;],
+    // parent item kind
+    [&quot;k&quot;, &quot;&lt;parent comment kind&gt;&quot;],
+
+    // parent item pubkey
+    [&quot;p&quot;, &quot;&lt;parent-pubkey&gt;&quot;, &quot;relay-url-hint&quot;]
+  ]
+  // other fields
+}
+</code></pre>
+<p>Tags <code>K</code> and <code>k</code> MUST be present to define the event kind of the root and the parent items.</p>
+<p><code>I</code> and <code>i</code> tags create scopes for hashtags, geohashes, URLs, and other external identifiers.</p>
+<p>The possible values for <code>i</code> tags – and <code>k</code> tags, when related to an external identity – are listed on <a href="#" data-nip="73">NIP-73</a>.
+Their uppercase versions use the same type of values but relate to the root item instead of the parent one.</p>
+<p><code>q</code> tags MAY be used when citing events in the <code>.content</code> with <a href="#" data-nip="21">NIP-21</a>.</p>
+<pre><code class="language-json">[&quot;q&quot;, &quot;&lt;event-id&gt; or &lt;event-address&gt;&quot;, &quot;&lt;relay-url&gt;&quot;, &quot;&lt;pubkey-if-a-regular-event&gt;&quot;]
+</code></pre>
+<p><code>p</code> tags SHOULD be used when mentioning pubkeys in the <code>.content</code> with <a href="#" data-nip="21">NIP-21</a>.</p>
+<h2>Examples</h2>
+<p>A comment on a blog post looks like this:</p>
+<pre><code class="language-yaml">{
+  &quot;kind&quot;: 1111,
+  &quot;content&quot;: &quot;Great blog post!&quot;,
+  &quot;tags&quot;: [
+    // top-level comments scope to event addresses or ids
+    [&quot;A&quot;, &quot;30023:3c9849383bdea883b0bd16fece1ed36d37e37cdde3ce43b17ea4e9192ec11289:f9347ca7&quot;, &quot;wss://example.relay&quot;],
+    // the root kind
+    [&quot;K&quot;, &quot;30023&quot;],
+    // author of root event
+    [&quot;P&quot;, &quot;3c9849383bdea883b0bd16fece1ed36d37e37cdde3ce43b17ea4e9192ec11289&quot;, &quot;wss://example.relay&quot;]
+
+    // the parent event address (same as root for top-level comments)
+    [&quot;a&quot;, &quot;30023:3c9849383bdea883b0bd16fece1ed36d37e37cdde3ce43b17ea4e9192ec11289:f9347ca7&quot;, &quot;wss://example.relay&quot;],
+    // when the parent event is replaceable or addressable, also include an `e` tag referencing its id
+    [&quot;e&quot;, &quot;5b4fc7fed15672fefe65d2426f67197b71ccc82aa0cc8a9e94f683eb78e07651&quot;, &quot;wss://example.relay&quot;],
+    // the parent event kind
+    [&quot;k&quot;, &quot;30023&quot;],
+    // author of the parent event
+    [&quot;p&quot;, &quot;3c9849383bdea883b0bd16fece1ed36d37e37cdde3ce43b17ea4e9192ec11289&quot;, &quot;wss://example.relay&quot;]
+  ]
+  // other fields
+}
+</code></pre>
+<p>A comment on a <a href="#" data-nip="94">NIP-94</a> file looks like this:</p>
+<pre><code class="language-yaml">{
+  &quot;kind&quot;: 1111,
+  &quot;content&quot;: &quot;Great file!&quot;,
+  &quot;tags&quot;: [
+    // top-level comments have the same scope and reply to addresses or ids
+    [&quot;E&quot;, &quot;768ac8720cdeb59227cf95e98b66560ef03d8bc9a90d721779e76e68fb42f5e6&quot;, &quot;wss://example.relay&quot;, &quot;3721e07b079525289877c366ccab47112bdff3d1b44758ca333feb2dbbbbe5bb&quot;],
+    // the root kind
+    [&quot;K&quot;, &quot;1063&quot;],
+    // author of the root event
+    [&quot;P&quot;, &quot;3721e07b079525289877c366ccab47112bdff3d1b44758ca333feb2dbbbbe5bb&quot;],
+
+    // the parent event id (same as root for top-level comments)
+    [&quot;e&quot;, &quot;768ac8720cdeb59227cf95e98b66560ef03d8bc9a90d721779e76e68fb42f5e6&quot;, &quot;wss://example.relay&quot;, &quot;3721e07b079525289877c366ccab47112bdff3d1b44758ca333feb2dbbbbe5bb&quot;],
+    // the parent kind
+    [&quot;k&quot;, &quot;1063&quot;],
+    [&quot;p&quot;, &quot;3721e07b079525289877c366ccab47112bdff3d1b44758ca333feb2dbbbbe5bb&quot;]
+  ]
+  // other fields
+}
+</code></pre>
+<p>A reply to a comment looks like this:</p>
+<pre><code class="language-yaml">{
+  &quot;kind&quot;: 1111,
+  &quot;content&quot;: &quot;This is a reply to \&quot;Great file!\&quot;&quot;,
+  &quot;tags&quot;: [
+    // nip-94 file event id
+    [&quot;E&quot;, &quot;768ac8720cdeb59227cf95e98b66560ef03d8bc9a90d721779e76e68fb42f5e6&quot;, &quot;wss://example.relay&quot;, &quot;fd913cd6fa9edb8405750cd02a8bbe16e158b8676c0e69fdc27436cc4a54cc9a&quot;],
+    // the root kind
+    [&quot;K&quot;, &quot;1063&quot;],
+    [&quot;P&quot;, &quot;fd913cd6fa9edb8405750cd02a8bbe16e158b8676c0e69fdc27436cc4a54cc9a&quot;],
+
+    // the parent event
+    [&quot;e&quot;, &quot;5c83da77af1dec6d7289834998ad7aafbd9e2191396d75ec3cc27f5a77226f36&quot;, &quot;wss://example.relay&quot;, &quot;93ef2ebaaf9554661f33e79949007900bbc535d239a4c801c33a4d67d3e7f546&quot;],
+    // the parent kind
+    [&quot;k&quot;, &quot;1111&quot;],
+    [&quot;p&quot;, &quot;93ef2ebaaf9554661f33e79949007900bbc535d239a4c801c33a4d67d3e7f546&quot;]
+  ]
+  // other fields
+}
+</code></pre>
+<p>A comment on a website's url looks like this:</p>
+<pre><code class="language-yaml">{
+  &quot;kind&quot;: 1111,
+  &quot;content&quot;: &quot;Nice article!&quot;,
+  &quot;tags&quot;: [
+    // referencing the root url
+    [&quot;I&quot;, &quot;https://abc.com/articles/1&quot;],
+    // the root &quot;kind&quot;: for an url
+    [&quot;K&quot;, &quot;web&quot;],
+
+    // the parent reference (same as root for top-level comments)
+    [&quot;i&quot;, &quot;https://abc.com/articles/1&quot;],
+    // the parent &quot;kind&quot;: for an url
+    [&quot;k&quot;, &quot;web&quot;]
+  ]
+  // other fields
+}
+</code></pre>
+<p>A podcast comment example:</p>
+<pre><code class="language-yaml">{
+  &quot;id&quot;: &quot;80c48d992a38f9c445b943a9c9f1010b396676013443765750431a9004bdac05&quot;,
+  &quot;pubkey&quot;: &quot;252f10c83610ebca1a059c0bae8255eba2f95be4d1d7bcfa89d7248a82d9f111&quot;,
+  &quot;kind&quot;: 1111,
+  &quot;content&quot;: &quot;This was a great episode!&quot;,
+  &quot;tags&quot;: [
+    // podcast episode reference
+    [&quot;I&quot;, &quot;podcast:item:guid:d98d189b-dc7b-45b1-8720-d4b98690f31f&quot;, &quot;https://fountain.fm/episode/z1y9TMQRuqXl2awyrQxg&quot;],
+    // podcast episode type
+    [&quot;K&quot;, &quot;podcast:item:guid&quot;],
+
+    // same value as &quot;I&quot; tag above, because it is a top-level comment (not a reply to a comment)
+    [&quot;i&quot;, &quot;podcast:item:guid:d98d189b-dc7b-45b1-8720-d4b98690f31f&quot;, &quot;https://fountain.fm/episode/z1y9TMQRuqXl2awyrQxg&quot;],
+    [&quot;k&quot;, &quot;podcast:item:guid&quot;]
+  ]
+  // other fields
+}
+</code></pre>
+<p>A reply to a podcast comment:</p>
+<pre><code class="language-yaml">{
+  &quot;kind&quot;: 1111,
+  &quot;content&quot;: &quot;I'm replying to the above comment.&quot;,
+  &quot;tags&quot;: [
+    // podcast episode reference
+    [&quot;I&quot;, &quot;podcast:item:guid:d98d189b-dc7b-45b1-8720-d4b98690f31f&quot;, &quot;https://fountain.fm/episode/z1y9TMQRuqXl2awyrQxg&quot;],
+    // podcast episode type
+    [&quot;K&quot;, &quot;podcast:item:guid&quot;],
+
+    // this is a reference to the above comment
+    [&quot;e&quot;, &quot;80c48d992a38f9c445b943a9c9f1010b396676013443765750431a9004bdac05&quot;, &quot;wss://example.relay&quot;, &quot;252f10c83610ebca1a059c0bae8255eba2f95be4d1d7bcfa89d7248a82d9f111&quot;],
+    // the parent comment kind
+    [&quot;k&quot;, &quot;1111&quot;],
+    [&quot;p&quot;, &quot;252f10c83610ebca1a059c0bae8255eba2f95be4d1d7bcfa89d7248a82d9f111&quot;]
+  ]
+  // other fields
+}
+</code></pre>
+</article>

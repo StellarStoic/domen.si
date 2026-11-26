@@ -1,0 +1,55 @@
+<article class="nips-doc" id="nip-C0">
+<h2>Abstract</h2>
+<p>This NIP defines a new event kind for sharing and storing code snippets. Unlike regular text notes (<code>kind:1</code>), code snippets have specialized metadata like language, extension, and other code-specific attributes that enhance discoverability, syntax highlighting, and improved user experience.</p>
+<h2>Event Kind</h2>
+<p>This NIP defines <code>kind:1337</code> as a code snippet event.</p>
+<p>The <code>.content</code> field contains the actual code snippet text.</p>
+<h2>Optional Tags</h2>
+<ul>
+<li><code>l</code> - Programming language name (lowercase). Examples: "javascript", "python", "rust"</li>
+<li><code>name</code> - Name of the code snippet, commonly a filename. Examples: "hello-world.js", "quick-sort.py"</li>
+<li><code>extension</code> - File extension (without the dot). Examples: "js", "py", "rs"</li>
+<li><code>description</code> - Brief description of what the code does</li>
+<li><code>runtime</code> - Runtime or environment specification (e.g., "node v18.15.0", "python 3.11")</li>
+<li><code>license</code> - License under which the code (along with any related data contained within the event, when available, such as the description) is shared. This MUST be a standard <a href="https://spdx.org/licenses/" target="_blank" rel="noopener noreferrer">SPDX</a> short identifier (e.g., "MIT", "GPL-3.0-or-later", "Apache-2.0") when available. An additional parameter containing a reference to the actual text of the license MAY be provided. This tag can be repeated, to indicate multi-licensing, allowing recipients to use the code under any license of choosing among the referenced ones</li>
+<li><code>dep</code> - Dependency required for the code to run (can be repeated)</li>
+<li><code>repo</code> - Reference to a repository where this code originates. This MUST be either a standard URL or, alternatively, the address of a <a href="#" data-nip="34">NIP-34</a> Git repository announcement event in the form <code>"30617:&lt;32-bytes hex a pubkey&gt;:&lt;d tag value&gt;"</code>. If a repository announcement is referenced, a recommended relay URL where to find the event should be provided as an additional parameter</li>
+</ul>
+<h2>Format</h2>
+<pre><code class="language-json">{
+  &quot;id&quot;: &quot;&lt;32-bytes lowercase hex-encoded SHA-256 of the the serialized event data&gt;&quot;,
+  &quot;pubkey&quot;: &quot;&lt;32-bytes lowercase hex-encoded public key of the event creator&gt;&quot;,
+  &quot;created_at&quot;: &lt;Unix timestamp in seconds&gt;,
+  &quot;kind&quot;: 1337,
+  &quot;content&quot;: &quot;function helloWorld() {\n  console.log('Hello, Nostr!');\n}\n\nhelloWorld();&quot;,
+  &quot;tags&quot;: [
+    [&quot;l&quot;, &quot;javascript&quot;],
+    [&quot;extension&quot;, &quot;js&quot;],
+    [&quot;name&quot;, &quot;hello-world.js&quot;],
+    [&quot;description&quot;, &quot;A basic JavaScript function that prints 'Hello, Nostr!' to the console&quot;],
+    [&quot;runtime&quot;, &quot;node v18.15.0&quot;],
+    [&quot;license&quot;, &quot;MIT&quot;],
+    [&quot;repo&quot;, &quot;https://github.com/nostr-protocol/nostr&quot;]
+  ],
+  &quot;sig&quot;: &quot;&lt;64-bytes signature of the id&gt;&quot;
+}
+</code></pre>
+<h2>Client Behavior</h2>
+<p>Clients that support this NIP SHOULD:</p>
+<ol>
+<li>Display code snippets with proper syntax highlighting based on the language.</li>
+<li>Allow copying the full code snippet with a single action.</li>
+<li>Render the code with appropriate formatting, preserving whitespace and indentation.</li>
+<li>Display the language and extension prominently.</li>
+<li>Provide "run" functionality for supported languages when possible.</li>
+<li>Display the description (if available) as part of the snippet presentation.</li>
+</ol>
+<p>Clients MAY provide additional functionality such as:</p>
+<ol>
+<li>Code editing capabilities</li>
+<li>Forking/modifying snippets</li>
+<li>Creating executable environments based on the runtime/dependencies</li>
+<li>Downloading the snippet as a file using the provided extension</li>
+<li>Sharing the snippet with attribution</li>
+</ol>
+</article>

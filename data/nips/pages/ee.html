@@ -1,0 +1,216 @@
+<article class="nips-doc" id="nip-EE">
+<blockquote>
+<p><strong>Warning</strong>  <code>unrecommended</code>: superseded by the <a href="https://github.com/marmot-protocol/marmot" target="_blank" rel="noopener noreferrer">Marmot Protocol</a></p>
+</blockquote>
+<h1>NIP-EE</h1>
+<h2>E2EE Messaging using the Messaging Layer Security (MLS) Protocol</h2>
+<p><code>final</code> <code>unrecommended</code> <code>optional</code></p>
+<p>This NIP standardizes how to use the <a href="https://www.rfc-editor.org/rfc/rfc9420.html" target="_blank" rel="noopener noreferrer">MLS Protocol</a> with Nostr for efficient and E2EE (end-to-end encrypted) direct and group messaging.</p>
+<h2>Context</h2>
+<p>Originally, one-to-one direct messages (DMs) in Nostr happened via the scheme defined in <a href="#" data-nip="04">NIP-04</a>. This NIP is not recommended because, while it encrypts the content of the message (provides decent confidentiality), it leaks significant amounts of metadata about the parties involved in the conversation (completely lacks privacy).</p>
+<p>With the addition of <a href="#" data-nip="44">NIP-44</a>, we have an updated encryption scheme that improves confidentiality guarantees but stops short of defining a new scheme for doing direct messages using this encryption scheme. Hence, makes little to no difference to privacy.</p>
+<p>Most recently, <a href="#" data-nip="17">NIP-17</a> combines <a href="#" data-nip="44">NIP-44</a> encryption with <a href="#" data-nip="59">NIP-59</a> gift-wrapping to hide the encrypted direct message inside another set of events to ensure that it's impossible to see who is talking to who and when messages passed between the users. This largely solves the metadata leakage problem; while it's still possible to see that a user is receiving gift-wrapped events, you can't tell from whom and what kind of events are within the gift-wrap outer event. This gives some degree of deniability/repudiation but doesn't solve forward secrecy or post compromise security. That is to say, if a user's private key (or the calculated conversation key shared between two users used to encrypt messages) is compromised, the attacker will have full access to all past and future DMs sent between those users.</p>
+<p>In addition, neither <a href="#" data-nip="04">NIP-04</a> or <a href="#" data-nip="17">NIP-17</a> attempt to solve the problem of group messages.</p>
+<h3>Why is this important?</h3>
+<p>Without proper E2EE, Nostr cannot be used as the protocol for secure messaging clients. While clients like Signal do a fantastic job with E2EE, they still rely on centralized servers and as a result can be shut down by a powerful (i.e. state-level) actor. The goal of Nostr is not only to protect against centralized entities censoring you and your communications, but also protect against the ability of a state-level actor to stop these sorts of services from existing in the first place. By replacing centralized servers with decentralized relays, we make it nearly impossible for a centralized actor to completely stop communications between individual users.</p>
+<h3>Goals of this NIP</h3>
+<ol>
+<li>Private <em>and</em> Confidential DMs and Group messages</li>
+<li><strong>Private</strong> means that an observer cannot tell that Alice and Bob are talking to one another, or that Alice is part of a specific group. This necessarily requires protecting metadata.</li>
+<li><strong>Confidential</strong> means that the contents of conversations can only be viewed by the intended recipients.</li>
+<li>Forward secrecy and Post-compromise security</li>
+<li><strong>Forward secrecy</strong> means that encrypted content in the past remains encrypted even if a key material is leaked.</li>
+<li><strong>Post compromise security</strong> means that leaking key material doesn't allow an attacker to continue to read messages indefinitely into the future.</li>
+<li>Scales efficiently for large groups</li>
+<li>Allows for the use of multiple device/clients in a single conversation/group.</li>
+</ol>
+<h3>Why MLS?</h3>
+<p>This scheme adapts the Message Layer Security (MLS) protocol for use with Nostr. You can think of MLS as an evolution of the Signal Protocol. However, it significantly improves the scalability of encryption operations for large group messaging significantly (linear -&gt; log), is built to accommodate federated environments, and also allows for graceful updating of ciphersuites and versions over time. In addition, it's very flexible and agnostic about the message content that is sent.</p>
+<p>It's beyond the scope of this NIP to explain the MLS protocol but you can read more about it in it's <a href="https://www.ietf.org/archive/id/draft-ietf-mls-architecture-13.html" target="_blank" rel="noopener noreferrer">Architectural Overview</a> or the <a href="https://www.rfc-editor.org/rfc/rfc9420" target="_blank" rel="noopener noreferrer">RFC</a>. MLS is on track to become an internet standard under the IETF so the protocol itself is extremely well vetted and researched. This also means there is the potential for cross network messaging interoperability in the future as MLS gains more adoption.</p>
+<h2>Core MLS Concepts</h2>
+<p>From the <a href="https://www.ietf.org/archive/id/draft-ietf-mls-architecture-13.html" target="_blank" rel="noopener noreferrer">MLS Architectural Overview</a>:</p>
+<blockquote>
+<p>MLS provides a way for clients to form groups within which they can communicate securely. For example, a set of users might use clients on their phones or laptops to join a group and communicate with each other. A group may be as small as two clients (e.g., for simple person to person messaging) or as large as hundreds of thousands. A client that is part of a group is a member of that group. As groups change membership and group or member properties, they advance from one epoch to another and the cryptographic state of the group evolves.</p>
+<p>The group is represented as a tree, which represents the members as the leaves of a tree. It is used to efficiently encrypt to subsets of the members. Each member has a state called a LeafNode object holding the client's identity, credentials, and capabilities.</p>
+</blockquote>
+<p>The MLS protocol's job is to manage and evolve the cryptographic state of a group. This includes managing the membership of a group, the cryptographic state of a group (ratchet tree, keys, and encryption/decryption/authentication of messages), and managing the evolution of the group over time.</p>
+<h3>Groups</h3>
+<p>Groups are created by their first member, who then invites one or more other members. Groups evolve over time in blocks called <code>Epochs</code>. New epochs are proposed via one ore more <code>Proposal</code> messages and then committed to via a <code>Commit</code> message.</p>
+<h3>Clients</h3>
+<p>The device/client pair (e.g. Primal on iOS or Coracle on web) with which a user joins the group is represented as a <code>LeafNode</code> in the tree. The terms <code>Client</code> and <code>Member</code> are interchangeable in this regard. It is not possible to share group state across multiple <code>Clients</code>. If a user joins a group from 2 separate devices, their state is separate and they will be tracked as 2 separate members of the group.</p>
+<h3>Messages</h3>
+<p>There are several different types of messages sent within a group. Some of these are control messages that are used to update the group state over time. These include <code>Welcome</code>, <code>Proposal</code>, and <code>Commit</code> messages. Others are the actual messages that are sent between members in a group. These include <code>Application</code> messages.</p>
+<p>Messages in MLS are "framed". Meaning that they are wrapped in a data structure that includes information about the sender, the epoch, the message index within the epoch and the message content. This framing makes it possible to authenticate and decrypt messages correctly, even if they arrive out of order.</p>
+<p>MLS is agnostic to the "content" of the messages that are sent. This is a key feature of MLS that allows for the use of MLS for a wide variety of applications.</p>
+<p>MLS is also agnostic to the transport protocol that is used to send messages. Obviously for us, we'll be using websockets, Nostr events and relays.</p>
+<h2>The focus of this NIP</h2>
+<p>This NIP focuses on how to use Nostr to perform the Authentication Service and Delivery Service functions required by the MLS protocol. Most clients will choose to use an MLS implementation to handle keys, ratcheting, group state management, and other aspects of the MLS protocol itself. <a href="https://github.com/openmls/openmls" target="_blank" rel="noopener noreferrer">OpenMLS</a> is the most actively developed library that implements MLS.</p>
+<p>This NIP specifies the following:</p>
+<ol>
+<li>A standardized way that Nostr clients should <a href="#creating-groups">create MLS groups</a>.</li>
+<li>The required format of the MLS <a href="#mls-credentials"><code>Credential</code></a> that Nostr clients should use to represent a Nostr user in a group.</li>
+<li>The structure of <a href="#keypackage-event-and-signing-keys">KeyPackage Events</a> published to relays that allow Nostr users to be added to a group asynchronously.</li>
+<li>The structure of <a href="#group-events">Group Events</a> published to relays that represent the evolution of a group's state and the contents of the messages sent in the group.</li>
+</ol>
+<h2>Security Considerations</h2>
+<p>This is a concise overview of the security trade-offs and considerations of this NIP in various scenarios. The NIP strives to fully maintain MLS security guarantees.</p>
+<h3>Forward Secrecy and Post-compromise Security</h3>
+<ul>
+<li>As per the MLS spec, keys are deleted as soon as they are used to encrypt or decrypt a message. This is usually handled by the MLS implementation library itself but attention needs to be paid by clients to ensure they're not storing secrets (especially the <a href="#group-events">exporter secret</a>) for longer than absolutely necessary.</li>
+<li>This NIP maintains MLS forward secrecy and post-compromise security guarantees. You can read more about those in the MLS Architectural Overview section on <a href="https://www.ietf.org/archive/id/draft-ietf-mls-architecture-15.html#name-forward-and-post-compromise" target="_blank" rel="noopener noreferrer">Forward Secrecy and Post-compromise Security</a>.</li>
+</ul>
+<h3>Leakage of various keys</h3>
+<ul>
+<li>This NIP does not depend on a user's Nostr identity key for any aspect of the MLS messaging protocol. Compromise of a user's Nostr identity key does not give access to past or future messages in any MLS-based group.</li>
+<li>For a complete discussion of MLS key leakage, please see the Endpoint Compromise section of the <a href="https://www.ietf.org/archive/id/draft-ietf-mls-architecture-15.html#name-endpoint-compromise" target="_blank" rel="noopener noreferrer">MLS Architectural Overview</a>.</li>
+</ul>
+<h3>Metadata</h3>
+<ul>
+<li>The only group specific metadata published to relays is the Nostr group ID value. This value is used to identify the group in the <code>h</code> tag of the Group Message Event (<code>kind: 445</code>). These events are published ephemerally and this Nostr group ID value can be updated over the lifetime of the group by group admins. This is a tradeoff to ensure that group participants and group size are obfuscated but still makes it possible to efficiently fan out group messages to all participants. The content field of this event is a value encrypted in two separate ways (using NIP-44 and MLS) with MLS group state/keys. Only group members with up-to-date group state can decrypt and read these messages.</li>
+<li>A user's key package events can be used one or more times to be added to groups. There is a tradeoff inherent here: Reusing key packages (initial signing keys) carries some degree of risk but this risk is mitigated as long as a user rotates their signing key immediately upon joining a group. This step also improves the forward secrecy of the entire group.</li>
+</ul>
+<h3>Device Compromise</h3>
+<p>Clients implementing this NIP should take every precaution to ensure that data is stored in a secure way on the device and is protected against unwanted access in the case that a device is compromised (e.g. encryption at rest, biometric authentication, etc.). That said, full device compromise should be viewed as a catastrophic event and any group the compromised device was a part of should be considered compromised until they can remove that member and update their group's state. Some suggestions:</p>
+<ul>
+<li>Clients should support and encourage self-destructing messages (ensuring that full transcript history isn't available on a device forever).</li>
+<li>Clients should regularly suggest to group admins that inactive users be removed.</li>
+<li>Clients should regularly suggest (or automatically) rotate a user's signing key in each of their groups.</li>
+<li>Clients should encrypt group state and keys on the device using a secret value that isn't part of the group state or the user's Nostr identity key.</li>
+<li>Clients should use secure enclave storage where possible.</li>
+</ul>
+<p>For a full discussion of the security considerations of MLS, please see the Security Considerations section of the <a href="https://www.rfc-editor.org/rfc/rfc9420.html#name-security-considerations" target="_blank" rel="noopener noreferrer">MLS RFC</a>.</p>
+<h2>Creating groups</h2>
+<p>MLS Groups are created with a random 32-byte ID value that is effectively permanent. This ID should be treated as private to the group and MUST not be published to relays in any form.</p>
+<p>Clients must also ensure that the ciphersuite, capabilities, and extensions they use when creating the group are compatible with those advertised by the users they'd like to invite to the group. They can check this info via the user's published KeyPackage Events.</p>
+<p>When creating a new group, the following MLS extensions MUST be used.</p>
+<ul>
+<li><a href="https://docs.rs/openmls/latest/openmls/extensions/struct.RequiredCapabilitiesExtension.html" target="_blank" rel="noopener noreferrer"><code>required_capabilities</code></a></li>
+<li><a href="https://docs.rs/openmls/latest/openmls/extensions/struct.RatchetTreeExtension.html" target="_blank" rel="noopener noreferrer"><code>ratchet_tree</code></a></li>
+<li><a href="https://github.com/rust-nostr/nostr/blob/master/mls/nostr-mls/src/extension.rs" target="_blank" rel="noopener noreferrer"><code>nostr_group_data</code></a></li>
+</ul>
+<p>And the following MLS extension is highly recommended (more <a href="#keypackage-event-and-signing-keys">here</a>):
+- <a href="https://docs.rs/openmls/latest/openmls/extensions/struct.LastResortExtension.html" target="_blank" rel="noopener noreferrer"><code>last_resort</code></a></p>
+<p>Changes to an MLS group are affected by first creating one or more <code>Proposal</code> events and then committing to a set of proposals in a <code>Commit</code> event. These are MLS events, not Nostr events. However, for the group state to properly evolve the Commit events (which represent a specific set of proposals - like adding a new user to the group) must be published to relays for the other group members to see. See <a href="#group-events">Group Messages</a> for more information.</p>
+<h2>MLS Credentials</h2>
+<p>A <code>Credential</code> in MLS is an assertion of who the user is coupled with a signing key. When constructing <code>Credentials</code> for MLS, clients MUST use the <code>BasicCredential</code> type and set the <code>identity</code> value as the 32-byte hex-encoded public key of the user's Nostr identity key. Clients MUST not allow users to change the identity field and MUST validate that all <code>Proposal</code> messages do not attempt to change the identity field on any credential in the group.</p>
+<p>A <code>Credential</code> also has an associated signing key. The initial signing key for a user is included in the KeyPackage event. The signing key MUST be different from the user's Nostr identity key. This signing key SHOULD be rotated over time to provide improved post-compromise security.</p>
+<h2>Nostr Group Data Extension</h2>
+<p>As mentioned above, the <code>nostr_group_data</code> extension is a required MLS extension used to associate Nostr-specific data with an MLS group in a cryptographically secure and proveable way. This extension MUST be included as a required capability when creating a new group.</p>
+<p>The extension stores the following data about the group:</p>
+<ul>
+<li><code>nostr_group_id</code>: A 32-byte ID for the group. This is a different value from the group ID used by MLS and CAN be changed over time. This value is the group ID value used in the <code>h</code> tags when sending group message events.</li>
+<li><code>name</code>: The name of the group.</li>
+<li><code>description</code>: A short description of the group.</li>
+<li><code>admin_pubkeys</code>: An array of the hex-encoded public keys of the group admins. The MLS protocol itself does not have a concept of group admins. Clients MUST check the list of <code>admin_pubkeys</code> before making any change to the group data (anything in this extension), or before changing group membership (add/remove members), or updating any other aspect of the group itself (e.g. ciphersuite, etc.). Note, all members of the group can send <code>Proposal</code> and <code>Commits</code> messages for changes to their own credentials (e.g. updating their signing key).</li>
+<li><code>relays</code>: An array of the Nostr relay URLs that the group uses to publish and receive messages.</li>
+</ul>
+<p>All of these values can be updated over time using MLS <code>Proposal</code> and <code>Commit</code> events (by group admins).</p>
+<h2>KeyPackage Event and Signing Keys</h2>
+<p>Each user that wishes to be reachable via MLS-based messaging MUST first publish at least one KeyPackage event. The KeyPackage Event is used to authenticate users and create the necessary <code>Credential</code> to add members to groups in an asynchronous way. Users can publish multiple KeyPackage Events with different parameters (supporting different ciphersuites or MLS extensions, for example). KeyPackages include a signing key that is used for signing MLS messages within a group. This signing key MUST not be the same as the user's Nostr identity key.</p>
+<p>KeyPackage reuse SHOULD be minimized. However, in normal MLS use, KeyPackages are consumed when joining a group. In order to reduce race conditions between invites for multiple groups using the same Key Package, Nostr clients SHOULD use "Last resort" KeyPackages. This requires the inclusion of the <code>last_resort</code> extension on the KeyPackage's capabilities (same as with the Group).</p>
+<p>It's important that clients immediately rotate a user's signing key after joining a group via a last resort key package to improve post-compromise security. The signing key (the public key included in the KeyPackage Event) is used for signing within the group. Therefore, clients implementing this NIP MUST ensure that they retain access to the private key material of the signing key for each group they are a member of.</p>
+<p>In most cases, it's assumed that clients implementing this NIP will manage the creation and rotation of KeyPackage Events.</p>
+<h3>Example KeyPackage Event</h3>
+<pre><code class="language-json">  {
+    &quot;id&quot;: &lt;id&gt;,
+    &quot;kind&quot;: 443,
+    &quot;created_at&quot;: &lt;unix timestamp in seconds&gt;,
+    &quot;pubkey&quot;: &lt;main identity pubkey&gt;,
+    &quot;content&quot;: &quot;&quot;,
+    &quot;tags&quot;: [
+        [&quot;mls_protocol_version&quot;, &quot;1.0&quot;],
+        [&quot;ciphersuite&quot;, &lt;MLS CipherSuite ID value e.g. &quot;0x0001&quot;&gt;],
+        [&quot;extensions&quot;, &lt;An array of MLS Extension ID values e.g. &quot;0x0001, 0x0002&quot;&gt;],
+        [&quot;client&quot;, &lt;client name&gt;, &lt;handler event id&gt;, &lt;optional relay url&gt;],
+        [&quot;relays&quot;, &lt;array of relay urls&gt;],
+        [&quot;-&quot;]
+    ],
+    &quot;sig&quot;: &lt;signed with main identity key&gt;
+}
+</code></pre>
+<ul>
+<li>The <code>content</code> hex encoded serialized <code>KeyPackageBundle</code> from MLS.</li>
+<li>The <code>mls_protocol_version</code> tag is required and MUST be the version number of the MLS protocol version being used. For now, this is <code>1.0</code>.</li>
+<li>The <code>ciphersuite</code> tag is the value of the MLS ciphersuite that this KeyPackage Event supports. <a href="https://www.rfc-editor.org/rfc/rfc9420.html#name-mls-cipher-suites" target="_blank" rel="noopener noreferrer">Read more about ciphersuites in MLS</a>.</li>
+<li>The <code>extensions</code> tag is an array of MLS extension IDs that this KeyPackage Event supports. <a href="https://www.rfc-editor.org/rfc/rfc9420.html#name-extensions" target="_blank" rel="noopener noreferrer">Read more about MLS extensions</a>.</li>
+<li>(optional) The <code>client</code> tag helps other clients manage the user experience when they receive group invites but don't have access to the signing key.</li>
+<li>The <code>relays</code> tag identifies each of the relays that the client will attempt to publish this KeyPackage event. This allows for deletion of KeyPackage Events at a later date.</li>
+<li>(optional) The <code>-</code> tag can be used to ensure that KeyPackage Events are only published by their authenticated author. Read more in <a href="#" data-nip="70">NIP-70</a></li>
+</ul>
+<h3>Deleting KeyPackage Events</h3>
+<p>Clients SHOULD delete the KeyPackage Event on all the listed relays any time they successfully process a group request event for a given KeyPackage Event. Clients MAY also create a new KeyPackage Event at the same time.</p>
+<p>If clients cannot process a Welcome message (e.g. because the signing key was generated on another client), clients MUST not delete the KeyPackage Event and SHOULD show a human-understandable error to the user.</p>
+<h3>Rotating Signing Keys</h3>
+<p>Clients MUST regularly rotate the user's signing key in each group that they are a part of. The more often the signing key is rotated the stronger the post-compromise security. This rotation is done via <code>Proposal</code> and <code>Commit</code> events and broadcast to the group via a Group Event. <a href="https://www.rfc-editor.org/rfc/rfc9420.html#name-forward-secrecy-and-post-co" target="_blank" rel="noopener noreferrer">Read more about forward secrecy and post-compromise security inherent in MLS</a>.</p>
+<h3>KeyPackage Relays List Event</h3>
+<p>A <code>kind: 10051</code> event indicates the relays that a user will publish their KeyPackage Events to. The event MUST include a list of relay tags with relay URIs. These relays SHOULD be readable by anyone the user wants to be able to contact them.</p>
+<pre><code class="language-json">{
+  &quot;kind&quot;: 10051,
+  &quot;tags&quot;: [
+    [&quot;relay&quot;, &quot;wss://inbox.nostr.wine&quot;],
+    [&quot;relay&quot;, &quot;wss://myrelay.nostr1.com&quot;],
+  ],
+  &quot;content&quot;: &quot;&quot;,
+  //...other fields
+}
+</code></pre>
+<h3>Welcome Event</h3>
+<p>When a new user is added to a group via an MLS <code>Commit</code> message. The member who sends the <code>Commit</code> message to the group is responsible for sending the user being added to the group a Welcome Event. This Welcome Event is sent to the user as a <a href="#" data-nip="59">NIP-59</a> gift-wrapped event. The Welcome Event gives the new member the context they need to join the group and start sending messages.</p>
+<p>Clients creating the Welcome Event SHOULD wait until they have received acknowledgement from relays that their Group Event with the <code>Commit</code> has been received before publishing the Welcome Event.</p>
+<pre><code class="language-json">{
+   &quot;id&quot;: &lt;id&gt;,
+   &quot;kind&quot;: 444,
+   &quot;created_at&quot;: &lt;unix timestamp in seconds&gt;,
+   &quot;pubkey&quot;: &lt;nostr identity pubkey of sender&gt;,
+   &quot;content&quot;: &lt;serialized Welcome object&gt;,
+   &quot;tags&quot;: [
+      [&quot;e&quot;, &lt;ID of the KeyPackage Event used to add the user to the group&gt;],
+      [&quot;relays&quot;, &lt;array of relay urls&gt;],
+   ],
+   &quot;sig&quot;: &lt;NOT SIGNED&gt;
+}
+</code></pre>
+<ul>
+<li>The <code>content</code> field is required and is a serialized MLSMessage object containing the MLS <code>Welcome</code> object.</li>
+<li>The <code>e</code> tag is required and is the ID of the KeyPackage Event used to add the user to the group.</li>
+<li>The <code>relays</code> tag is required and is a list of relays clients should query for Group Events.</li>
+</ul>
+<p>Welcome Events are then sealed and gift-wrapped as detailed in <a href="#" data-nip="59">NIP-59</a> before being published. Like all events that are sealed and gift-wrapped, <code>kind: 444</code> events MUST never be signed. This ensures that if they were ever leaked they would not be publishable to relays.</p>
+<h4>Large Groups</h4>
+<p>For groups above ~150 participants, welcome messages will become larger than the maximum event size allowed by Nostr. There is currently work underway on the MLS protocol to support "light" client welcomes that don't require the full Ratchet Tree state to be sent to the new member. This section will be updated with recommendations for how to handle large groups.</p>
+<h2>Group Events</h2>
+<p>Group Events are all the messages that are sent within a group. This includes all "control" events that update the shared group state over time (<code>Proposal</code>, <code>Commit</code>) and messages sent between members of the group (<code>Application</code> messages).</p>
+<p>Group Events are published using an ephemeral Nostr keypair to obfuscate the number and identity of group participants. Clients MUST use a new Nostr keypair for each Group Event they publish.</p>
+<pre><code class="language-json">{
+   &quot;id&quot;: &lt;id&gt;,
+   &quot;kind&quot;: 445,
+   &quot;created_at&quot;: &lt;unix timestamp in seconds&gt;,
+   &quot;pubkey&quot;: &lt;ephemeral sender pubkey&gt;,
+   &quot;content&quot;: &lt;NIP-44 encrypted serialized MLSMessage object&gt;,
+   &quot;tags&quot;: [
+      [&quot;h&quot;, &lt;group id&gt;]
+   ],
+   &quot;sig&quot;: &lt;signed with ephemeral sender key&gt;
+}
+</code></pre>
+<ul>
+<li>The <code>content</code> field is a <a href="https://www.rfc-editor.org/rfc/rfc9420.html#name-the-message-mls-media-type" target="_blank" rel="noopener noreferrer">tls-style</a> serialized <a href="https://www.rfc-editor.org/rfc/rfc9420.html#section-6-4" target="_blank" rel="noopener noreferrer"><code>MLSMessage</code></a> object which is then encrypted according to <a href="#" data-nip="44">NIP-44</a>. However, instead of using the sender and receivers keys to derive a <code>conversation_key</code>, the NIP-44 encryption is done using a Nostr keypair generated from the MLS <a href="https://www.rfc-editor.org/rfc/rfc9420.html#section-8.5" target="_blank" rel="noopener noreferrer"><code>exporter_secret</code></a> to calculate the <code>conversation_key</code> value. Essentially, you use the hex-encoded <code>exporter_secret</code> value as the private key (used as the sender key), calculate the public key for that private key (used as the receiver key), and then proceed with the standard NIP-44 scheme to encrypt and decrypt messages.</li>
+<li>The <code>exporter_secret</code> value should be generated with a 32-byte length and labeled <code>nostr</code>. This <code>exporter_secret</code> value is rotated on each new epoch in the group. Clients should generate a new 32-byte value each time they process a valid <code>Commit</code> message.</li>
+<li>The <code>pubkey</code> is the hex-encoded public key of the ephemeral sender.</li>
+<li>The <code>h</code> tag is the nostr group ID value (from the Nostr Group Data Extension).</li>
+</ul>
+<h3>Application Messages</h3>
+<p>Application messages are the messages that are sent within the group by members. These are contained within the <code>MLSMessage</code> object. The format of these messages should be unsigned Nostr events of the appropriate kind. For normal DM or group messages, clents SHOULD use <code>kind: 9</code> chat message events. If the user reacts to a message, it would be a <code>kind: 7</code> event, and so on.</p>
+<p>This means that once the application message has been decrypted and deserialized, clients can store those events and treat them as any other Nostr event, effectively creating a private Nostr feed of the group's activity and taking advantage of all the features of Nostr.</p>
+<p>These inner unsigned Nostr events MUST use the member's Nostr identity key for the <code>pubkey</code> field and clients MUST check that the identity of them member who sent the message matches the pubkey of the inner Nostr event.</p>
+<p>These Nostr events MUST remain <strong>unsigned</strong> to ensure that if they were to leak to relays they would not be published publicly. These Nostr events MUST not include any "h" tags or other tags that would identify the group that they belong to.</p>
+<h3><code>Commit</code> Message race conditions</h3>
+<p>The MLS protocol is resilient to almost all messages arriving out of order. However, the order of <code>Commit</code> messages is important for the group state to move forward from one epoch to the next correctly. Given Nostr's nature as a decentralized network, it is possible for a client to receive 2 or more <code>Commit</code> messages all attempting to update to a new epoch at the same time.</p>
+<p>Clients sending commit messages MUST wait until they receive acknowledgement from at least one relay that their Group Message Event with the <code>Commit</code> has been received before applying the commit to their own group state.</p>
+<p>If a client receives 2 or more <code>Commit</code> messages attempting to change same epoch, they MUST apply only one of the <code>Commit</code> messages they receive, determined by the following:</p>
+<ol>
+<li>Using the <code>created_at</code> timestamp on the kind <code>445</code> event. The <code>Commit</code> with the lowest value for <code>created_at</code> is the message to be applied. The other <code>Commit</code> message is discarded.</li>
+<li>If the <code>created_at</code> timestamp is the same for two or more <code>Commit</code> messages, the <code>Commit</code> message with the lowest value for <code>id</code> field is the message to be applied.</li>
+</ol>
+<p>Clients SHOULD retain previous group state for a short period of time in order to recover from forked group state.</p>
+</article>

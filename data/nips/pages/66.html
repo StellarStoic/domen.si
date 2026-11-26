@@ -1,0 +1,82 @@
+<article class="nips-doc" id="nip-66">
+<p>This NIP defines events for relay discovery and the announcement of relay monitors.</p>
+<h2>Relay Discovery Events</h2>
+<p><code>30166</code> relay discovery events document relay characteristics inferred either from a relay's <a href="https://github.com/nostr-protocol/nips/blob/master/11.md" target="_blank" rel="noopener noreferrer">NIP 11</a> document, or via probing.</p>
+<p>Information corresponding to field in a relay's NIP 11 document MAY contradict actual values if monitors find that a different policy is implemented than is advertised.</p>
+<p><code>content</code> MAY include the stringified JSON of the relay's NIP-11 informational document.</p>
+<p>The only required tag is the <code>d</code> tag, which MUST be set to the relay's <a href="https://datatracker.ietf.org/doc/html/rfc3986#section-6" target="_blank" rel="noopener noreferrer">normalized</a> URL. For relays not accessible via URL, a hex-encoded pubkey MAY be used instead.</p>
+<p>Other tags include:</p>
+<ul>
+<li><code>rtt-open</code> - The relay's open round-trip time in milliseconds.</li>
+<li><code>rtt-read</code> - The relay's read round-trip time in milliseconds.</li>
+<li><code>rtt-write</code> - The relay's write round-trip time in milliseconds.</li>
+<li><code>n</code> - The relay's network type. SHOULD be one of <code>clearnet</code>, <code>tor</code>, <code>i2p</code>, <code>loki</code></li>
+<li><code>T</code> - The relay type. Enumerated <a href="https://github.com/nostr-protocol/nips/issues/1282" target="_blank" rel="noopener noreferrer">relay type</a> formatted as <code>PascalCase</code>, e.g. <code>PrivateInbox</code></li>
+<li><code>N</code> - NIPs supported by the relay</li>
+<li><code>R</code> - Keys corresponding to requirements per <a href="https://github.com/nostr-protocol/nips/blob/master/11.md" target="_blank" rel="noopener noreferrer">NIP 11</a>'s <code>limitations</code> array, including <code>auth</code>, <code>writes</code>, <code>pow</code>, and <code>payment</code>. False values should be specified using a <code>!</code> prefix, for example <code>!auth</code>.</li>
+<li><code>t</code> - A topic associated with this relay</li>
+<li><code>k</code> - Accepted and unaccepted kinds (false values prepended by <code>!</code>) </li>
+<li><code>g</code> - A <a href="https://github.com/nostr-protocol/nips/blob/master/52.md" target="_blank" rel="noopener noreferrer">NIP-52</a> geohash</li>
+</ul>
+<p>Tags with more than one value should be repeated, rather than putting all values in a single tag, for example <code>[["t", "cats"], ["t", "dogs"]]</code>, rather than <code>[["t", "cats", "dogs"]]</code>.</p>
+<p>Example:</p>
+<pre><code class="language-json">{
+  &quot;id&quot;: &quot;&lt;eventid&gt;&quot;,
+  &quot;pubkey&quot;: &quot;&lt;monitor's pubkey&gt;&quot;,
+  &quot;created_at&quot;: &quot;&lt;created_at  [some recent date ...]&gt;&quot;,
+  &quot;signature&quot;: &quot;&lt;signature&gt;&quot;,
+  &quot;content&quot;: &quot;&lt;optional nip 11 document&gt;&quot;,
+  &quot;kind&quot;: 30166,
+  &quot;tags&quot;: [
+    [&quot;d&quot;,&quot;wss://some.relay/&quot;],
+    [&quot;n&quot;, &quot;clearnet&quot;],
+    [&quot;N&quot;, &quot;40&quot;],
+    [&quot;N&quot;, &quot;33&quot;],
+    [&quot;R&quot;, &quot;!payment&quot;],
+    [&quot;R&quot;, &quot;auth&quot;],
+    [&quot;g&quot;, &quot;ww8p1r4t8&quot;],
+    [&quot;l&quot;, &quot;en&quot;, &quot;ISO-639-1&quot;],
+    [&quot;t&quot;, &quot;nsfw&quot; ],
+    [&quot;rtt-open&quot;, &quot;234&quot; ]
+  ]
+}
+</code></pre>
+<h2>Relay Monitor Announcements</h2>
+<p>Kind <code>10166</code> relay monitor announcements advertise the author's intent to publish <code>30166</code> events. This event is optional and is intended for monitors who intend to provide monitoring services at a regular and predictable frequency.</p>
+<p>Tags include:</p>
+<ul>
+<li><code>frequency</code> - The frequency in seconds at which the monitor publishes events.</li>
+<li><code>timeout</code> (optional) - The timeout values for various checks conducted by a monitor. Index <code>1</code> is the monitor's timeout in milliseconds. Index <code>2</code> describes what test the timeout is used for. If no index <code>2</code> is provided, it is inferred that the timeout provided applies to all tests.</li>
+<li><code>c</code> - a lowercase string describing the checks conducted by a monitor. Examples include <code>open</code>, <code>read</code>, <code>write</code>, <code>auth</code>, <code>nip11</code>, <code>dns</code>, and <code>geo</code>.</li>
+<li><code>g</code> - <a href="https://github.com/nostr-protocol/nips/blob/master/52.md" target="_blank" rel="noopener noreferrer">NIP-52</a> geohash tag</li>
+</ul>
+<p>Monitors SHOULD also publish a <code>kind 0</code> profile and a <code>kind 10002</code> relay selections event.</p>
+<p>Example:</p>
+<pre><code class="language-json">{
+  &quot;id&quot;: &quot;&lt;eventid&gt;&quot;,
+  &quot;pubkey&quot;: &quot;&lt;monitor's pubkey&gt;&quot;,
+  &quot;created_at&quot;: &quot;&lt;created_at  [some recent date ...]&gt;&quot;,
+  &quot;signature&quot;: &quot;&lt;signature&gt;&quot;,
+  &quot;content&quot;: &quot;&quot;,
+  &quot;tags&quot;: [
+    [ &quot;timeout&quot;, &quot;open&quot;, &quot;5000&quot;  ],
+    [ &quot;timeout&quot;, &quot;read&quot;, &quot;3000&quot;  ],
+    [ &quot;timeout&quot;, &quot;write&quot;, &quot;3000&quot; ],
+    [ &quot;timeout&quot;, &quot;nip11&quot;, &quot;3000&quot; ],
+    [ &quot;frequency&quot;, &quot;3600&quot; ],
+    [ &quot;c&quot;, &quot;ws&quot; ],
+    [ &quot;c&quot;, &quot;nip11&quot; ],
+    [ &quot;c&quot;, &quot;ssl&quot; ],
+    [ &quot;c&quot;, &quot;dns&quot; ],
+    [ &quot;c&quot;, &quot;geo&quot; ]
+    [ &quot;g&quot;, &quot;ww8p1r4t8&quot; ]
+  ]
+}
+</code></pre>
+<p>## Risk Mitigation                                                                                                                                                 </p>
+<ul>
+<li>Clients MUST NOT require <code>30166</code> events to function. Absence of monitoring data MUST NOT prevent relay connections.</li>
+<li>A monitor may publish erroneous <code>30166</code> events, either by misconfiguration or malicious intent.</li>
+<li>Clients SHOULD NOT trust a single source. Defenses include: web-of-trust filtering, querying multiple monitors, and discarding filter results if they would remove an unreasonable proportion of relays.</li>
+</ul>
+</article>

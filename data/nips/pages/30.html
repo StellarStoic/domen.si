@@ -1,0 +1,63 @@
+<article class="nips-doc" id="nip-30">
+<p>Custom emoji may be added to <strong>kind 0</strong>, <strong>kind 1</strong>, <strong>kind 1111</strong> (<a href="#" data-nip="22">NIP-22</a>), <strong>kind 7</strong> (<a href="#" data-nip="25">NIP-25</a>) and <strong>kind 30315</strong> (<a href="#" data-nip="38">NIP-38</a>) events by including one or more <code>"emoji"</code> tags, in the form:</p>
+<pre><code>[&quot;emoji&quot;, &lt;shortcode&gt;, &lt;image-url&gt;, &lt;emoji-set-address&gt;]
+</code></pre>
+<p>Where:</p>
+<ul>
+<li><code>&lt;shortcode&gt;</code> is a name given for the emoji, which MUST be comprised of only alphanumeric characters, hyphens, and underscores.</li>
+<li><code>&lt;image-url&gt;</code> is a URL to the corresponding image file of the emoji.</li>
+<li><code>&lt;emoji-set-address&gt;</code> is an optional address pointer (<code>kind:pubkey:d-tag</code>) to the kind 30030 emoji set (<a href="#" data-nip="51">NIP-51</a>) the emoji belongs to.</li>
+</ul>
+<p>For each emoji tag, clients should parse emoji shortcodes (aka "emojify") like <code>:shortcode:</code> in the event to display custom emoji.</p>
+<p>Clients may allow users to add custom emoji to an event by including <code>:shortcode:</code> identifier in the event, and adding the relevant <code>"emoji"</code> tags.</p>
+<h3>Kind 0 events</h3>
+<p>In kind 0 events, the <code>name</code> and <code>about</code> fields should be emojified.</p>
+<pre><code class="language-json">{
+  &quot;kind&quot;: 0,
+  &quot;content&quot;: &quot;{\&quot;name\&quot;:\&quot;Alex Gleason :soapbox:\&quot;}&quot;,
+  &quot;tags&quot;: [
+    [&quot;emoji&quot;, &quot;soapbox&quot;, &quot;https://gleasonator.com/emoji/Gleasonator/soapbox.png&quot;]
+  ],
+  &quot;pubkey&quot;: &quot;79c2cae114ea28a981e7559b4fe7854a473521a8d22a66bbab9fa248eb820ff6&quot;,
+  &quot;created_at&quot;: 1682790000
+}
+</code></pre>
+<h3>Kind 1 events</h3>
+<p>In kind 1 events, the <code>content</code> should be emojified.</p>
+<pre><code class="language-json">{
+  &quot;kind&quot;: 1,
+  &quot;content&quot;: &quot;Hello :gleasonator: 😂 :ablobcatrainbow: :disputed: yolo&quot;,
+  &quot;tags&quot;: [
+    [&quot;emoji&quot;, &quot;ablobcatrainbow&quot;, &quot;https://gleasonator.com/emoji/blobcat/ablobcatrainbow.png&quot;, &quot;30030:79c2cae114ea28a981e7559b4fe7854a473521a8d22a66bbab9fa248eb820ff6:blobcats&quot;],
+    [&quot;emoji&quot;, &quot;disputed&quot;, &quot;https://gleasonator.com/emoji/Fun/disputed.png&quot;],
+    [&quot;emoji&quot;, &quot;gleasonator&quot;, &quot;https://gleasonator.com/emoji/Gleasonator/gleasonator.png&quot;]
+  ],
+  &quot;pubkey&quot;: &quot;79c2cae114ea28a981e7559b4fe7854a473521a8d22a66bbab9fa248eb820ff6&quot;,
+  &quot;created_at&quot;: 1682630000
+}
+</code></pre>
+<h3>Kind 1111 events</h3>
+<p>In kind 1111 events, the <code>content</code> should be emojified.</p>
+<pre><code class="language-json">{
+  &quot;kind&quot;: 1111,
+  &quot;content&quot;: &quot;Let's party! :hyves_banaan:&quot;,
+  &quot;tags&quot;: [
+    [&quot;emoji&quot;, &quot;hyves_banaan&quot;, &quot;https://relay.nyves.nl/8408b236b11fe5c764d139d37e670d5207b3825fe6396392799b02c4e6bd2ebf.gif&quot;, &quot;30030:9919981db5d9f59713bd717069212c32a19b55f2280a51e70c49c5b73da306b9:Hyves&quot;]
+  ],
+  &quot;pubkey&quot;: &quot;79c2cae114ea28a981e7559b4fe7854a473521a8d22a66bbab9fa248eb820ff6&quot;,
+  &quot;created_at&quot;: 1682630000
+}
+</code></pre>
+<h3>Kind 7 events</h3>
+<p>In kind 7 events, the <code>content</code> should be emojified.</p>
+<pre><code class="language-json">{
+  &quot;kind&quot;: 7,
+  &quot;content&quot;: &quot;:dezh:&quot;,
+  &quot;tags&quot;: [
+    [&quot;emoji&quot;, &quot;dezh&quot;, &quot;https://raw.githubusercontent.com/dezh-tech/brand-assets/main/dezh/logo/black-normal.svg&quot;]
+  ],
+  &quot;pubkey&quot;: &quot;79c2cae114ea28a981e7559b4fe7854a473521a8d22a66bbab9fa248eb820ff6&quot;,
+  &quot;created_at&quot;: 1682630000
+}
+</code></pre>
+</article>

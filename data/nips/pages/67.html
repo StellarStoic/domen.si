@@ -1,0 +1,52 @@
+<article class="nips-doc" id="nip-67">
+<p>This NIP extends the <code>EOSE</code> message defined in <a href="#" data-nip="01">NIP-01</a> with an optional third element that signals the client that the relay has sent every stored event matching the subscription's filters.</p>
+<h2>Motivation</h2>
+<p><code>EOSE</code> as defined in NIP-01 signals the boundary between stored and real-time events. It does not tell the client whether there are more stored events the relay chose not to send. Relays commonly enforce an internal cap (e.g. 500 events per filter) that is independent of the client's <code>limit</code>. Clients today guess completeness by comparing the number of events received to the <code>limit</code> they requested:</p>
+<ul>
+<li>If fewer than <code>limit</code> events arrive, assume completion.</li>
+<li>Otherwise, issue another <code>REQ</code> with <code>until</code> set to the oldest received event's <code>created_at</code>, and repeat.</li>
+</ul>
+<p>This heuristic has two well-known problems:</p>
+<ol>
+<li>When the relay's internal cap is lower than the client's <code>limit</code> (e.g. cap 300, client asks for 500), the client receives 300 events and incorrectly concludes the result is complete, silently missing data.</li>
+<li>When the total number of matching events happens to equal the relay's cap, the client cannot tell and must issue an additional <code>REQ</code> just to observe zero results. A relay that caps at 300 events will always be queried at least twice for any subscription that exhausts the cap.</li>
+</ol>
+<p>A single extra field on <code>EOSE</code> removes this ambiguity.</p>
+<h2>Specification</h2>
+<p>A relay that implements this NIP MAY append a third element to the <code>EOSE</code> message: an array of hint strings.</p>
+<pre><code>[&quot;EOSE&quot;, &lt;subscription_id&gt;, [&lt;hint&gt;, ...]]
+</code></pre>
+<p>Currently three hint values are defined:</p>
+<ul>
+<li><code>"finish"</code>: the relay has sent every stored event matching the subscription's filters. The client SHOULD NOT paginate this subscription further.</li>
+<li><code>"more"</code>: the relay holds more matching stored events than it has sent. The client SHOULD paginate to retrieve them. A relay MAY send this hint, but is not required to, since detecting whether more events exist is not cheap on every storage backend.</li>
+<li><code>"auth"</code>: the relay may have more stored events matching the subscription's filters if the user performs <code>AUTH</code> (<a href="#" data-nip="42">NIP-42</a>). Relays MUST ensure an <code>AUTH</code> message (containing a challenge) is sent <em>before</em> the <code>EOSE</code> containing an <code>"auth"</code> hint.</li>
+</ul>
+<p>The array MAY carry multiple hints simultaneously, and MAY be empty. Clients MUST ignore unknown hint values without error.</p>
+<p>Their presence is definitive; their absence is not. When a relay omits the third element, or sends neither <code>"finish"</code> nor <code>"more"</code>, the client SHOULD paginate using <code>until = oldest received event's created_at</code> as usual.</p>
+<p>Clients that do not implement this NIP will ignore the extra element, as JSON arrays with trailing elements are accepted by conforming parsers and existing implementations index <code>EOSE</code> by position. Relays that do not implement this NIP continue to send <code>EOSE</code> with two elements and clients fall back to the legacy heuristic described above.</p>
+<p>The hint refers only to stored events. It has no effect on the real-time delivery of new events, which continues under the regular NIP-01 rules until the client sends <code>CLOSE</code> or the relay sends <code>CLOSED</code>.</p>
+<p>Future revisions of this NIP may define additional hint values. Implementations SHOULD accept unknown hint values without error and treat them as if absent.</p>
+<h2>Semantics around <code>created_at</code> ties</h2>
+<p>When a relay does not send <code>"finish"</code>, multiple events may share the oldest <code>created_at</code> value in the response. Clients paginating with <code>until = oldest_created_at</code> risk missing events that share that timestamp. Relays SHOULD, when possible, advance the internal cursor so that all events with the boundary <code>created_at</code> are included in one response, emitting <code>"finish"</code> only when there are no older events remaining.</p>
+<h2>Relay advertisement</h2>
+<p>Relays implementing this NIP SHOULD include <code>67</code> in the <code>supported_nips</code> field of their <a href="#" data-nip="11">NIP-11</a> document.</p>
+<h2>Examples</h2>
+<p>Relay has sent every matching stored event:</p>
+<pre><code>[&quot;REQ&quot;, &quot;sub2&quot;, {&quot;ids&quot;: [&quot;abcd...&quot;]}]
+[&quot;EVENT&quot;, &quot;sub2&quot;, {...}]
+[&quot;EOSE&quot;, &quot;sub2&quot;, [&quot;finish&quot;]]
+</code></pre>
+<p>Relay has more matching events:</p>
+<pre><code>[&quot;REQ&quot;, &quot;sub2b&quot;, {&quot;authors&quot;: [&quot;abcd...&quot;], &quot;kinds&quot;: [1]}]
+[&quot;EVENT&quot;, &quot;sub2b&quot;, {...}]
+... (300 events total)
+[&quot;EOSE&quot;, &quot;sub2b&quot;, [&quot;more&quot;]]
+</code></pre>
+<p>Relay has more matching events that require authentication:</p>
+<pre><code>[&quot;REQ&quot;, &quot;sub2b&quot;, {&quot;authors&quot;: [&quot;abcd...&quot;], &quot;kinds&quot;: [1]}]
+[&quot;EVENT&quot;, &quot;sub4&quot;, {...}]
+[&quot;AUTH&quot;, &quot;challenge...&quot;]
+[&quot;EOSE&quot;, &quot;sub4&quot;, [&quot;auth&quot;, &quot;finish&quot;]]
+</code></pre>
+</article>

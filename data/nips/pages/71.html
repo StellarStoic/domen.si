@@ -1,0 +1,205 @@
+<article class="nips-doc" id="nip-71">
+<p>This specification defines <em>video</em> events representing a dedicated post of externally hosted content.</p>
+<p>Unlike a <code>kind:1</code> event with a video attached, video events are meant to contain all additional metadata concerning the subject media and to be surfaced in video-specific clients rather than general micro-blogging clients. The thought is for events of this kind to be referenced in a Netflix, YouTube, or TikTok like nostr client where the video itself is at the center of the experience.</p>
+<h2>Video Events</h2>
+<p>There are two types of video events represented by different kinds: <em>normal</em> and <em>short</em> video events. This is meant to allow clients to cater to each as the viewing experience for longer, mostly horizontal (landscape) videos is often different than that of short-form, mostly vertical (portrait), videos ("stories", "reels", "shorts" etc).</p>
+<p>Nothing except cavaliership and common sense prevents a <em>short</em> video from being long, or a <em>normal</em> video from being vertical, and that may or may not be justified, it's mostly a stylistic qualitative difference, not a question of actual raw size.</p>
+<h4>Format</h4>
+<p>The format uses a <em>regular event</em> kind <code>21</code> for <em>normal</em> videos and <code>22</code> for <em>short</em> videos.</p>
+<h2>Addressable Video Events</h2>
+<p>For content that may need updates after publication (such as correcting metadata, descriptions, or handling URL migrations), addressable versions are available:</p>
+<ul>
+<li>Kind <code>34235</code> for <em>addressable normal videos</em></li>
+<li>Kind <code>34236</code> for <em>addressable short videos</em></li>
+</ul>
+<p>These addressable events follow the same format as their regular counterparts but include a <code>d</code> tag as a unique identifier and can be updated while maintaining the same addressable reference. This is particularly useful for:</p>
+<ul>
+<li>Metadata corrections (descriptions, titles, tags) without republishing</li>
+<li>Preservation of imported content IDs from legacy platforms</li>
+<li>URL migration when hosting changes</li>
+<li>Platform migration tracking</li>
+</ul>
+<p>The <code>.content</code> of these events is a summary or description on the video content.</p>
+<p>The primary source of video information is the <code>imeta</code> tags which is defined in <a href="#" data-nip="92">NIP-92</a></p>
+<p>Each <code>imeta</code> tag can be used to specify a variant of the video by the <code>dim</code> &amp; <code>m</code> properties, as well as multiple audio tracks (languages).</p>
+<p>Clients should check if audio tracks are available and prefer them over in-video audio 
+to allow smooth resolution switching without interrupting audio. The <code>ov</code> (original version) flags the original language track.</p>
+<p>This NIP defines the following additional <code>imeta</code> properties aside from those listed in <a href="#" data-nip="92">NIP-92</a> &amp; <a href="#" data-nip="94">NIP-94</a>:</p>
+<ul>
+<li><code>duration</code> (recommended) the duration of the video/audio in seconds (floating point number)</li>
+<li><code>bitrate</code> (recommended) the average bitrate of the video/audio in bits/sec</li>
+<li><code>waveform</code> (optional, audio only) amplitude values over time, space separated full integers, less than 100 values should be enough to render a nice visual</li>
+</ul>
+<p>Example:</p>
+<pre><code class="language-json">[
+  [&quot;imeta&quot;,
+    &quot;dim 1920x1080&quot;,
+    &quot;url https://myvideo.com/1080/12345.mp4&quot;,
+    &quot;x 3093509d1e0bc604ff60cb9286f4cd7c781553bc8991937befaacfdc28ec5cdc&quot;,
+    &quot;m video/mp4&quot;,
+    &quot;image https://myvideo.com/1080/12345.jpg&quot;,
+    &quot;image https://myotherserver.com/1080/12345.jpg&quot;,
+    &quot;fallback https://myotherserver.com/1080/12345.mp4&quot;,
+    &quot;fallback https://andanotherserver.com/1080/12345.mp4&quot;,
+    &quot;service nip96&quot;,
+    &quot;bitrate 3000000&quot;,
+    &quot;duration 29.223&quot;
+  ],
+  [&quot;imeta&quot;,
+    &quot;dim 1280x720&quot;,
+    &quot;url https://myvideo.com/720/12345.mp4&quot;,
+    &quot;x e1d4f808dae475ed32fb23ce52ef8ac82e3cc760702fca10d62d382d2da3697d&quot;,
+    &quot;m video/mp4&quot;,
+    &quot;image https://myvideo.com/720/12345.jpg&quot;,
+    &quot;image https://myotherserver.com/720/12345.jpg&quot;,
+    &quot;fallback https://myotherserver.com/720/12345.mp4&quot;,
+    &quot;fallback https://andanotherserver.com/720/12345.mp4&quot;,
+    &quot;service nip96&quot;,
+    &quot;bitrate 2000000&quot;,
+    &quot;duration 29.24&quot;
+  ],
+  [&quot;imeta&quot;,
+    &quot;dim 1280x720&quot;,
+    &quot;url https://myvideo.com/720/12345.m3u8&quot;,
+    &quot;x 704e720af2697f5d6a198ad377789d462054b6e8d790f8a3903afbc1e044014f&quot;,
+    &quot;m application/x-mpegURL&quot;,
+    &quot;image https://myvideo.com/720/12345.jpg&quot;,
+    &quot;image https://myotherserver.com/720/12345.jpg&quot;,
+    &quot;fallback https://myotherserver.com/720/12345.m3u8&quot;,
+    &quot;fallback https://andanotherserver.com/720/12345.m3u8&quot;,
+    &quot;service nip96&quot;,
+    &quot;duration 29.21&quot;
+  ],
+  [&quot;imeta&quot;,
+    &quot;url https://myaudio.com/audio/en/12345.mp3&quot;,
+    &quot;x b2e0a7a82ac9f3f3a71f1d9a78c381d5be9d1cf19dce258765c17c8a76287c93&quot;,
+    &quot;m audio/mp3&quot;,
+    &quot;waveform 0 7 35 8 100 100 49 8 4 16 8 10 7 2 20 10 100 100 100 100 100 100 15 100 100 100 25 60 5 4 3 1 0 100 100 15 100 29 88 0 33 11 39 100 100 19 4 100 42 35 5 0 1 5 0 0 11 38 100 94 17 11 44 58 5 100 100 100 55 14 72 100 100 57 6 1 14 2 16 100 100 40 16 100 100 6 32 14 13 41 36 16 14 6 3 0 1 2 1 6 0&quot;,
+    &quot;l en ISO-639-1 ov&quot;,
+    &quot;fallback https://myotherserver.com/audio/en/12345.mp3&quot;,
+    &quot;fallback https://andanotherserver.com/audio/en/12345.mp3&quot;,
+    &quot;service nip96&quot;,
+    &quot;bitrate  320000&quot;,
+    &quot;duration 29.24&quot;
+  ],
+]
+</code></pre>
+<p>Where <code>url</code> is the primary server url and <code>fallback</code> are other servers hosting the same file, both <code>url</code> and <code>fallback</code> should be weighted equally and clients are recommended to use any of the provided video urls.</p>
+<p>The <code>image</code> tag contains a preview image (at the same resolution). Multiple <code>image</code> tags may be used to specify fallback copies in the same way <code>fallback</code> is used for <code>url</code>.</p>
+<p>Additionally <code>service nip96</code> may be included to allow clients to search the authors NIP-96 server list to find the file using the hash.</p>
+<h3>Required tags for addressable events:</h3>
+<ul>
+<li><code>d</code> - Unique identifier for this video (user-chosen string, required for kinds 34235, 34236)</li>
+</ul>
+<h3>Other tags:</h3>
+<ul>
+<li><code>title</code> (required) title of the video</li>
+<li><code>published_at</code>, for the timestamp in unix seconds (stringified) of the first time the video was published</li>
+<li><code>text-track</code> (optional, repeated) link to WebVTT file for video, type of supplementary information (captions/subtitles/chapters/metadata), optional language code</li>
+<li><code>content-warning</code> (optional) warning about content of NSFW video</li>
+<li><code>alt</code> (optional) description for accessibility</li>
+<li><code>segment</code> (optional, repeated) start timestamp in format <code>HH:MM:SS.sss</code>, end timestamp in format <code>HH:MM:SS.sss</code>, chapter/segment title, chapter thumbnail-url</li>
+<li><code>t</code> (optional, repeated) hashtag to categorize video</li>
+<li><code>p</code> (optional, repeated) 32-bytes hex pubkey of a participant in the video, optional recommended relay URL</li>
+<li><code>r</code> (optional, repeated) references / links to web pages</li>
+</ul>
+<h3>Optional tags for imported content:</h3>
+<ul>
+<li><code>origin</code> - Track original platform and ID: <code>["origin", "&lt;platform&gt;", "&lt;external-id&gt;", "&lt;original-url&gt;", "&lt;optional-metadata&gt;"]</code></li>
+</ul>
+<pre><code class="language-yaml">{
+  &quot;id&quot;: &quot;&lt;32-bytes lowercase hex-encoded SHA-256 of the the serialized event data&gt;&quot;,
+  &quot;pubkey&quot;: &quot;&lt;32-bytes lowercase hex-encoded public key of the event creator&gt;&quot;,
+  &quot;created_at&quot;: &lt;Unix timestamp in seconds&gt;,
+  &quot;kind&quot;: 21 | 22,
+  &quot;content&quot;: &quot;&lt;summary / description of video&gt;&quot;,
+  &quot;tags&quot;: [
+    [&quot;title&quot;, &quot;&lt;title of video&gt;&quot;],
+    [&quot;published_at&quot;, &quot;&lt;unix timestamp&gt;&quot;],
+    [&quot;alt&quot;, &quot;&lt;description&gt;&quot;],
+
+    // video Data
+    [&quot;imeta&quot;,
+      &quot;dim 1920x1080&quot;,
+      &quot;url https://myvideo.com/1080/12345.mp4&quot;,
+      &quot;x 3093509d1e0bc604ff60cb9286f4cd7c781553bc8991937befaacfdc28ec5cdc&quot;,
+      &quot;m video/mp4&quot;,
+      &quot;image https://myvideo.com/1080/12345.jpg&quot;,
+      &quot;image https://myotherserver.com/1080/12345.jpg&quot;,
+      &quot;fallback https://myotherserver.com/1080/12345.mp4&quot;,
+      &quot;fallback https://andanotherserver.com/1080/12345.mp4&quot;,
+      &quot;service nip96&quot;,
+    ],
+
+    [&quot;text-track&quot;, &quot;&lt;encoded `kind 6000` event&gt;&quot;, &quot;&lt;recommended relay urls&gt;&quot;],
+    [&quot;content-warning&quot;, &quot;&lt;reason&gt;&quot;],
+    [&quot;segment&quot;, &lt;start&gt;, &lt;end&gt;, &quot;&lt;title&gt;&quot;, &quot;&lt;thumbnail URL&gt;&quot;],
+
+    // participants
+    [&quot;p&quot;, &quot;&lt;32-bytes hex of a pubkey&gt;&quot;, &quot;&lt;optional recommended relay URL&gt;&quot;],
+    [&quot;p&quot;, &quot;&lt;32-bytes hex of a pubkey&gt;&quot;, &quot;&lt;optional recommended relay URL&gt;&quot;],
+
+    // hashtags
+    [&quot;t&quot;, &quot;&lt;tag&gt;&quot;],
+    [&quot;t&quot;, &quot;&lt;tag&gt;&quot;],
+
+    // reference links
+    [&quot;r&quot;, &quot;&lt;url&gt;&quot;],
+    [&quot;r&quot;, &quot;&lt;url&gt;&quot;]
+  ]
+}
+</code></pre>
+<h2>Addressable Event Example</h2>
+<pre><code class="language-yaml">{
+  &quot;id&quot;: &lt;32-bytes lowercase hex-encoded SHA-256 of the the serialized event data&gt;,
+  &quot;pubkey&quot;: &lt;32-bytes lowercase hex-encoded public key of the event creator&gt;,
+  &quot;created_at&quot;: &lt;Unix timestamp in seconds&gt;,
+  &quot;kind&quot;: 34235 | 34236,
+  &quot;content&quot;: &quot;&lt;summary / description of video&gt;&quot;,
+  &quot;tags&quot;: [
+    [&quot;d&quot;, &quot;&lt;unique-identifier&gt;&quot;],
+    [&quot;title&quot;, &quot;&lt;title of video&gt;&quot;],
+    [&quot;published_at&quot;, &quot;&lt;unix timestamp&gt;&quot;],
+    [&quot;alt&quot;, &quot;&lt;description for accessibility&gt;&quot;],
+
+    // video data
+    [&quot;imeta&quot;,
+      &quot;url https://example.com/media.mp4&quot;,
+      &quot;m video/mp4&quot;,
+      &quot;dim 480x480&quot;,
+      &quot;blurhash eVF$^OI:${M{%LRjWBoLoLaeR*&quot;,
+      &quot;image https://example.com/thumb.jpg&quot;,
+      &quot;x 3093509d1e0bc604ff60cb9286f4cd7c781553bc8991937befaacfdc28ec5cdc&quot;
+    ],
+    // audio data
+    [&quot;imeta&quot;,
+      &quot;url https://example.com/audio.mp3&quot;,
+      &quot;x b2e0a7a82ac9f3f3a71f1d9a78c381d5be9d1cf19dce258765c17c8a76287c93&quot;,
+      &quot;m audio/mp3&quot;,
+      &quot;l en ISO-639-1 ov&quot;
+    ],
+
+    [&quot;duration&quot;, &lt;duration in seconds&gt;],
+    [&quot;content-warning&quot;, &quot;&lt;reason&gt;&quot;],
+
+    // origin tracking for imported content
+    [&quot;origin&quot;, &quot;&lt;platform&gt;&quot;, &quot;&lt;external-id&gt;&quot;, &quot;&lt;original-url&gt;&quot;, &quot;&lt;optional-metadata&gt;&quot;],
+
+    // participants
+    [&quot;p&quot;, &quot;&lt;32-bytes hex of a pubkey&gt;&quot;, &quot;&lt;optional recommended relay URL&gt;&quot;],
+
+    // hashtags
+    [&quot;t&quot;, &quot;&lt;tag&gt;&quot;],
+    [&quot;t&quot;, &quot;&lt;tag&gt;&quot;],
+
+    // reference links
+    [&quot;r&quot;, &quot;&lt;url&gt;&quot;]
+  ]
+}
+</code></pre>
+<h2>Referencing Addressable Events</h2>
+<p>To reference an addressable video:</p>
+<pre><code>[&quot;a&quot;, &quot;34235:&lt;pubkey&gt;:&lt;d-tag-value&gt;&quot;, &quot;&lt;relay-url&gt;&quot;]  // for normal videos
+[&quot;a&quot;, &quot;34236:&lt;pubkey&gt;:&lt;d-tag-value&gt;&quot;, &quot;&lt;relay-url&gt;&quot;]  // for short videos
+</code></pre>
+</article>

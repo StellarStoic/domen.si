@@ -1,0 +1,32 @@
+<article class="nips-doc" id="nip-A4">
+<p>This NIP defines kind <code>24</code> as a simple plaintext message to one or more Nostr users. </p>
+<p>The <code>.content</code> contains the message. <code>p</code> tags identify one or more receivers.</p>
+<pre><code class="language-yaml">{
+  &quot;pubkey&quot;: &quot;&lt;sender-pubkey&gt;&quot;,
+  &quot;kind&quot;: 24,
+  &quot;tags&quot;: [
+    [&quot;p&quot;, &quot;&lt;receiver&gt;&quot;, &quot;&lt;relay-url&gt;&quot;],
+  ],
+  &quot;content&quot;: &quot;&lt;message-in-plain-text&gt;&quot;,
+}
+</code></pre>
+<p>Messages MUST be sent to the <a href="#" data-nip="65">NIP-65</a> inbox relays of each receiver and the outbox relay of the sender.</p>
+<p>Kind <code>24</code> is designed to be shown and replied to from notification screens. The goal is to allow clients to 
+support this feature without having to worry about chat history. There are no message chains. The concept of a 
+"thread", a "thread root", or a "chatroom" does not exist in this system, as messages can start and continue 
+without any syntactic connection to each other. <code>e</code> tags must not be used.</p>
+<p>This kind is not designed to be displayed on feeds, but anyone can see and reply to messages that may not be for them.</p>
+<h2>Advanced Support</h2>
+<p><a href="#" data-nip="40">NIP-40</a> <code>expiration</code> tags are recommended. Since there is no concept of a chatroom, it is unlikely that these messages will 
+make sense as time goes on.</p>
+<p><a href="#" data-nip="18">NIP-18</a> quote repost <code>q</code> tags MAY be used when citing events in the <code>.content</code> with <a href="#" data-nip="21">NIP-21</a>.</p>
+<pre><code class="language-json">[&quot;q&quot;, &quot;&lt;event-id&gt; or &lt;event-address&gt;&quot;, &quot;&lt;relay-url&gt;&quot;, &quot;&lt;pubkey-if-a-regular-event&gt;&quot;]
+</code></pre>
+<p><a href="#" data-nip="25">NIP-25</a> reactions MUST add a <code>k</code> tag to <code>24</code>. </p>
+<p><a href="#" data-nip="57">NIP-57</a> zaps MUST include the <code>k</code> tag to <code>24</code></p>
+<p><a href="#" data-nip="21">NIP-21</a> links that use <a href="#" data-nip="19">NIP-19</a>'s <code>nevent1</code> MUST include a <code>kind</code> of <code>24</code>. Links that are not <code>kind:24</code> are not expected to be rendered natively by the client.</p>
+<p><a href="#" data-nip="92">NIP-92</a> <code>imeta</code> tags SHOULD be added for image and video links.</p>
+<h2>Warnings</h2>
+<p>There MUST be no expectation of privacy in this kind. It is just a public reply, but without a root note.</p>
+<p>Avoid confusing this kind with Kind <code>14</code> rumors in <a href="#" data-nip="17">NIP-17</a> DMs. This kind is signed and designed for public consumption.</p>
+</article>

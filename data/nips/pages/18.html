@@ -1,0 +1,28 @@
+<article class="nips-doc" id="nip-18">
+<p>A repost is a <code>kind 6</code> event that is used to signal to followers
+that a <code>kind 1</code> text note is worth reading.</p>
+<p>The <code>content</code> of a repost event is <em>the stringified JSON of the reposted note</em>. It MAY also be empty, but that is not recommended.
+Reposts of <a href="#" data-nip="70">NIP-70</a>-protected events SHOULD always have an empty <code>content</code>.</p>
+<p>The repost event MUST include an <code>e</code> tag with the <code>id</code> of the note that is
+being reposted. That tag MUST include a relay URL as its third entry
+to indicate where it can be fetched.</p>
+<p>The repost SHOULD include a <code>p</code> tag with the <code>pubkey</code> of the event being
+reposted.</p>
+<h2>Quote Reposts</h2>
+<p>Mentions to <a href="#" data-nip="21">NIP-21</a> entities like <code>nevent</code>, <code>note</code> and <code>naddr</code> on any
+event must be converted into <code>q</code> tags. The <code>q</code> tag ensures quote reposts are
+not pulled and included as replies in threads. It also allows you to easily
+pull and count all of the quotes for a post. The syntax follows</p>
+<p><code>["q", "&lt;event-id&gt; or &lt;event-address&gt;", "&lt;relay-url&gt;", "&lt;pubkey-if-a-regular-event&gt;"]</code></p>
+<h2>Generic Reposts</h2>
+<p>Since <code>kind 6</code> reposts are reserved for <code>kind 1</code> contents, we use <code>kind 16</code>
+as a "generic repost", that can include any kind of event inside other than
+<code>kind 1</code>.</p>
+<p><code>kind 16</code> reposts SHOULD contain a <code>"k"</code> tag with the stringified kind number
+of the reposted event as its value.</p>
+<p>When reposting a replaceable event, the repost SHOULD include an <code>"a"</code> tag with
+the event coordinate (<code>kind:pubkey:d-tag</code>) of the reposted event.</p>
+<p>If the <code>"a"</code> tag is not present, it indicates that a specific version of a replaceable
+event is being reposted, in which case the <code>content</code> field must contain the full
+JSON string of the reposted event.</p>
+</article>

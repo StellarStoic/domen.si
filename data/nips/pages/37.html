@@ -1,0 +1,47 @@
+<article class="nips-doc" id="nip-37">
+<p>This NIP defines kind <code>31234</code> as an encrypted storage for unsigned draft events of any other kind. </p>
+<p>The draft is JSON-stringified, <a href="#" data-nip="44">NIP44-encrypted</a> to the signer's public key and placed inside the <code>.content</code>.</p>
+<p><code>k</code> tags identify the kind of the draft. </p>
+<pre><code class="language-js">{
+  &quot;kind&quot;: 31234,
+  &quot;tags&quot;: [
+    [&quot;d&quot;, &quot;&lt;identifier&gt;&quot;],
+    [&quot;k&quot;, &quot;&lt;kind of the draft event&gt;&quot;], // required
+    [&quot;expiration&quot;, &quot;now + 90 days&quot;] // recommended
+  ],
+  &quot;content&quot;: nip44Encrypt(JSON.stringify(draft_event)),
+  // other fields
+}
+</code></pre>
+<p>A blanked <code>.content</code> field signals that the draft has been deleted. </p>
+<p><a href="#" data-nip="40">NIP-40</a> <code>expiration</code> tags are recommended. </p>
+<p>Clients SHOULD publish kind <code>31234</code> events to relays listed on kind <code>10013</code> below.</p>
+<h2>Checkpoints</h2>
+<p><code>kind:1234</code> defines checkpoints that belong to a parent <code>kind:31234</code> event. These can serve to provide a revision history of a parent event.</p>
+<pre><code class="language-js">{
+  &quot;kind&quot;: 1234,
+  &quot;tags&quot;: [
+    [&quot;a&quot;, &quot;31234:&lt;pubkey&gt;:&lt;identifier&gt;&quot;]
+  ],
+  &quot;content&quot;: nip44Encrypt(JSON.stringify(draft_event)),
+}
+</code></pre>
+<h2>Relay List for Private Content</h2>
+<p>Kind <code>10013</code> indicates the user's preferred relays to store private events like Draft Wraps. </p>
+<p>The event MUST include a list of <code>relay</code> URLs in private tags. Private tags are JSON Stringified, <a href="#" data-nip="44">NIP44-encrypted</a> to the signer's keys and placed inside the .content of the event.</p>
+<pre><code class="language-js">{
+  &quot;kind&quot;: 10013,
+  &quot;tags&quot;: [],
+  &quot;content&quot;: nip44Encrypt(
+    JSON.stringify(
+      [
+        [&quot;relay&quot;, &quot;wss://myrelay.mydomain.com&quot;]
+      ]
+    )
+  )
+  //...other fields
+}
+</code></pre>
+<p>It's recommended that Private Storage relays SHOULD be <a href="#" data-nip="42">NIP-42</a>-authed and only allow downloads of events signed by the authed user.</p>
+<p>Clients MUST publish kind <code>10013</code> events to the author's <a href="#" data-nip="65">NIP-65</a> <code>write</code> relays. </p>
+</article>

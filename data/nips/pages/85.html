@@ -1,0 +1,321 @@
+<article class="nips-doc" id="nip-85">
+<p>Certain Webs of Trust calculations require access to a large volume of events and/or computing power, making it virtually impossible to perform them directly on clients. This NIP allows users to offload such calculations to declared trusted service providers, and for these providers to publish signed "Trusted Assertion" events for the user client's consumption.</p>
+<h2>Assertion Events</h2>
+<p>Trusted Assertions are always addressable (replaceable) events with the <code>d</code> tag pointing to the "subject" of the assertion. This NIP currently recognizes four distinct target "subjects" on which such calculations can be performed: <em>pubkeys</em>, <em>regular events</em>, <em>addressable events</em>, and <em>nip73 identifiers</em>. Each subject type is mapped to an event kind: </p>
+<table>
+<thead>
+<tr>
+<th>Subject</th>
+<th>Event Kind</th>
+<th><code>d</code> tag value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>User</td>
+<td>30382</td>
+<td><code>&lt;pubkey&gt;</code></td>
+</tr>
+<tr>
+<td>Event</td>
+<td>30383</td>
+<td><code>&lt;event_id&gt;</code></td>
+</tr>
+<tr>
+<td>Addressable Event</td>
+<td>30384</td>
+<td><code>&lt;event_address&gt;</code></td>
+</tr>
+<tr>
+<td>NIP-73 Identifier</td>
+<td>30385</td>
+<td><code>&lt;i-tag&gt;</code></td>
+</tr>
+</tbody>
+</table>
+<p>Calculation results are saved in pre-defined tags whose syntax and semantics are agreed upon by providers and clients. </p>
+<p>Example of ranking a pubkey with a web of trust score of <code>89</code>: </p>
+<pre><code class="language-yaml">{
+  &quot;kind&quot;: 30382,
+  &quot;pubkey&quot;: &quot;&lt;service pubkey&gt;&quot;,
+  &quot;tags&quot;: [
+    [&quot;d&quot;, &quot;e88a691e98d9987c964521dff60025f60700378a4879180dcbbb4a5027850411&quot;], // target user's public key
+    [&quot;rank&quot;, &quot;89&quot;],
+  ],
+  &quot;content&quot;: &quot;&quot;,
+  //...
+}
+</code></pre>
+<p>Service providers MUST use different service keys for distinct algorithms, including a key per user when the algorithm is personalized to that user's point of view or settings.</p>
+<h2>Kind 30382: Users as Subject:</h2>
+<p>The following result types have been declared:</p>
+<table>
+<thead>
+<tr>
+<th>Result type</th>
+<th>Tag name</th>
+<th>Tag value format</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Follower Count</td>
+<td><code>followers</code></td>
+<td>int</td>
+</tr>
+<tr>
+<td>User Rank</td>
+<td><code>rank</code></td>
+<td>int, norm 0-100</td>
+</tr>
+<tr>
+<td>First Post Time</td>
+<td><code>first_created_at</code></td>
+<td>unix timestamp</td>
+</tr>
+<tr>
+<td>Post Count</td>
+<td><code>post_cnt</code></td>
+<td>int</td>
+</tr>
+<tr>
+<td>Reply Count</td>
+<td><code>reply_cnt</code></td>
+<td>int</td>
+</tr>
+<tr>
+<td>Reactions Count</td>
+<td><code>reactions_cnt</code></td>
+<td>int</td>
+</tr>
+<tr>
+<td>Zap Amount Received</td>
+<td><code>zap_amt_recd</code></td>
+<td>int, sats</td>
+</tr>
+<tr>
+<td>Zap Amount Sent</td>
+<td><code>zap_amt_sent</code></td>
+<td>int, sats</td>
+</tr>
+<tr>
+<td>Zap Number Received</td>
+<td><code>zap_cnt_recd</code></td>
+<td>int</td>
+</tr>
+<tr>
+<td>Zap Number Sent</td>
+<td><code>zap_cnt_sent</code></td>
+<td>int</td>
+</tr>
+<tr>
+<td>Avg Zap Amount/day recd</td>
+<td><code>zap_avg_amt_day_recd</code></td>
+<td>int, sats</td>
+</tr>
+<tr>
+<td>Avg Zap Amount/day sent</td>
+<td><code>zap_avg_amt_day_sent</code></td>
+<td>int, sats</td>
+</tr>
+<tr>
+<td>Reports Received</td>
+<td><code>reports_cnt_recd</code></td>
+<td>int</td>
+</tr>
+<tr>
+<td>Reports Sent</td>
+<td><code>reports_cnt_sent</code></td>
+<td>int</td>
+</tr>
+<tr>
+<td>Common Topics</td>
+<td><code>t</code></td>
+<td>string</td>
+</tr>
+<tr>
+<td>Generally active start</td>
+<td><code>active_hours_start</code></td>
+<td>int, 0-24, UTC</td>
+</tr>
+<tr>
+<td>Generally active end</td>
+<td><code>active_hours_end</code></td>
+<td>int, 0-24, UTC</td>
+</tr>
+</tbody>
+</table>
+<p>Each provider can offer their own ways to calculate such values. For instance, the Follower Count of one trust provider might remove the user's muted public keys while another provider keeps them. Users can then choose how they want to see this information in their preferred client by picking a provider that aligns with their view. </p>
+<h2>Kind 30383: Events as Subject</h2>
+<p>Providers can rate individual events with the following tags:  </p>
+<table>
+<thead>
+<tr>
+<th>Result type</th>
+<th>Tag name</th>
+<th>Tag value format</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Event Rank</td>
+<td><code>rank</code></td>
+<td>int, norm 0-100</td>
+</tr>
+<tr>
+<td>Event Comment Count</td>
+<td><code>comment_cnt</code></td>
+<td>int</td>
+</tr>
+<tr>
+<td>Event Quote Count</td>
+<td><code>quote_cnt</code></td>
+<td>int</td>
+</tr>
+<tr>
+<td>Event Repost Count</td>
+<td><code>repost_cnt</code></td>
+<td>int</td>
+</tr>
+<tr>
+<td>Event Reaction Count</td>
+<td><code>reaction_cnt</code></td>
+<td>int</td>
+</tr>
+<tr>
+<td>Event Zap Count</td>
+<td><code>zap_cnt</code></td>
+<td>int</td>
+</tr>
+<tr>
+<td>Event Zap Amount</td>
+<td><code>zap_amount</code></td>
+<td>int, sats</td>
+</tr>
+</tbody>
+</table>
+<h2>Kind 30384: Addressables as Subject</h2>
+<p>Providers can rate all versions of addressable events using the following tags: </p>
+<table>
+<thead>
+<tr>
+<th>Result type</th>
+<th>Tag name</th>
+<th>Tag value format</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Address Rank</td>
+<td><code>rank</code></td>
+<td>int, norm 0-100</td>
+</tr>
+<tr>
+<td>Address Comment Count</td>
+<td><code>comment_cnt</code></td>
+<td>int</td>
+</tr>
+<tr>
+<td>Address Quote Count</td>
+<td><code>quote_cnt</code></td>
+<td>int</td>
+</tr>
+<tr>
+<td>Address Repost Count</td>
+<td><code>repost_cnt</code></td>
+<td>int</td>
+</tr>
+<tr>
+<td>Address Reaction Count</td>
+<td><code>reaction_cnt</code></td>
+<td>int</td>
+</tr>
+<tr>
+<td>Address Zap Count</td>
+<td><code>zap_cnt</code></td>
+<td>int</td>
+</tr>
+<tr>
+<td>Address Zap Amount</td>
+<td><code>zap_amount</code></td>
+<td>int, sats</td>
+</tr>
+</tbody>
+</table>
+<h2>Kind 30385: External identifier as Subject</h2>
+<p>Providers can rate books, locations, movies, websites, and hashtags using <a href="#" data-nip="73">NIP-73</a> identifiers. </p>
+<table>
+<thead>
+<tr>
+<th>Result type</th>
+<th>Tag name</th>
+<th>Tag value format</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Rank</td>
+<td><code>rank</code></td>
+<td>int, norm 0-100</td>
+</tr>
+<tr>
+<td>Comment Count</td>
+<td><code>comment_cnt</code></td>
+<td>int</td>
+</tr>
+<tr>
+<td>Reaction Count</td>
+<td><code>reaction_cnt</code></td>
+<td>int</td>
+</tr>
+</tbody>
+</table>
+<p>NIP-73 <code>k</code> tags should be added to the event as well.</p>
+<h2>Declaring Trusted Service Providers</h2>
+<p>Kind <code>10040</code> lists the user's preferred source for each result. Each <code>kind:tag</code> is followed by the publisher's <code>pubkey</code> and the <code>relay</code> where assertion events can be obtained. Service providers may use multiple keys and relays as needed, including a key per user when the algorithm is personalized to that user's point of view or settings. Users can share these settings publicly or keep them private by JSON-stringifying and encrypting the tag list within the <code>.content</code> field using NIP-44.</p>
+<pre><code class="language-js">{
+  &quot;kind&quot;: 10040,
+  &quot;tags&quot;: [
+    [&quot;&lt;kind:tag&gt;&quot;, &quot;&lt;service key&gt;&quot;, &quot;&lt;relay hint&gt;&quot;],
+
+    // examples
+    [&quot;30382:rank&quot;, &quot;4fd5e210530e4f6b2cb083795834bfe5108324f1ed9f00ab73b9e8fcfe5f12fe&quot;, &quot;wss://nip85.nostr.band&quot;],
+    [&quot;30382:rank&quot;, &quot;3d842afecd5e293f28b6627933704a3fb8ce153aa91d790ab11f6a752d44a42d&quot;, &quot;wss://nostr.wine&quot;],
+    [&quot;30382:zap_amt_sent&quot;, &quot;4fd5e210530e4f6b2cb083795834bfe5108324f1ed9f00ab73b9e8fcfe5f12fe&quot;, &quot;wss://nip85.nostr.band&quot;],
+  ],
+  &quot;content&quot;: nip44Encrypt(JSON.stringify([
+    [&quot;&lt;kind:tag&gt;&quot;, &quot;&lt;service key&gt;&quot;, &quot;&lt;relay hint&gt;&quot;],
+
+     // examples
+    [&quot;30383:rank&quot;, &quot;4fd5e210530e4f6b2cb083795834bfe5108324f1ed9f00ab73b9e8fcfe5f12fe&quot;, &quot;wss://nip85.nostr.band&quot;],
+    [&quot;30384:rank&quot;, &quot;4fd5e210530e4f6b2cb083795834bfe5108324f1ed9f00ab73b9e8fcfe5f12fe&quot;, &quot;wss://nip85.nostr.band&quot;],
+  ]),
+  //...
+}
+</code></pre>
+<p>If the provider offers several algorithms or multiple points of view of an algorithm, the key listed in each tag SHOULD point to the key created for each algorithm or point of view. </p>
+<h2>Final Considerations</h2>
+<p>Service providers SHOULD update Trusted Assertions as fast as new information arrives, but only if the contents of each event actually change to avoid re-downloading the same information.</p>
+<p>Service providers MAY limit access to the results by using paid relays.</p>
+<p>In TAs, <code>p</code>, <code>e</code>, and <code>a</code> tags with the same value as the <code>d</code> tag MAY be used to add a relay hint to the home relay of that user or event.</p>
+<h2>Appendix 1: Service provider discoverability</h2>
+<p>Service Providers SHOULD sign a kind <code>0</code> of each service key that explains who controls the key and what the current version of the algorithm is about.</p>
+<pre><code class="language-yaml">{
+  &quot;kind&quot;: 0,
+  &quot;pubkey&quot;: &quot;&lt;service pubkey&gt;&quot;,
+  &quot;tags&quot;: [],
+  &quot;content&quot;: &quot;{
+   \&quot;name\&quot; = \&quot;Vitor's Brainstormer\&quot;, 
+   \&quot;about\&quot; = \&quot;A Web of Trust algorithm from Vitor's point of view that considers Follows and Mutes, but no reports, and gives extra score points for anyone around Boston\&quot;,
+   \&quot;picture\&quot; = \&quot;https://brainstorm.com/logo.png\&quot;,
+   \&quot;website\&quot; = \&quot;https://brainstorm.com\&quot;
+  }&quot;,
+  // other fields...
+}
+</code></pre>
+<p>Clients wishing to offer a list of Service Providers to their users SHOULD:
+1. Download kind <code>10040</code> events of the user's follow list
+2. Connect to each of the listed relays and download the kind <code>0</code> of the respective service keys
+3. Parse the kind <code>0</code> and collect the <code>website</code> property
+4. Load the OpenGraph tags of that website and display them as clickable items</p>
+</article>

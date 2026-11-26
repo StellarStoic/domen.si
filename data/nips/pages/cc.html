@@ -1,0 +1,364 @@
+<article class="nips-doc" id="nip-CC">
+<p>This NIP defines event kinds for geocaching on Nostr. These events allow users to create, share, and log geocaches in a decentralized manner.</p>
+<h2>Geocache Listing Event (Kind 37516)</h2>
+<p>Geocache listing events are addressable events of kind <code>37516</code> with the following structure:</p>
+<pre><code class="language-json">{
+  &quot;kind&quot;: 37516,
+  &quot;content&quot;: &quot;&lt;cache description&gt;&quot;,
+  &quot;tags&quot;: [
+    [&quot;d&quot;, &quot;&lt;cache-identifier&gt;&quot;],
+    [&quot;name&quot;, &quot;&lt;cache-name&gt;&quot;],
+    [&quot;g&quot;, &quot;&lt;geohash&gt;&quot;],
+    [&quot;D&quot;, &quot;&lt;1-5&gt;&quot;],
+    [&quot;T&quot;, &quot;&lt;1-5&gt;&quot;],
+    [&quot;S&quot;, &quot;&lt;size&gt;&quot;],
+    [&quot;t&quot;, &quot;&lt;type&gt;&quot;],
+    [&quot;n&quot;, &quot;&lt;type-modifier&gt;&quot;],
+    [&quot;hint&quot;, &quot;&lt;plaintext hint&gt;&quot;],
+    [&quot;mission&quot;, &quot;&lt;key quest mission&gt;&quot;],
+    [&quot;image&quot;, &quot;&lt;image-url&gt;&quot;],
+    [&quot;r&quot;, &quot;&lt;relay-url&gt;&quot;],
+    [&quot;verification&quot;, &quot;&lt;verification-pubkey-hex&gt;&quot;]
+  ]
+}
+</code></pre>
+<p>Listing events require all information about the cache and information relevant to finding the cache. These include the <code>name</code>, location (<code>g</code>), difficulty (<code>D</code>) and terrain (<code>T</code>) scores, and size (<code>S</code>). The type of cache (<code>t</code>) is optional and defaults to <code>traditional</code> if not specified.</p>
+<p>Cache types are determined by individual clients, with common types including <code>traditional</code>, <code>multi</code>, and <code>mystery</code>. Clients should decide which cache types they support based on their implementation needs.</p>
+<p>These requirements are well-known and follow existing standards, such as those outlined on <a href="https://www.geocaching.com/help/index.php?pg=kb.chapter&amp;id=97" target="_blank" rel="noopener noreferrer">geocaching.com</a>.</p>
+<p>These events are assumed to be owned by the submitter of the cache, and core details should be maintained by that submitter. However, community logs should also provide context on the current state and validity of the cache.</p>
+<h3>Content</h3>
+<p>The content field contains the cache description and any additional information about the cache.</p>
+<h3>Tags</h3>
+<ul>
+<li><code>d</code> (required) - unique identifier for the cache</li>
+<li><code>name</code> (required) - human-readable name for the cache  </li>
+<li><code>g</code> (required) - geohash of cache location. To allow for a proximity search, include multiple geohash tags at different precision levels (3-9 characters)</li>
+<li><code>D</code> (required) - integer 1-5 indicating puzzle/finding difficulty (indexed)</li>
+<li><code>T</code> (required) - integer 1-5 indicating terrain difficulty (indexed)</li>
+<li><code>S</code> (required) - one of: <code>micro</code>, <code>small</code>, <code>regular</code>, <code>large</code>, <code>other</code> (indexed)</li>
+<li><code>t</code> (optional) - cache type, with common values including: <code>traditional</code>, <code>multi</code>, <code>mystery</code>. Defaults to <code>traditional</code> if not specified</li>
+<li><code>n</code> (optional) - type modifier(s) that affect lifecycle, claim semantics, or prize nature. See <a href="#type-modifiers">Type Modifiers</a>. Multiple <code>n</code> tags MAY be present, but at most one per modifier category</li>
+<li><code>hint</code> (optional) - plaintext hint to help find the cache</li>
+<li><code>mission</code> (optional) - plaintext "Key Quest" mission that finders are expected to complete to legitimately claim the cache (e.g. a passphrase, riddle answer, or item to bring). A treasure MUST NOT include more than one <code>mission</code> tag; if multiple are present, clients SHOULD use the first and ignore the rest. When present, clients SHOULD restrict found-log submission to finders who have proof of physical presence (typically the verification key from the cache location). Completions of the mission MAY be recorded as <a href="NIP-GD.md">NIP-GD</a> Good Deed events whose <code>a</code> tag references the cache</li>
+<li><code>image</code> (optional) - image URLs related to the cache</li>
+<li><code>r</code> (optional) - preferred relay URLs for logs</li>
+<li><code>verification</code> (optional) - hex-encoded public key for verifying finds at this cache</li>
+<li><code>F</code> (optional) - locks in the first-to-find winner. Only valid when the treasure carries the <code>first-to-find</code> <code>n</code> modifier. Format: <code>["F", "&lt;winner-pubkey-hex&gt;"]</code>. See <a href="#claim-semantics">Type Modifiers › <code>first-to-find</code></a>. At most one <code>F</code> tag SHOULD be present</li>
+</ul>
+<h2>Found Log Event (Kind 7516)</h2>
+<p>Found log events record successful visits to geocaches:</p>
+<pre><code class="language-json">{
+  &quot;kind&quot;: 7516,
+  &quot;content&quot;: &quot;&lt;log message&gt;&quot;,
+  &quot;tags&quot;: [
+    [&quot;a&quot;, &quot;37516:&lt;pubkey&gt;:&lt;d-tag&gt;&quot;]
+  ]
+}
+</code></pre>
+<h3>Tags</h3>
+<ul>
+<li><code>a</code> (required) - reference to the geocache being logged</li>
+<li><code>image</code> (optional) - photos from the visit</li>
+<li><code>verification</code> (optional) - embedded verification event (see Verified Finds section)</li>
+</ul>
+<h2>Comment Log Events (Kind 1111)</h2>
+<p>Non-found logs use comment events (kind <code>1111</code>) following NIP-22 comment structure:</p>
+<pre><code class="language-json">{
+  &quot;kind&quot;: 1111,
+  &quot;content&quot;: &quot;&lt;log message&gt;&quot;,
+  &quot;tags&quot;: [
+    [&quot;A&quot;, &quot;37516:&lt;pubkey&gt;:&lt;d-tag&gt;&quot;],
+    [&quot;K&quot;, &quot;37516&quot;],
+    [&quot;P&quot;, &quot;&lt;cache-owner-pubkey&gt;&quot;],
+    [&quot;a&quot;, &quot;37516:&lt;pubkey&gt;:&lt;d-tag&gt;&quot;],
+    [&quot;k&quot;, &quot;37516&quot;],
+    [&quot;p&quot;, &quot;&lt;cache-owner-pubkey&gt;&quot;],
+    [&quot;t&quot;, &quot;&lt;log-type&gt;&quot;]
+  ]
+}
+</code></pre>
+<p>These events capture failures, notes, and status-related information about the cache via human reporting, following the NIP-22 comment threading model where the geocache listing is both the root and parent content.</p>
+<p>Comment log types include <code>dnf</code> (did not find), <code>note</code> (helpful or neutral context), and <code>maintenance</code> (cache needs attention). If no <code>t</code> tag is present, the comment is assumed to be a general note.</p>
+<p>Owners of the cache can officially retire caches using an <code>archived</code> tag value in the tag <code>t</code>, thus allowing the cache's history to be preserved without fully deleting it.</p>
+<h3>Tags</h3>
+<p>The <code>A</code>/<code>K</code>/<code>P</code> (root) and <code>a</code>/<code>k</code>/<code>p</code> (parent) tags follow <a href="https://github.com/nostr-protocol/nips/blob/master/22.md" target="_blank" rel="noopener noreferrer">NIP-22</a>. For these top-level comments, the root and parent are identical: they reference the geocache listing (<code>37516:&lt;pubkey&gt;:&lt;d-tag&gt;</code>), kind <code>37516</code>, and the cache owner's pubkey.</p>
+<ul>
+<li><code>t</code> (optional) - log type: <code>dnf</code>, <code>note</code>, <code>maintenance</code>, <code>archived</code>. If omitted, assumed to be <code>note</code></li>
+<li><code>image</code> (optional) - photos from the visit</li>
+</ul>
+<h2>Geocache Verification Event (Kind 7517)</h2>
+<p>Verification events provide cryptographic proof that someone physically located a geocache. These events are signed by the cache's verification private key.</p>
+<pre><code class="language-json">{
+  &quot;kind&quot;: 7517,
+  &quot;content&quot;: &quot;Geocache verification for &lt;finder-npub&gt;&quot;,
+  &quot;tags&quot;: [
+    [&quot;a&quot;, &quot;&lt;finder-pubkey-hex&gt;:&lt;geocache-naddr&gt;&quot;]
+  ]
+}
+</code></pre>
+<h3>Content</h3>
+<p>The content field must follow the static format: <code>"Geocache verification for &lt;finder-npub&gt;"</code> where <code>&lt;finder-npub&gt;</code> is the NIP-19 encoded public key (npub) of the person who found the cache.</p>
+<h3>Tags</h3>
+<ul>
+<li><code>a</code> (required) - composite identifier containing the finder's pubkey in hex format and the geocache naddr being verified</li>
+</ul>
+<h3>Usage</h3>
+<p>Verification events are created when a finder obtains access to the cache's verification private key (typically via QR code at the cache location). The event must be signed by the cache's verification private key and can be:</p>
+<ol>
+<li>Embedded in the <code>verification</code> tag as a JSON string in the Verified Found Log event (kind 7516).</li>
+<li>Published to relays as standalone events</li>
+<li>Both embedded and published for redundancy</li>
+</ol>
+<h2>Verified Finds</h2>
+<p>Geocaches with verification enabled can provide cryptographic proof that a finder physically located the cache. This is accomplished through a verification event (kind 7517) signed by the cache's verification key.</p>
+<h3>Verification Process</h3>
+<p>When a cache has a <code>verification</code> tag containing a public key, finders can create a verified log by:</p>
+<ol>
+<li>Obtaining the cache's verification private key (typically via QR code at the cache location)</li>
+<li>Creating a verification event (kind 7517) signed by this key</li>
+<li>Embedding the verification event in their log entry</li>
+</ol>
+<h3>Verification Validation</h3>
+<p>To validate a verified find:</p>
+<ol>
+<li>Check that the verification event is signed by the expected verification public key</li>
+<li>Verify that the finder pubkey in the <code>a</code> tag matches the log author</li>
+<li>Confirm the geocache naddr in the <code>a</code> tag correctly references the target cache</li>
+<li>Validate the event signature using standard Nostr verification</li>
+</ol>
+<h2>Type Modifiers</h2>
+<p>Geocache listings MAY include one or more <code>n</code> tags that classify the geocache with additional type modifiers. Unlike the <code>t</code> cache-type tag (which describes <em>how</em> a cache is found), <code>n</code> modifiers describe <em>how the cache behaves</em> once published — its lifecycle, claim semantics, or prize nature.</p>
+<p>The <code>mission</code> tag is also a type modifier in the broader sense, but it uses its own dedicated tag because it carries a payload (the mission text). Clients SHOULD treat <code>mission</code> and <code>n</code> modifiers consistently for display purposes (badges, filters, etc.).</p>
+<h3>Rules</h3>
+<ol>
+<li>Each modifier value belongs to exactly one <strong>category</strong> (see below).</li>
+<li>A geocache SHOULD include at most one <code>n</code> tag per category. If multiple values from the same category are present, clients SHOULD use the first occurrence and ignore the rest.</li>
+<li>Modifiers from different categories compose freely. Any combination is valid unless a specific modifier's definition states otherwise.</li>
+<li>Clients SHOULD ignore <code>n</code> values they do not recognize, allowing forward compatibility as new modifiers are defined.</li>
+</ol>
+<h3>Categories and Modifiers</h3>
+<h4>Claim semantics</h4>
+<p>Modifiers that affect how claims on the treasure are interpreted.</p>
+<ul>
+<li><code>first-to-find</code> — Single-claim geocache listing. The first verified found log (kind 7516 with valid embedded kind 7517) constitutes the exclusive claim. Subsequent verified found logs remain valid records of physical presence at the location but do not constitute additional claims. Clients SHOULD render the geocache listing as effectively archived once any valid verified found log exists, hiding find-submission affordances and displaying the winning finder prominently. Requires a <code>verification</code> tag on the geocache listing event.</li>
+</ul>
+<p>Determining the winning log (provisional, before lock-in):
+  - The winning log is the verified found log with the earliest <code>created_at</code> value.
+  - Ties on <code>created_at</code> are broken by ascending lexicographic comparison of the event <code>id</code>.
+  - All verified logs are evidence of physical presence (QR access was required to produce them); the exclusive claim is attributed only to the earliest one.</p>
+<p>Locking in the winner (<code>F</code> tag):
+  - Once the geocache listing creator has confirmed the claim, the creator SHOULD publish a new revision of the geocache listing event that BOTH archives the listing (adds <code>["t", "archived"]</code>) AND locks the winner in by appending an <code>F</code> tag:
+    <code>["F", "&lt;winner-pubkey-hex&gt;"]</code>
+  - The value is the winning finder's pubkey (lowercase hex). The specific winning verified found log is recoverable by querying for verified found logs whose <code>a</code> tag references this treasure and whose author matches the <code>F</code> pubkey.
+  - At most one <code>F</code> tag SHOULD be present. If multiple are present, clients SHOULD use the first.
+  - When an <code>F</code> tag is present, clients MUST attribute the exclusive claim to the pubkey in the <code>F</code> tag, regardless of which verified found log currently appears earliest. Because <code>created_at</code> is author-supplied and forgeable, this protects the locked-in claim from being displaced by a later log carrying a forged earlier timestamp.</p>
+<h4>Prize nature</h4>
+<p>Modifiers that describe what the physical treasure IS.</p>
+<ul>
+<li><code>art</code> — The geocache itself is a physical work of art (a print, sculpture, sticker, zine, painted object, mural, installation, etc.). Whether the work is takeable, viewable in place, photographable only, or otherwise interacted with is determined by other modifiers and by the treasure's <code>content</code> description.</li>
+</ul>
+<h3>Forward Compatibility</h3>
+<p>New modifiers MAY be defined in future revisions of this NIP or in supplementary NIPs. New categories MAY also be introduced. Clients implementing this NIP SHOULD ignore unknown <code>n</code> values rather than rejecting the event.</p>
+<h2>Geocache Curation List Event (Kind 37517)</h2>
+<p>Curation list events are addressable events of kind <code>37517</code> that group geocaches into curated collections. Clients may present these as adventures, trails, treasure hunts, or any other themed experience.</p>
+<pre><code class="language-json">{
+  &quot;kind&quot;: 37517,
+  &quot;content&quot;: &quot;&lt;full description&gt;&quot;,
+  &quot;tags&quot;: [
+    [&quot;d&quot;, &quot;&lt;list-identifier&gt;&quot;],
+    [&quot;title&quot;, &quot;&lt;list-title&gt;&quot;],
+    [&quot;description&quot;, &quot;&lt;short summary&gt;&quot;],
+    [&quot;image&quot;, &quot;&lt;banner-image-url&gt;&quot;],
+    [&quot;g&quot;, &quot;&lt;geohash&gt;&quot;],
+    [&quot;theme&quot;, &quot;&lt;page-theme&gt;&quot;],
+    [&quot;map&quot;, &quot;&lt;map-style&gt;&quot;],
+    [&quot;a&quot;, &quot;37516:&lt;pubkey&gt;:&lt;d-tag&gt;&quot;],
+    [&quot;a&quot;, &quot;37516:&lt;pubkey&gt;:&lt;d-tag&gt;&quot;]
+  ]
+}
+</code></pre>
+<h3>Content</h3>
+<p>The content field contains the full description of the curation list — rules, tips, narrative, or any other context the creator wants to provide.</p>
+<h3>Tags</h3>
+<ul>
+<li><code>d</code> (required) - unique identifier for the list</li>
+<li><code>title</code> (required) - human-readable name for the list</li>
+<li><code>a</code> (required, 1+) - references to geocache listing events (kind 37516 or 37515). Order is preserved and meaningful</li>
+<li><code>description</code> (optional) - short summary shown in browse/card views</li>
+<li><code>image</code> (optional) - banner image URL</li>
+<li><code>g</code> (optional) - geohash of list center location. Include multiple precision levels (3-6 characters) for discovery</li>
+<li><code>theme</code> (optional) - default page theme for the list. Clients should apply this theme when displaying the list, unless the user has explicitly chosen a different theme. Supported values: <code>adventure</code>, <code>mojave</code></li>
+<li><code>map</code> (optional) - default map style for the list. Clients should use this as the initial map style when displaying the list, but allow the user to change it. Supported values: <code>original</code>, <code>dark</code>, <code>satellite</code>, <code>adventure</code></li>
+</ul>
+<h3>Cross-Author References</h3>
+<p>Curation lists can reference any public geocache regardless of author. The <code>a</code> tags use standard Nostr addressable event coordinates (<code>&lt;kind&gt;:&lt;pubkey&gt;:&lt;d-tag&gt;</code>), allowing a single list to span geocaches from multiple creators.</p>
+<h2>Clients</h2>
+<p>For the best Geocaching experience, clients implementing geocaching support should:</p>
+<ul>
+<li>Support hint encoding, such as ROT13, to prevent spoilers.</li>
+<li>Determine cache status from recent log patterns. Multiple DNF entries and/or maintenance notes would indicate an issue with the cache.</li>
+<li>Publish logs to relays specified in the cache's <code>r</code> tags when available.</li>
+<li>Validate geohash precision meets minimum requirements (8+ characters, 9+ for micro caches) before accepting cache submissions.</li>
+</ul>
+<h2>Examples</h2>
+<h3>Basic Cache</h3>
+<pre><code class="language-json">{
+  &quot;kind&quot;: 37516,
+  &quot;content&quot;: &quot;The first Nostr treasure, left in the aftermath of Oslo Freedom Forum!&quot;,
+  &quot;tags&quot;: [
+    [&quot;d&quot;, &quot;first-treasure-1748619568668&quot;],
+    [&quot;name&quot;, &quot;First Treasure&quot;], 
+    [&quot;g&quot;, &quot;u4x&quot;],
+    [&quot;g&quot;, &quot;u4xs&quot;],
+    [&quot;g&quot;, &quot;u4xsu&quot;],
+    [&quot;g&quot;, &quot;u4xsu6&quot;],
+    [&quot;g&quot;, &quot;u4xsu6r&quot;],
+    [&quot;g&quot;, &quot;u4xsu6ry&quot;],
+    [&quot;g&quot;, &quot;u4xsu6ryb&quot;],
+    [&quot;D&quot;, &quot;1&quot;],
+    [&quot;T&quot;, &quot;1&quot;],
+    [&quot;S&quot;, &quot;small&quot;],
+    [&quot;t&quot;, &quot;traditional&quot;],
+    [&quot;hint&quot;, &quot;In the branches&quot;],
+    [&quot;image&quot;, &quot;https://blossom.primal.net/74efe01a767b27dead71b8a9bb8278a108360438e78e55194ed9ab14a9382dd3.jpg&quot;]
+  ]
+}
+</code></pre>
+<h3>Verified Cache</h3>
+<pre><code class="language-json">{
+  &quot;kind&quot;: 37516,
+  &quot;content&quot;: &quot;High-security treasure requiring physical verification!&quot;,
+  &quot;tags&quot;: [
+    [&quot;d&quot;, &quot;verified-treasure-1748619568669&quot;],
+    [&quot;name&quot;, &quot;Verified Treasure&quot;], 
+    [&quot;g&quot;, &quot;u4xsu6ry&quot;],
+    [&quot;D&quot;, &quot;3&quot;],
+    [&quot;T&quot;, &quot;2&quot;],
+    [&quot;S&quot;, &quot;small&quot;],
+    [&quot;t&quot;, &quot;traditional&quot;],
+    [&quot;hint&quot;, &quot;Look for the secret code&quot;],
+    [&quot;verification&quot;, &quot;6805d4e5c0df48b4f76e2fdcb67a2acb1d97567b01c6fe17a236dc32f34f1c07&quot;]
+  ]
+}
+</code></pre>
+<h3>Cache with Key Quest</h3>
+<pre><code class="language-json">{
+  &quot;kind&quot;: 37516,
+  &quot;content&quot;: &quot;Solve the riddle to claim your prize.&quot;,
+  &quot;tags&quot;: [
+    [&quot;d&quot;, &quot;key-quest-treasure-1748619568670&quot;],
+    [&quot;name&quot;, &quot;Riddle of the Old Oak&quot;],
+    [&quot;g&quot;, &quot;u4xsu6ry&quot;],
+    [&quot;D&quot;, &quot;4&quot;],
+    [&quot;T&quot;, &quot;2&quot;],
+    [&quot;S&quot;, &quot;small&quot;],
+    [&quot;t&quot;, &quot;mystery&quot;],
+    [&quot;hint&quot;, &quot;Count the rings on the fallen log&quot;],
+    [&quot;mission&quot;, &quot;Bring a token of nature you found along the way&quot;],
+    [&quot;verification&quot;, &quot;6805d4e5c0df48b4f76e2fdcb67a2acb1d97567b01c6fe17a236dc32f34f1c07&quot;]
+  ]
+}
+</code></pre>
+<h3>First-to-Find Art</h3>
+<p>A single-claim treasure where the cache itself is a physical artwork. The first verified finder is the exclusive claimant; how the work is fulfilled (taken home, photographed, etc.) is described in the cache content.</p>
+<pre><code class="language-json">{
+  &quot;kind&quot;: 37516,
+  &quot;content&quot;: &quot;Hand-pulled linocut, edition of 1, signed on the back next to the QR. Whoever finds it keeps it.&quot;,
+  &quot;tags&quot;: [
+    [&quot;d&quot;, &quot;linocut-aftermath-1748619568671&quot;],
+    [&quot;name&quot;, &quot;Aftermath (Linocut #1)&quot;],
+    [&quot;g&quot;, &quot;u4xsu6ry&quot;],
+    [&quot;D&quot;, &quot;2&quot;],
+    [&quot;T&quot;, &quot;2&quot;],
+    [&quot;S&quot;, &quot;small&quot;],
+    [&quot;t&quot;, &quot;traditional&quot;],
+    [&quot;n&quot;, &quot;first-to-find&quot;],
+    [&quot;n&quot;, &quot;art&quot;],
+    [&quot;hint&quot;, &quot;Behind glass, but not in a frame&quot;],
+    [&quot;image&quot;, &quot;https://blossom.primal.net/example-linocut.jpg&quot;],
+    [&quot;verification&quot;, &quot;6805d4e5c0df48b4f76e2fdcb67a2acb1d97567b01c6fe17a236dc32f34f1c07&quot;]
+  ]
+}
+</code></pre>
+<h3>Found Log</h3>
+<pre><code class="language-json">{
+  &quot;kind&quot;: 7516,
+  &quot;content&quot;: &quot;Found it! Great hiding spot.&quot;,
+  &quot;tags&quot;: [
+    [&quot;a&quot;, &quot;37516:0461fcbecc4c3374439932d6b8f11269ccdb7cc973ad7a50ae362db135a474dd:first-treasure-1748619568668&quot;]
+  ]
+}
+</code></pre>
+<h3>DNF Log</h3>
+<pre><code class="language-json">{
+  &quot;kind&quot;: 1111,
+  &quot;content&quot;: &quot;Searched for 30 minutes but couldn't find it. Maybe it's missing?&quot;,
+  &quot;tags&quot;: [
+    [&quot;A&quot;, &quot;37516:0461fcbecc4c3374439932d6b8f11269ccdb7cc973ad7a50ae362db135a474dd:first-treasure-1748619568668&quot;],
+    [&quot;K&quot;, &quot;37516&quot;],
+    [&quot;P&quot;, &quot;0461fcbecc4c3374439932d6b8f11269ccdb7cc973ad7a50ae362db135a474dd&quot;],
+    [&quot;a&quot;, &quot;37516:0461fcbecc4c3374439932d6b8f11269ccdb7cc973ad7a50ae362db135a474dd:first-treasure-1748619568668&quot;],
+    [&quot;k&quot;, &quot;37516&quot;],
+    [&quot;p&quot;, &quot;0461fcbecc4c3374439932d6b8f11269ccdb7cc973ad7a50ae362db135a474dd&quot;],
+    [&quot;t&quot;, &quot;dnf&quot;]
+  ]
+}
+</code></pre>
+<h3>Note Log</h3>
+<pre><code class="language-json">{
+  &quot;kind&quot;: 1111,
+  &quot;content&quot;: &quot;Lots of muggles around during the day. Best to visit in the evening.&quot;,
+  &quot;tags&quot;: [
+    [&quot;A&quot;, &quot;37516:0461fcbecc4c3374439932d6b8f11269ccdb7cc973ad7a50ae362db135a474dd:first-treasure-1748619568668&quot;],
+    [&quot;K&quot;, &quot;37516&quot;],
+    [&quot;P&quot;, &quot;0461fcbecc4c3374439932d6b8f11269ccdb7cc973ad7a50ae362db135a474dd&quot;],
+    [&quot;a&quot;, &quot;37516:0461fcbecc4c3374439932d6b8f11269ccdb7cc973ad7a50ae362db135a474dd:first-treasure-1748619568668&quot;],
+    [&quot;k&quot;, &quot;37516&quot;],
+    [&quot;p&quot;, &quot;0461fcbecc4c3374439932d6b8f11269ccdb7cc973ad7a50ae362db135a474dd&quot;],
+    [&quot;t&quot;, &quot;note&quot;]
+  ]
+}
+</code></pre>
+<h3>Verification Event</h3>
+<pre><code class="language-json">{
+  &quot;kind&quot;: 7517,
+  &quot;content&quot;: &quot;Geocache verification for npub1qc0lc5lxnhxnfxlw2lxkv4x4vp6xsf4d5qwvlhfx6qmz6x4nfhqd8h2z3&quot;,
+  &quot;tags&quot;: [
+    [&quot;a&quot;, &quot;0461fcbecc4c3374439932d6b8f11269ccdb7cc973ad7a50ae362db135a474dd:naddr1qqxnzd3e8q6n2dfk8qcnjve48qmnsw3jsqgswaehxw309aex2mrp0yhx6tpdsek6w309aex2mrp0yh56tnwdus8vatjvs6kzdrz956k7tjzw6qzypzgd2dmgxhxf34hnlw2y03nckr8f4g6mw9flxqq65v94zkp77rqfgrf8&quot;]
+  ],
+  &quot;pubkey&quot;: &quot;6805d4e5c0df48b4f76e2fdcb67a2acb1d97567b01c6fe17a236dc32f34f1c07&quot;,
+  &quot;created_at&quot;: 1672531200,
+  &quot;sig&quot;: &quot;a1b2c3d4e5f6789012345678901234567890abcdef1234567890abcdef123456789012345678901234567890abcdef1234567890abcdef1234567890abcdef12&quot;
+}
+</code></pre>
+<h3>Verified Found Log</h3>
+<pre><code class="language-json">{
+  &quot;kind&quot;: 7516,
+  &quot;content&quot;: &quot;Found it! Great hiding spot.&quot;,
+  &quot;tags&quot;: [
+    [&quot;a&quot;, &quot;37516:0461fcbecc4c3374439932d6b8f11269ccdb7cc973ad7a50ae362db135a474dd:verified-treasure-1748619568669&quot;],
+    [&quot;verification&quot;, &quot;{\&quot;kind\&quot;:7517,\&quot;content\&quot;:\&quot;Geocache verification for npub1qc0lc5lxnhxnfxlw2lxkv4x4vp6xsf4d5qwvlhfx6qmz6x4nfhqd8h2z3\&quot;,\&quot;tags\&quot;:[[\&quot;a\&quot;,\&quot;0461fcbecc4c3374439932d6b8f11269ccdb7cc973ad7a50ae362db135a474dd:naddr1qqxnzd3e8q6n2dfk8qcnjve48qmnsw3jsqgswaehxw309aex2mrp0yhx6tpdsek6w309aex2mrp0yh56tnwdus8vatjvs6kzdrz956k7tjzw6qzypzgd2dmgxhxf34hnlw2y03nckr8f4g6mw9flxqq65v94zkp77rqfgrf8\&quot;]],\&quot;pubkey\&quot;:\&quot;6805d4e5c0df48b4f76e2fdcb67a2acb1d97567b01c6fe17a236dc32f34f1c07\&quot;,\&quot;created_at\&quot;:1672531200,\&quot;sig\&quot;:\&quot;a1b2c3d4e5f6789012345678901234567890abcdef1234567890abcdef123456789012345678901234567890abcdef1234567890abcdef1234567890abcdef12\&quot;}&quot;]
+  ]
+}
+</code></pre>
+<h3>Geocache Curation List</h3>
+<pre><code class="language-json">{
+  &quot;kind&quot;: 37517,
+  &quot;content&quot;: &quot;Explore the festival grounds and find all hidden treasures before the jousting tournament!&quot;,
+  &quot;tags&quot;: [
+    [&quot;d&quot;, &quot;ren-fest-hunt-1748619568670&quot;],
+    [&quot;title&quot;, &quot;Texas Ren Fest Treasure Hunt&quot;],
+    [&quot;description&quot;, &quot;Find all the hidden treasures at the festival!&quot;],
+    [&quot;image&quot;, &quot;https://blossom.primal.net/banner-example.jpg&quot;],
+    [&quot;g&quot;, &quot;9vk&quot;],
+    [&quot;g&quot;, &quot;9vk5&quot;],
+    [&quot;g&quot;, &quot;9vk5b&quot;],
+    [&quot;g&quot;, &quot;9vk5b7&quot;],
+    [&quot;theme&quot;, &quot;adventure&quot;],
+    [&quot;map&quot;, &quot;adventure&quot;],
+    [&quot;a&quot;, &quot;37516:0461fcbecc4c3374439932d6b8f11269ccdb7cc973ad7a50ae362db135a474dd:first-treasure-1748619568668&quot;],
+    [&quot;a&quot;, &quot;37516:0461fcbecc4c3374439932d6b8f11269ccdb7cc973ad7a50ae362db135a474dd:verified-treasure-1748619568669&quot;]
+  ]
+}
+</code></pre>
+</article>

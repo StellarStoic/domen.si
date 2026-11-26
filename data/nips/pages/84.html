@@ -1,0 +1,35 @@
+<article class="nips-doc" id="nip-84">
+<p>This NIP defines <code>kind:9802</code>, a "highlight" event, to signal content a user finds valuable.</p>
+<h2>Format</h2>
+<p>The <code>.content</code> of these events is the highlighted portion of the text.</p>
+<p><code>.content</code> might be empty for highlights of non-text based media (e.g. NIP-94 audio/video).</p>
+<h3>References</h3>
+<p>Events SHOULD tag the source of the highlight, whether nostr-native or not. The following tags may be used to indicate different types of content:</p>
+<ul>
+<li><code>a</code> and/or <code>e</code> tags for nostr events</li>
+<li><code>i</code> tags for structured sources per <a href="./73.md">NIP 73</a></li>
+<li><code>r</code> tags for anything else (may contain a URL or text)</li>
+</ul>
+<h3>Attribution</h3>
+<p>Clients MAY include one or more <code>p</code> tags, tagging the original authors of the material being highlighted; this is particularly
+useful when highlighting non-nostr content for which the client might be able to get a nostr pubkey somehow
+(e.g. prompting the user or reading a <code>&lt;link rel="me" href="nostr:nprofile1..." /&gt;</code> tag on the document). A role MAY be included as the
+last value of the tag.</p>
+<pre><code class="language-yaml">{
+  &quot;tags&quot;: [
+    [&quot;p&quot;, &quot;&lt;pubkey-hex&gt;&quot;, &quot;&lt;relay-url&gt;&quot;, &quot;author&quot;],
+    [&quot;p&quot;, &quot;&lt;pubkey-hex&gt;&quot;, &quot;&lt;relay-url&gt;&quot;, &quot;author&quot;],
+    [&quot;p&quot;, &quot;&lt;pubkey-hex&gt;&quot;, &quot;&lt;relay-url&gt;&quot;, &quot;editor&quot;]
+  ],
+  // other fields...
+}
+</code></pre>
+<h3>Context</h3>
+<p>Clients MAY include a <code>context</code> tag, useful when the highlight is a subset of a paragraph and displaying the
+surrounding content might be beneficial to give context to the highlight.</p>
+<h2>Quote Highlights</h2>
+<p>A <code>comment</code> tag may be added to create a quote highlight. This SHOULD be rendered like a quote repost with the highlight as the quoted note.</p>
+<p>This is to prevent the creation of multiple notes (highlight + kind 1) for a single highlight action, which looks bad in micro-blogging clients where these notes may appear in succession.</p>
+<p>p-tag mentions MUST have a <code>mention</code> attribute to distinguish it from authors and editors.</p>
+<p>r-tag urls from the comment MUST have a <code>mention</code> attribute to distinguish from the highlighted source url. The source url MUST have the <code>source</code> attribute.</p>
+</article>

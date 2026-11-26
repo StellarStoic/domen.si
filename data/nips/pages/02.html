@@ -1,0 +1,38 @@
+<article class="nips-doc" id="nip-02">
+<p>A special event with kind <code>3</code>, meaning "follow list" is defined as having a list of <code>p</code> tags, one for each of the followed/known profiles one is following.</p>
+<p>Each tag entry should contain the key for the profile, a relay URL where events from that key can be found (can be set to an empty string if not needed), and a local name (or "petname") for that profile (can also be set to an empty string or not provided), i.e., <code>["p", &lt;32-bytes hex key&gt;, &lt;main relay URL&gt;, &lt;petname&gt;]</code>.</p>
+<p>The <code>.content</code> is not used.</p>
+<p>For example:</p>
+<pre><code class="language-yaml">{
+  &quot;kind&quot;: 3,
+  &quot;tags&quot;: [
+    [&quot;p&quot;, &quot;91cf9..4e5ca&quot;, &quot;wss://alicerelay.com/&quot;, &quot;alice&quot;],
+    [&quot;p&quot;, &quot;14aeb..8dad4&quot;, &quot;wss://bobrelay.com/nostr&quot;, &quot;bob&quot;],
+    [&quot;p&quot;, &quot;612ae..e610f&quot;, &quot;ws://carolrelay.com/ws&quot;, &quot;carol&quot;]
+  ],
+  &quot;content&quot;: &quot;&quot;,
+  // other fields...
+}
+</code></pre>
+<p>Every new following list that gets published overwrites the past ones, so it should contain all entries. Relays and clients SHOULD delete past following lists as soon as they receive a new one.</p>
+<p>Whenever new follows are added to an existing list, clients SHOULD append them to the end of the list, so they are stored in chronological order.</p>
+<h2>Uses</h2>
+<h3>Follow list backup</h3>
+<p>If one believes a relay will store their events for sufficient time, they can use this kind-3 event to backup their following list and recover on a different device.</p>
+<h3>Profile discovery and context augmentation</h3>
+<p>A client may rely on the kind-3 event to display a list of followed people by profiles one is browsing; make lists of suggestions on who to follow based on the follow lists of other people one might be following or browsing; or show the data in other contexts.</p>
+<h3>Relay sharing</h3>
+<p>A client may publish a follow list with good relays for each of their follows so other clients may use these to update their internal relay lists if needed, increasing censorship-resistance.</p>
+<h3>Petname scheme</h3>
+<p>Clients can use follow-list <a href="http://www.skyhunter.com/marcs/petnames/IntroPetNames.html" target="_blank" rel="noopener noreferrer">petnames</a> as local names for profiles. A petname is stored as the fourth value in a <code>p</code> tag:</p>
+<pre><code class="language-json">[&quot;p&quot;, &quot;21df6d143fb96c2ec9d63726bf9edc7121df6d143fb96c2ec9d63726bf9edc71&quot;, &quot;&quot;, &quot;erin&quot;]
+</code></pre>
+<p>Here, the pubkey is known and can be displayed as <code>erin</code> in the current user's context. Likewise, if Erin has a petname of <code>charlie</code> assigned to one of her contacts, that Charlie can be displayed as <code>~/erin/charlie</code> in the current user's context.</p>
+<p>Petnames can also work on the other direction and resolve a pubkey from a name path. A path is resolved one component at a time: each component is looked up in the follow list of the profile resolved by the previous component.</p>
+<p>For example, if the current user's follow list gives a profile the petname <code>erin</code>, and Erin's follow list gives another profile the petname <code>charlie</code>, then <code>~/erin/charlie</code> resolves to Charlie.</p>
+<p>If no user is logged in or the current user context is not relevant, an absolute root can be specified:</p>
+<pre><code class="language-text">~npub1.../erin/charlie
+~carol@names.com/erin/charlie
+</code></pre>
+<p>In order to qualify for petname resolution they must have only ASCII letters, numbers or <code>_</code>.</p>
+</article>

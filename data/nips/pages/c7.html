@@ -1,0 +1,19 @@
+<article class="nips-doc" id="nip-C7">
+<p>A chat message is a <code>kind 9</code> event.</p>
+<pre><code class="language-json">{
+  &quot;kind&quot;: 9,
+  &quot;content&quot;: &quot;GM&quot;,
+  &quot;tags&quot;: []
+}
+</code></pre>
+<p>A reply to a <code>kind 9</code> is an additional <code>kind 9</code> which quotes the parent using a <code>q</code> tag.</p>
+<pre><code class="language-json">{
+  &quot;kind&quot;: 9,
+  &quot;content&quot;: &quot;nostr:nevent1...\nyes&quot;,
+  &quot;tags&quot;: [
+    [&quot;q&quot;, &lt;event-id&gt;, &lt;relay-url&gt;, &lt;pubkey&gt;]
+  ]
+}
+</code></pre>
+<p>Clients that render a "chat view" as a stream of ordered events MUST only fetch <code>kind 9</code> events in order to prevent missing context across implementations. Other content types MAY be quoted within in a <code>kind 9</code> following <a href="./18.md">NIP 18</a>.</p>
+</article>

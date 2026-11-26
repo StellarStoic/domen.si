@@ -1,0 +1,128 @@
+<article class="nips-doc" id="nip-77">
+<p>This document describes a protocol extension for syncing events. It works for both client-relay and relay-relay scenarios. If both sides of the sync have events in common, then this protocol will use less bandwidth than transferring the full set of events (or even just their IDs).</p>
+<p>It is a Nostr-friendly wrapper around the <a href="https://github.com/hoytech/negentropy" target="_blank" rel="noopener noreferrer">Negentropy</a> protocol, which uses a technique called <a href="https://logperiodic.com/rbsr.html" target="_blank" rel="noopener noreferrer">Range-Based Set Reconciliation</a>.</p>
+<p>Since Negentropy is a binary protocol, this wrapper hex-encodes its messages. The specification for Negentropy Protocol V1 is attached as an appendix to this NIP below.</p>
+<h2>High-Level Protocol Description</h2>
+<p>We're going to call the two sides engaged in the sync the client and the relay (even though the initiator could be another relay instead of a client).</p>
+<ul>
+<li>(1) Client (initiator) chooses a filter, and retrieves the set of events that it has locally that match this filter (or uses a cache), and constructs an initial message.</li>
+<li>(2) Client sends a <code>NEG-OPEN</code> message to the relay, which includes the filter and the initial message.</li>
+<li>(3) Relay selects the set of events that it has locally that match the filter (or uses a cache).</li>
+<li>(4) Relay constructs a response and returns it to the client in a <code>NEG-MSG</code> message.</li>
+<li>(5) Client parses the message to learn about IDs it has (and relay needs) and IDs it needs (and relay has).</li>
+<li>If client wishes to continue, then it constructs a new message and sends it to the relay in a <code>NEG-MSG</code> message. Goto step 4.</li>
+<li>If client wishes to stop, then it sends a <code>NEG-CLOSE</code> message or disconnects the websocket.</li>
+</ul>
+<p>The above protocol only results in the client learning about IDs it has/needs, and does not actually transfer events. Given these IDs, the client can upload events it has with <code>EVENT</code>, and/or download events it needs with <code>REQ</code>. This can be performed over the same websocket connection in parallel with subsequent <code>NEG-MSG</code> messages. If a client is only interested in determining the number of unique events (ie, reaction counts), it may choose to not download/upload at all.</p>
+<h2>Nostr Messages</h2>
+<h3>Initial message (client to relay):</h3>
+<pre><code class="language-yaml">[
+    &quot;NEG-OPEN&quot;,
+    &lt;subscription ID string&gt;,
+    &lt;filter&gt;,
+    &lt;initialMessage, hex-encoded&gt;
+]
+</code></pre>
+<ul>
+<li>The subscription ID is used by each side to identify which query a message refers to. It only needs to be long enough to distinguish it from any other concurrent subscriptions on this websocket connection (an integer that increments once per <code>NEG-OPEN</code> is fine). Subscription IDs are in a separate namespace from <code>REQ</code> subscription IDs. If a <code>NEG-OPEN</code> is issued for a currently open subscription ID, the existing subscription is first closed.</li>
+<li>The filter is as described in <a href="#" data-nip="01">NIP-01</a>.</li>
+<li><code>initialMessage</code> is the initial Negentropy binary message, hex-encoded. See appendix.</li>
+</ul>
+<h3>Error message (relay to client):</h3>
+<p>If a request cannot be serviced by the relay, an error is returned to the client:</p>
+<pre><code class="language-yaml">[
+    &quot;NEG-ERR&quot;,
+    &lt;subscription ID string&gt;,
+    &lt;reason code string&gt;
+]
+</code></pre>
+<p>Error reasons are the same format as in NIP-01. They should begin with a machine-readable single-word prefix, followed by a <code>:</code> and then a human-readable message with more information.</p>
+<p>The current suggested error reasons are</p>
+<ul>
+<li><code>blocked</code></li>
+<li>Relays can optionally reject queries that would require them to process too many records, or records that are too old</li>
+<li>The maximum number of records that can be processed can optionally be returned as the 4th element in the response</li>
+<li>Example: <code>blocked: this query is too big</code></li>
+<li><code>closed</code></li>
+<li>Because the <code>NEG-OPEN</code> queries may be stateful, relays may choose to time-out inactive queries to recover memory resources</li>
+<li>Example: <code>closed: you took too long to respond!</code></li>
+</ul>
+<p>After a <code>NEG-ERR</code> is issued, the subscription is considered to be closed.</p>
+<h3>Subsequent messages (bidirectional):</h3>
+<p>Relay and client alternate sending each other <code>NEG-MSG</code>s:</p>
+<pre><code class="language-yaml">[
+    &quot;NEG-MSG&quot;,
+    &lt;subscription ID string&gt;,
+    &lt;message, hex-encoded&gt;
+]
+</code></pre>
+<ul>
+<li><code>message</code> is a Negentropy binary message, hex-encoded. Both message directions use the same format. See appendix.</li>
+</ul>
+<h3>Close message (client to relay):</h3>
+<p>When finished, the client should tell the relay it can release its resources with a <code>NEG-CLOSE</code>:</p>
+<pre><code class="language-yaml">[
+    &quot;NEG-CLOSE&quot;,
+    &lt;subscription ID string&gt;
+]
+</code></pre>
+<h2>Appendix: Negentropy Protocol V1</h2>
+<h3>Preparation</h3>
+<p>There are two protocol participants: Client and server. The client creates an initial message and transmits it to the server, which replies with its own message in response. The client continues querying the server until it is satisfied, and then terminates the protocol. Messages in either direction have the same format.</p>
+<p>Each participant has a collection of records. A records consists of a 64-bit numeric timestamp and a 256-bit ID. Each participant starts by sorting their items according to timestamp, ascending. If two timestamps are equal then items are sorted lexically by ID, ascending by first differing byte. Items may not use the max uint64 value (<code>2**64 - 1</code>) as a timestamp since this is reserved as a special "infinity" value.</p>
+<p>The goal of the protocol is for the client to learn the set of IDs that it has and the server does not, and the set of items that the server has and it does not.</p>
+<h3><code>Varint</code></h3>
+<p>Varints (variable-sized unsigned integers) are represented as base-128 digits, most significant digit first, with as few digits as possible. Bit eight (the high bit) is set on each byte except the last.</p>
+<pre><code>Varint := &lt;Digit+128&gt;* &lt;Digit&gt;
+</code></pre>
+<h3><code>Id</code></h3>
+<p>IDs are represented as byte-strings of length <code>32</code>:</p>
+<pre><code>Id := Byte{32}
+</code></pre>
+<h3><code>Message</code></h3>
+<p>A reconciliation message is a protocol version byte followed by an ordered list of ranges:</p>
+<pre><code>Message := &lt;protocolVersion (Byte)&gt; &lt;Range&gt;*
+</code></pre>
+<p>The current protocol version is 1, represented by the byte <code>0x61</code>. Protocol version 2 will be <code>0x62</code>, and so forth. If a server receives a message with a protocol version that it cannot handle, it should reply with a single byte containing the highest protocol version it supports, allowing the client to downgrade and retry its message.</p>
+<p>Each Range corresponds to a contiguous section of the timestamp/ID space. The first Range starts at timestamp 0 and an ID of 0 bytes. Ranges are always adjacent (no gaps). If the last Range doesn't end at the special infinity value, an implicit <code>Skip</code> to infinity Range is appended. This means that the list of Ranges always covers the full timestamp/ID space.</p>
+<h3><code>Range</code></h3>
+<p>A Range consists of an upper bound, a mode, and a payload:</p>
+<pre><code>Range := &lt;upperBound (Bound)&gt; &lt;mode (Varint)&gt; &lt;payload (Skip | Fingerprint | IdList)&gt;
+</code></pre>
+<p>The contents of the payload is determined by mode:</p>
+<ul>
+<li>
+<p>If <code>mode = 0</code>, then payload is <code>Skip</code>, meaning the sender does not wish to process this Range further. This payload is empty:</p>
+<p>Skip :=</p>
+</li>
+<li>
+<p>If <code>mode = 1</code>, then payload is a <code>Fingerprint</code>, which is a <a href="#fingerprint-algorithm">digest</a> of all the IDs the sender has within the Range:</p>
+<p>Fingerprint := Byte{16}</p>
+</li>
+<li>
+<p>If <code>mode = 2</code>, the payload is <code>IdList</code>, a variable-length list of all IDs the sender has within the Range:</p>
+<p>IdList := <length (Varint)> <ids (Id)>*</p>
+</li>
+</ul>
+<h3><code>Bound</code></h3>
+<p>Each Range is specified by an <em>inclusive</em> lower bound and an <em>exclusive</em> upper bound. As defined above, each Range only includes an upper bound: the lower bound of a Range is the upper bound of the previous Range, or 0 timestamp/0 ID for the first Range.</p>
+<p>A Bound consists of an encoded timestamp and a variable-length disambiguating prefix of an ID (in case multiple items have the same timestamp):</p>
+<pre><code>Bound := &lt;encodedTimestamp (Varint)&gt; &lt;length (Varint)&gt; &lt;idPrefix (Byte)&gt;*
+</code></pre>
+<ul>
+<li>The timestamp is encoded specially. The infinity timestamp is encoded as <code>0</code>. All other values are encoded as <code>1 + offset</code>, where offset is the difference between this timestamp and the previously encoded timestamp. The initial offset starts at <code>0</code> and resets at the beginning of each message.</li>
+</ul>
+<p>Offsets are always non-negative since the upper bound's timestamp is greater than or equal to the lower bound's timestamp, ranges in a message are always encoded in ascending order, and ranges never overlap.</p>
+<ul>
+<li>The size of <code>idPrefix</code> is encoded in <code>length</code>, and can be between <code>0</code> and <code>32</code> bytes, inclusive. This allows implementations to use the shortest possible prefix to separate the first record of this Range from the last record of the previous Range. If these records' timestamps differ, then the length should be 0, otherwise it should be the byte-length of their common ID-prefix plus 1.</li>
+</ul>
+<p>If the <code>idPrefix</code> length is less than <code>32</code> then the omitted trailing bytes are implicitly 0 bytes.</p>
+<h3>Fingerprint Algorithm</h3>
+<p>The fingerprint of a Range is computed with the following algorithm:</p>
+<ul>
+<li>Compute the addition mod 2<sup>256</sup> of the element IDs (interpreted as 32-byte little-endian unsigned integers)</li>
+<li>Concatenate with the number of elements in the Range, encoded as a <a href="#varint">Varint</a></li>
+<li>Hash with SHA-256</li>
+<li>Take the first 16 bytes</li>
+</ul>
+</article>

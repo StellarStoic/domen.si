@@ -1,0 +1,61 @@
+<article class="nips-doc" id="nip-92">
+<h2>Media Attachments Metadata (<code>imeta</code>)</h2>
+<p>Media attachments (images, videos, and other files) may be added to events by including a URL in the event content, along with a matching <code>imeta</code> tag.</p>
+<p><code>imeta</code> ("inline metadata") tags MAY add information about media URLs in the event's content. Each <code>imeta</code> tag SHOULD match a URL in the event content. Clients MAY replace imeta URLs with rich previews.</p>
+<p>The <code>imeta</code> tag is variadic, and each entry is a space-delimited key/value pair.
+Each <code>imeta</code> tag MUST have a <code>url</code>, and at least one other field. <code>imeta</code> MAY include
+any field specified by <a href="./94.md">NIP 94</a>. There SHOULD be only one <code>imeta</code> tag per URL.</p>
+<h2>Example</h2>
+<pre><code class="language-json">{
+  &quot;content&quot;: &quot;More image metadata tests don’t mind me https://nostr.build/i/my-image.jpg&quot;,
+  &quot;kind&quot;: 1,
+  &quot;tags&quot;: [
+    [
+      &quot;imeta&quot;,
+      &quot;url https://nostr.build/i/my-image.jpg&quot;,
+      &quot;m image/jpeg&quot;,
+      &quot;blurhash eVF$^OI:${M{o#*0-nNFxakD-?xVM}WEWB%iNKxvR-oetmo#R-aen$&quot;,
+      &quot;dim 3024x4032&quot;,
+      &quot;alt A scenic photo overlooking the coast of Costa Rica&quot;,
+      &quot;x &lt;sha256 hash as specified in NIP 94&gt;&quot;,
+      &quot;fallback https://nostrcheck.me/alt1.jpg&quot;,
+      &quot;fallback https://void.cat/alt1.jpg&quot;
+    ]
+  ]
+}
+</code></pre>
+<h2>Recommended client behavior</h2>
+<p>When uploading files during a new post, clients MAY include this metadata
+after the file is uploaded and included in the post.</p>
+<p>When pasting URLs during post composition, the client MAY download the file
+and add this metadata before the post is sent.</p>
+<p>The client MAY ignore <code>imeta</code> tags that do not match the URL in the event content.</p>
+<h2>Profile metadata</h2>
+<p>A kind <code>0</code> event MAY carry <code>imeta</code> tags describing the images named by the <code>picture</code> and <code>banner</code> fields of its stringified JSON content (<a href="#" data-nip="01">NIP-01</a>, <a href="#" data-nip="24">NIP-24</a>). This gives profile images the same <code>fallback</code>, <code>blurhash</code>, <code>dim</code>, <code>alt</code>, and other <a href="#" data-nip="94">NIP-94</a> fields available to any other attachment.</p>
+<p>An <code>imeta</code> tag describes a field only when its <code>url</code> is exactly equal to that field's value. Tags whose <code>url</code> matches neither field SHOULD be ignored.</p>
+<pre><code class="language-json">{
+  &quot;kind&quot;: 0,
+  &quot;content&quot;: &quot;{\&quot;name\&quot;:\&quot;luna\&quot;,\&quot;picture\&quot;:\&quot;https://blossom.example/1f2e...a9.jpg\&quot;,\&quot;banner\&quot;:\&quot;https://blossom.example/7c3d...04.webp\&quot;}&quot;,
+  &quot;tags&quot;: [
+    [
+      &quot;imeta&quot;,
+      &quot;url https://blossom.example/1f2e...a9.jpg&quot;,
+      &quot;m image/jpeg&quot;,
+      &quot;x 1f2e...a9&quot;,
+      &quot;dim 400x400&quot;,
+      &quot;blurhash LEHV6nWB2yk8pyo0adR*.7kCMdnj&quot;,
+      &quot;fallback https://mirror.example/1f2e...a9.jpg&quot;
+    ],
+    [
+      &quot;imeta&quot;,
+      &quot;url https://blossom.example/7c3d...04.webp&quot;,
+      &quot;m image/webp&quot;,
+      &quot;x 7c3d...04&quot;,
+      &quot;dim 1500x500&quot;
+    ]
+  ]
+}
+</code></pre>
+<p>Clients SHOULD try the declared <code>fallback</code> URLs when the primary URL fails to load.</p>
+<p>Since kind <code>0</code> is replaceable, clients publishing a new kind <code>0</code> SHOULD carry over the <code>imeta</code> tags for a <code>picture</code> or <code>banner</code> that hasn't changed, and drop the tags for images that are no longer in use.</p>
+</article>
