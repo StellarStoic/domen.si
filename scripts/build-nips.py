@@ -245,8 +245,19 @@ def main():
             changed.append(str(target.relative_to(REPO)))
 
     nips.sort(key=lambda row: (len(row["nip"]), row["nip"]))
+    # `generatedAt` is the build clock, so writing it unconditionally would make the file differ on every
+    # run — a repository that churns, and a refresh job that could never be silent. Keep the stamp from the
+    # last run unless the content itself moved; that is also what makes the `--check` exit code mean
+    # "upstream changed" rather than "the clock moved".
+    previous = {}
+    if INDEX.exists():
+        try:
+            previous = json.loads(INDEX.read_text(encoding="utf-8"))
+        except Exception:
+            previous = {}
+    stamp = previous.get("generatedAt") or datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
     payload = {
-        "generatedAt": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
+        "generatedAt": stamp,
         "upstream": {
             "repo": "https://github.com/nostr-protocol/nips",
             "commit": commit,
@@ -257,6 +268,12 @@ def main():
         "nips": nips,
         "kinds": kinds,
     }
+    fresh = dict(payload)
+    stale = dict(previous)
+    fresh.pop("generatedAt", None)
+    stale.pop("generatedAt", None)
+    if fresh != stale:
+        payload["generatedAt"] = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
     write_if_changed(INDEX, json.dumps(payload, indent=2, ensure_ascii=False) + "\n", changed)
 
     # pages for NIPs that no longer exist upstream should not linger and be reachable
