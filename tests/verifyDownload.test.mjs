@@ -11,6 +11,7 @@ import {
     findEntry,
     formatFingerprint,
     interpretVerification,
+    keyserverUrl,
     parseManifest,
     verdict,
 } from '../verifyDownloadModel.mjs';
@@ -96,6 +97,18 @@ test('a valid signature over a mismatching file is still a failure', () => {
     assert.equal(verdict({hash: 'match'}).ok, true);
     assert.match(verdict({hash: 'no-entry', fileName: '/x/y.zip'}).text, /y\.zip/);
     assert.equal(verdict({}).ok, false);
+});
+
+test('a key is looked up by the fingerprint the signature carries', () => {
+    assert.equal(keyserverUrl('d4d0d3202fc06849a257b38de94618334c674b40'),
+        'https://keys.openpgp.org/vks/v1/by-fingerprint/D4D0D3202FC06849A257B38DE94618334C674B40');
+    // the spaced form people copy out of a terminal is the same lookup
+    assert.equal(keyserverUrl('D4D0 D320 2FC0 6849 A257 B38D E946 1833 4C67 4B40'),
+        'https://keys.openpgp.org/vks/v1/by-fingerprint/D4D0D3202FC06849A257B38DE94618334C674B40');
+    // a short key id, or nothing at all, is not something to look up
+    assert.equal(keyserverUrl('e94618334c674b40'), null);
+    assert.equal(keyserverUrl(''), null);
+    assert.equal(keyserverUrl(undefined), null);
 });
 
 test('fingerprints are grouped for reading, and digests name their algorithm by length', () => {

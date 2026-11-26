@@ -95,6 +95,19 @@ export function interpretVerification(result) {
     return {state: 'unknown', detail: text || 'verification gave no answer'};
 }
 
+/**
+ * Where to ask for a key by fingerprint.
+ *
+ * keys.openpgp.org answers with `Access-Control-Allow-Origin: *`, so the page can fetch a key the visitor
+ * did not bring — which is what makes the public key optional. Only the fingerprint is sent: the release
+ * file and the signature never leave the browser.
+ */
+export function keyserverUrl(fingerprint) {
+    const clean = String(fingerprint || '').toUpperCase().replace(/[^0-9A-F]/g, '');
+    if (clean.length < 32) return null;    // shorter than a v4 fingerprint is not something to look up
+    return `https://keys.openpgp.org/vks/v1/by-fingerprint/${clean}`;
+}
+
 /** A fingerprint in the groups of four people read out loud. */
 export function formatFingerprint(fingerprint) {
     const clean = String(fingerprint || '').toUpperCase().replace(/[^0-9A-F]/g, '');

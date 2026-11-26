@@ -9,8 +9,8 @@
 // OpenPGP.js, which is vendored at vendor/openpgp/ and loaded only when someone presses Verify. The
 // crypto is that library's, never arithmetic written here.
 
-import {algorithmFor, compareHash, findEntry, formatFingerprint, interpretVerification, parseManifest, verdict}
-    from './verifyDownloadModel.mjs?v=1';
+import {algorithmFor, compareHash, findEntry, formatFingerprint, interpretVerification, keyserverUrl,
+        parseManifest, verdict} from './verifyDownloadModel.mjs?v=2';
 
 (function initVerifyDownload(global) {
     const OPENPGP_URL = 'vendor/openpgp/openpgp.min.mjs';
@@ -53,7 +53,7 @@ import {algorithmFor, compareHash, findEntry, formatFingerprint, interpretVerifi
         titles.appendChild(element('p', 'verify-view__eyebrow', 'Signature and manifest'));
         titles.appendChild(element('h2', 'verify-view__title', 'VERIFY A DOWNLOAD'));
         titles.appendChild(element('p', 'verify-view__lede',
-            'Pick the release file, the signature that came with it, and — if the project publishes one — the manifest and public key. The files are read here; nothing is uploaded.'));
+            'Pick the release file and the signature that came with it. The manifest and the public key are optional: leave the key empty and its fingerprint asks keys.openpgp.org for it. Your files are read here and never uploaded — only a fingerprint ever leaves this page.'));
         const back = element('button', 'verify-view__back', '← BACK');
         back.type = 'button';
         back.addEventListener('click', () => (global.goBack ? global.goBack() : close()));
@@ -63,7 +63,7 @@ import {algorithmFor, compareHash, findEntry, formatFingerprint, interpretVerifi
         const form = element('div', 'verify-view__form');
         form.appendChild(picker('signature', 'Signature', 'e.g. sparrow-2.5.7-manifest.txt.asc, .sig or .gpg'));
         form.appendChild(picker('manifest', 'Manifest', 'e.g. sparrow-2.5.7-manifest.txt — optional'));
-        form.appendChild(picker('key', 'Public Key', 'e.g. pgp_keys.asc — optional, but needed to check a signature'));
+        form.appendChild(picker('key', 'Public Key', 'e.g. pgp_keys.asc — optional: left empty, it is fetched by fingerprint from keys.openpgp.org'));
         form.appendChild(picker('release', 'Release File', 'e.g. Sparrow-2.5.7.zip, .dmg, .deb, .rpm or .tar.gz'));
 
         const actions = element('div', 'verify-view__actions');
@@ -147,6 +147,7 @@ import {algorithmFor, compareHash, findEntry, formatFingerprint, interpretVerifi
         results.appendChild(resultRow('Signed by', outcome.signedBy || 'not checked', outcome.signed === 'valid' ? 'ok' : (outcome.signed ? 'bad' : null)));
         results.appendChild(resultRow('Release hash', outcome.hashText || 'not checked'));
         if (outcome.manifestText) results.appendChild(resultRow('Manifest', outcome.manifestText, outcome.hash === 'match' ? 'ok' : (outcome.hash ? 'bad' : null)));
+        if (outcome.keyNote) results.appendChild(resultRow('Key', outcome.keyNote));
         const final = verdict({signed: outcome.signed, hash: outcome.hash, fileName: outcome.fileName});
         results.appendChild(resultRow('Verified', final.text, final.ok ? 'ok' : 'bad'));
     }
@@ -195,22 +196,50 @@ import {algorithmFor, compareHash, findEntry, formatFingerprint, interpretVerifi
 
             // 3. the signature: over the manifest when there is one, otherwise over the file itself
             if (signature) {
-                if (!key) {
-                    outcome.signed = 'needs-key';
-                    outcome.signedBy = 'a signature was supplied but no public key to check it against';
+                const openpgp = await loadOpenPgp();
+                const signatureText = await readText(signature);
+                let parsedSignature;
+                try {
+                    parsedSignature = await openpgp.readSignature({armoredSignature: signatureText});
+                } catch (armoredError) {
+                    parsedSignature = await openpgp.readSignature({binarySignature: await readBytes(signature)});
+                }
+                const signedBytes = manifestText !== null ? new TextEncoder().encode(manifestText) : await readBytes(release);
+
+                // The public key is optional because a signature names the key that made it: when no key
+                // file is given, that fingerprint is what the keyserver is asked for. Only the fingerprint
+                // is sent — the file and the signature stay here.
+                let keyText = '';
+                if (key) {
+                    keyText = await readText(key);
                 } else {
-                    const openpgp = await loadOpenPgp();
-                    const signatureText = await readText(signature);
-                    let parsedSignature;
-                    try {
-                        parsedSignature = await openpgp.readSignature({armoredSignature: signatureText});
-                    } catch (armoredError) {
-                        parsedSignature = await openpgp.readSignature({binarySignature: await readBytes(signature)});
+                    const packet = parsedSignature.packets?.[0];
+                    const fingerprint = packet?.issuerFingerprint?.toHex?.() || '';
+                    const url = keyserverUrl(fingerprint);
+                    if (!url) {
+                        outcome.signed = 'needs-key';
+                        outcome.signedBy = 'this signature does not carry a key fingerprint, so the public key has to be supplied';
+                    } else {
+                        const shaped = formatFingerprint(fingerprint);
+                        outcome.keyNote = `no key supplied — fetched from keys.openpgp.org for ${shaped}. That proves the file matches this key, not who holds it: compare the fingerprint with the one on the project's own site.`;
+                        let response = null;
+                        try {
+                            response = await fetch(url, {cache: 'no-store'});
+                        } catch (networkError) {
+                            response = null;
+                        }
+                        if (!response || !response.ok) {
+                            outcome.signed = 'needs-key';
+                            outcome.signedBy = 'not checked — no key to check it with';
+                            outcome.keyNote = `keys.openpgp.org did not return a key for ${shaped} — supply the public key`;
+                        } else {
+                            keyText = await response.text();
+                        }
                     }
-                    const signedBytes = manifestText !== null ? new TextEncoder().encode(manifestText) : await readBytes(release);
-                    const verificationKeys = await openpgp.readKey({armoredKey: await readText(key).catch(async () => {
-                        return new TextDecoder().decode(await readBytes(key));
-                    })});
+                }
+
+                if (keyText) {
+                    const verificationKeys = await openpgp.readKey({armoredKey: keyText});
 
                     let result;
                     try {
