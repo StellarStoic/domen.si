@@ -103,9 +103,58 @@ export function interpretVerification(result) {
  * file and the signature never leave the browser.
  */
 export function keyserverUrl(fingerprint) {
+    const lookups = keyserverLookups(fingerprint);
+    return lookups.length ? lookups[0].url : null;
+}
+
+/**
+ * Every keyserver worth asking, in order.
+ *
+ * keys.openpgp.org is the polite one and the first to try, but it is not a complete index: a key whose
+ * owner never verified the address is served stripped, and repeated lookups earn a 429 instead of a key.
+ * SeedSigner's release key is missing from it for one of those reasons and present on the Ubuntu
+ * keyserver, which is why the second entry exists. Both answer with Access-Control-Allow-Origin: *,
+ * checked with curl before being written in.
+ */
+export function keyserverLookups(fingerprint) {
     const clean = String(fingerprint || '').toUpperCase().replace(/[^0-9A-F]/g, '');
-    if (clean.length < 32) return null;    // shorter than a v4 fingerprint is not something to look up
-    return `https://keys.openpgp.org/vks/v1/by-fingerprint/${clean}`;
+    if (clean.length < 32) return [];    // shorter than a v4 fingerprint is not something to look up
+    return [
+        {name: 'keys.openpgp.org', url: `https://keys.openpgp.org/vks/v1/by-fingerprint/${clean}`},
+        {name: 'keyserver.ubuntu.com', url: `https://keyserver.ubuntu.com/pks/lookup?op=get&search=0x${clean}&options=mr`},
+    ];
+}
+
+/**
+ * Say what a failed key lookup actually did.
+ *
+ * "did not return a key" is what the page said when OpenPGP.org rate-limited a lookup, and it sent the
+ * reader looking for the wrong problem. A 429 is a rate limit, a 404 is a missing key, and no response at
+ * all is usually a blocker or an offline machine — three different next steps.
+ */
+export function describeLookup({status, network}) {
+    if (network) return 'the request did not complete — a blocker, an offline machine, or the server is down';
+    if (status === 404) return 'no key with that fingerprint there';
+    if (status === 429) return 'rate limited, too many lookups';
+    if (status >= 500) return `server error (${status})`;
+    if (!status) return 'no answer';
+    return `unexpected answer (${status})`;
+}
+
+/**
+ * Pull an armoured public key out of a file the reader picked.
+ *
+ * Some projects ship the key inside the thing they signed, or a signature file that carries its own key
+ * block. It is a rare shape, but when it is there the key travels with the evidence and needs no network
+ * at all, so it is tried before any lookup.
+ */
+export function extractArmoredKey(text) {
+    const body = String(text || '');
+    const start = body.indexOf('-----BEGIN PGP PUBLIC KEY BLOCK-----');
+    if (start === -1) return null;
+    const end = body.indexOf('-----END PGP PUBLIC KEY BLOCK-----', start);
+    if (end === -1) return null;
+    return body.slice(start, end + '-----END PGP PUBLIC KEY BLOCK-----'.length) + '\n';
 }
 
 /** A fingerprint in the groups of four people read out loud. */

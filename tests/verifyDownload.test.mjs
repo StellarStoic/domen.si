@@ -9,8 +9,11 @@ import {
     baseName,
     compareHash,
     findEntry,
+    describeLookup,
+    extractArmoredKey,
     formatFingerprint,
     interpretVerification,
+    keyserverLookups,
     keyserverUrl,
     parseManifest,
     verdict,
@@ -109,6 +112,29 @@ test('a key is looked up by the fingerprint the signature carries', () => {
     assert.equal(keyserverUrl('e94618334c674b40'), null);
     assert.equal(keyserverUrl(''), null);
     assert.equal(keyserverUrl(undefined), null);
+});
+
+test('both keyservers are asked, and a failure says which kind of failure it was', () => {
+    const lookups = keyserverLookups('d4d0d3202fc06849a257b38de94618334c674b40');
+    assert.deepEqual(lookups.map(l => l.name), ['keys.openpgp.org', 'keyserver.ubuntu.com']);
+    assert.match(lookups[1].url, /keyserver\.ubuntu\.com.*0xD4D0D3202FC06849A257B38DE94618334C674B40/);
+    assert.deepEqual(keyserverLookups('e94618334c674b40'), []);
+
+    // a rate limit is not a missing key, and neither is a blocked request
+    assert.match(describeLookup({status: 429}), /rate limited/);
+    assert.match(describeLookup({status: 404}), /no key with that fingerprint/);
+    assert.match(describeLookup({network: true}), /did not complete/);
+    assert.match(describeLookup({status: 503}), /server error \(503\)/);
+    assert.match(describeLookup({status: 302}), /unexpected answer \(302\)/);
+});
+
+test('a key block carried inside a picked file is found, and a file without one yields nothing', () => {
+    const key = '-----BEGIN PGP PUBLIC KEY BLOCK-----\nabc\n-----END PGP PUBLIC KEY BLOCK-----';
+    assert.equal(extractArmoredKey(`sha256 sums\n${key}\n`), `${key}\n`);
+    assert.equal(extractArmoredKey(key), `${key}\n`);
+    assert.equal(extractArmoredKey('-----BEGIN PGP SIGNATURE-----\nabc\n-----END PGP SIGNATURE-----'), null);
+    assert.equal(extractArmoredKey('-----BEGIN PGP PUBLIC KEY BLOCK-----\nabc'), null);
+    assert.equal(extractArmoredKey(''), null);
 });
 
 test('fingerprints are grouped for reading, and digests name their algorithm by length', () => {
