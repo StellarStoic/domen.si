@@ -1,14 +1,14 @@
 {
- "builtAt": "2026-11-25T16:20:04.570564+00:00",
+ "builtAt": "2026-11-26T06:20:18.127272+00:00",
  "window": {
   "hours": 24,
-  "from": "2026-11-24T16:20:04.570564+00:00",
-  "to": "2026-11-25T16:20:04.570564+00:00"
+  "from": "2026-11-25T06:20:18.127272+00:00",
+  "to": "2026-11-26T06:20:18.127272+00:00"
  },
  "counts": {
-  "total": 15,
+  "total": 13,
   "cz": 9,
-  "policija": 6
+  "policija": 4
  },
  "bulletin": {
   "day": "25. 11. 2026",
@@ -122,6 +122,24 @@
   },
   {
    "source": "policija",
+   "topic": "dogodki",
+   "category": "Policija",
+   "title": "Kratek statistični pregled dogodkov v zadnjih 24 urah",
+   "text": "V zadnjih 24 urah je bilo na interventni številki policije '113' zabeleženih 2336 klicev. Med 556 interventnimi dogodki smo policisti med drugim obravnavali 148 prometnih nesreč, 33 kršitev javnega reda in miru, ter 70 kaznivih dejanj. V 137 prometnih nesrečah je nastala premoženjska škoda, v 11 nesrečah pa so bili udeleženci lažje telesno oškodovani. Zaradi storitve hujših prekrškov v cestnem prometu smo 7 voznikom zasegli vozilo, zaradi vožnje pod vplivom alkohola pa smo pridržali 1 voznika. Zaradi kršitve javnega reda in miru smo opravili 20 intervencij na javnem kraju, 13 pa v zasebnih prostorih. Da bi zaščitili žrtve nasilja v družini smo 2 osebama izrekli ukrep prepovedi približevanja. Med kaznivimi dejanji smo zabeležili 25 tatvin, 16 vlomov, 8 povzročitev telesne poškodbe, 6 poškodovanj tuje stvari, 4 grožnje, 3 ponarejanja listin, 3 kazniva dejanja nasilja v družini, 2 ropa, 1 drzno tatvino, 1 kaznivo dejanje v zvezi s prepovedanimi drogami in 1 preprečitev uradnega dejanja oz. napada na pooblaščeno osebo. V zadnjih 24 urah je bilo obravnavanih 31 oseb zaradi nezakonitega vstopa na meji z Republiko Hrvaško in sicer 28 na območju PU Novo mesto, 2 na območju PU Ljubljana in 1 na območju PU Celje. Med njimi smo obravnavali največ državljanov Maroka (9), Bangladeša (6) in Iraka (4).",
+   "url": "https://www.policija.si/medijsko-sredisce/dogodki-v-zadnjih-24-urah/129611-kratek-statisticni-pregled-dogodkov-v-zadnjih-24-urah-1942",
+   "published": "2026-11-26T04:29:15+00:00"
+  },
+  {
+   "source": "policija",
+   "topic": "dogodki",
+   "category": "Policija",
+   "title": "Na Ptuju ukraden osebni avtomobil BMW 530D",
+   "text": "25. 11. 2026 je bil na Ptuju ukraden osebni avto znamke BMW 530 D, sive barve, letnik 2017, reg. št. LJ FADIL.",
+   "url": "https://www.policija.si/medijsko-sredisce/dogodki-v-zadnjih-24-urah/129608-na-ptuju-ukraden-osebni-avtomobil-bmw-530d",
+   "published": "2026-11-25T16:08:09+00:00"
+  },
+  {
+   "source": "policija",
    "topic": "sporocila",
    "category": "Generalna policijska uprava",
    "title": "Začeli so se mednarodni dnevi boja proti nasilju nad ženskami in nasilju v družini",
@@ -137,42 +155,6 @@
    "text": "25. 11. 2026 je bil v Medvodah ukraden osebni avto znamke Renault kadjar, bele barve, letnik 2020, registrskih številk: LJ 32 ZIC.",
    "url": "https://www.policija.si/medijsko-sredisce/dogodki-v-zadnjih-24-urah/129602-v-medvodah-ukraden-renault-kadjar",
    "published": "2026-11-25T10:36:25+00:00"
-  },
-  {
-   "source": "policija",
-   "topic": "dogodki",
-   "category": "Policija",
-   "title": "Kratek statistični pregled dogodkov v zadnjih 24 urah",
-   "text": "V zadnjih 24 urah je bilo na interventni številki policije '113' zabeleženih 2034 klicev. Med 537 interventnimi dogodki smo policisti med drugim obravnavali 129 prometnih nesreč, 40 kršitev javnega reda in miru ter 66 kaznivih dejanj. V 116 prometnih nesrečah je nastala premoženjska škoda, v 9 nesrečah so bili udeleženci lažje, v 4 nesrečah pa huje telesno poškodovani. Zaradi storitve hujših prekrškov v cestnem prometu smo 8 voznikom zasegli vozila, zaradi vožnje pod vplivom alkohola pa smo pridržali 1 voznika. Zaradi kršitve javnega reda in miru smo opravili 29 intervencij na javnem kraju, 11 pa v zasebnih prostorih. 2 kršitelja, ki sta kljub opozorilu nadaljevala s prekrškom, smo pridržali. Da bi zaščitili žrtve nasilja v družini smo 3 osebam izrekli ukrep prepovedi približevanja. Med kaznivimi dejanji smo zabeležili 21 tatvin, 15 vlomov, 8 poškodovanj tuje stvari, 5 povzročitev telesne poškodbe, 4 kazniva dejanja v zvezi s prepovedanimi drogami, 4 kazniva dejanja nasilja v družini, 3 ponarejanja denarja, 3 grožnje, 2 ponarejanji listin in 1 drzno tatvino. V zadnjih 24 urah je bilo obravnavanih 38 oseb zaradi nezakonitega vstopa na meji z Republiko Hrvaško, in sicer 36 na območju PU Novo mesto, 1 na območju PU Celje in 1 na območju PU Nova Gorica. Med njimi smo obravnavali največ državljanov Bangladeša (6), Egipta (6) in Afganistana (4).",
-   "url": "https://www.policija.si/medijsko-sredisce/dogodki-v-zadnjih-24-urah/129596-kratek-statisticni-pregled-dogodkov-v-zadnjih-24-urah-1941",
-   "published": "2026-11-25T04:33:36+00:00"
-  },
-  {
-   "source": "policija",
-   "topic": "dogodki",
-   "category": "Policija",
-   "title": "Kratek statistični pregled dogodkov v zadnjih 24 urah",
-   "text": "V zadnjih 24 urah je bilo na interventni številki policije '113' zabeleženih 2034 klicev. Med 537 interventnimi dogodki smo policisti med drugim obravnavali 129 prometnih nesreč, 40 kršitev javnega reda in miru ter 66 kaznivih dejanj. V 116 prometnih nesrečah je nastala premoženjska škoda, v 9 nesrečah so bili udeleženci lažje, v 4 nesrečah pa huje telesno poškodovani. Zaradi storitve hujših prekrškov v cestnem prometu smo 8 voznikom zasegli vozila, zaradi vožnje pod vplivom alkohola pa smo pridržali 1 voznika. Zaradi kršitve javnega reda in miru smo opravili 29 intervencij na javnem kraju, 11 pa v zasebnih prostorih. 2 kršitelja, ki sta kljub opozorilu nadaljevala s prekrškom, smo pridržali. Da bi zaščitili žrtve nasilja v družini smo 3 osebam izrekli ukrep prepovedi približevanja. Med kaznivimi dejanji smo zabeležili 21 tatvin, 15 vlomov, 8 poškodovanj tuje stvari, 5 povzročitev telesne poškodbe, 4 kazniva dejanja v zvezi s prepovedanimi drogami, 4 kazniva dejanja nasilja v družini, 3 ponarejanja denarja, 3 grožnje, 2 ponarejanji listin in 1 drzno tatvino. V zadnjih 24 urah je bilo obravnavanih 38 oseb zaradi nezakonitega vstopa na meji z Republiko Hrvaško, in sicer 36 na območju PU Novo mesto, 1 na območju PU Celje in 1 na območju PU Nova Gorica. Med njimi smo obravnavali največ državljanov Bangladeša (6), Egipta (6) in Afganistana (4).",
-   "url": "https://www.policija.si/medijsko-sredisce/dogodki-v-zadnjih-24-urah/129593-kratek-statisticni-pregled-dogodkov-v-zadnjih-24-urah-1940",
-   "published": "2026-11-25T04:33:02+00:00"
-  },
-  {
-   "source": "policija",
-   "topic": "dogodki",
-   "category": "Policija",
-   "title": "V Železnikih ukraden Mercedes Benz A 160",
-   "text": "V Železnikih je bil 24. 11. 2026 tekom dneva ukraden osebni avtomobil, znamke Mercedes Benz A 160 AUT, kovinsko sive barve, letnik 2011, reg. št. KRCS-644.",
-   "url": "https://www.policija.si/medijsko-sredisce/dogodki-v-zadnjih-24-urah/129590-v-zeleznikih-ukraden-mercedes-benz-a-160",
-   "published": "2026-11-24T19:49:56+00:00"
-  },
-  {
-   "source": "policija",
-   "topic": "dogodki",
-   "category": "Policija",
-   "title": "V Kranju ukraden Fiat doblo",
-   "text": "24. 11. 2026 je bilo Kranju ukradeno tovorno vozilo znamke Fiat doblo, zlate barve, letnik 2011, registrskih številk: KR BL-768.",
-   "url": "https://www.policija.si/medijsko-sredisce/dogodki-v-zadnjih-24-urah/129587-v-kranju-ukraden-fiat-doblo-2",
-   "published": "2026-11-24T16:45:35+00:00"
   }
  ]
 }
