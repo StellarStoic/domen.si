@@ -283,24 +283,112 @@
     box-shadow: 0 0 0 3px var(--track);
 }
 
+.nips-index__stats[hidden] { display: none; }
+
 .nips-index__stats {
     margin: 0 0 12px;
     color: var(--muted);
     font-size: 0.74rem;
 }
 
-.nips-index__heading {
-    margin: 16px 0 8px;
-    color: var(--accent-on-surface);
-    font-size: 0.76rem;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
+/* One index at a time. Two lists stacked meant two scrollers inside a panel that also scrolls, and the
+   Kinds list began below the fold; the switch gives whichever index is showing the whole height. */
+.nips-index__tabs {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 4px;
+    margin: 0 0 8px;
+    padding: 3px;
+    border: 1px solid var(--rule);
+    border-radius: 8px;
+    background: var(--surface);
 }
+
+.nips-index__tab {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 7px 6px;
+    border: 0;
+    border-radius: 6px;
+    background: transparent;
+    color: var(--muted);
+    font: inherit;
+    font-size: 0.76rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    cursor: pointer;
+}
+
+.nips-index__tab:hover,
+.nips-index__tab:focus-visible {
+    color: var(--accent-on-surface);
+}
+
+.nips-index__tab.is-active {
+    background: var(--active);
+    /* the page colour is what the site already puts on a green fill (picked index row, picked kind chip);
+       --active-text is green itself and would vanish into it */
+    color: var(--page);
+}
+
+.nips-index__tab-count {
+    color: var(--muted);
+    font-size: 0.68rem;
+    letter-spacing: 0.02em;
+}
+
+.nips-index__tab.is-active .nips-index__tab-count { color: inherit; opacity: 0.8; }
+
+/* The panel becomes a frame and the list the only thing inside it that scrolls. Without this the panel
+   is capped and scrolls as well, so the index had an inner and an outer scrollbar and the search box
+   drifted away from the list it filters. */
+#info-panel:has(> .info-content[data-interest-id="nostr-nips"]) {
+    display: flex;
+    flex-direction: column;
+    /* auto, not hidden: if a very short window cannot hold the minimum list height the panel scrolls
+       instead of silently clipping the mirror line at the bottom */
+    overflow-y: auto;
+    /* a definite height is what makes the flex chain below give the list the leftover space; the board's
+       own height is already kept in --brain-height, so the panel matches it instead of guessing */
+    height: var(--brain-height, calc(100vh - 8rem));
+    box-sizing: border-box;
+}
+
+.info-content[data-interest-id="nostr-nips"] {
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    flex: 1 1 auto;
+}
+
+/* The panel is 300px wide and short, and para margins ate the space the list needed: with them the list
+   was 130px tall on a 900px screen, about three rows. Trimmed here only, so the rest of the site's
+   paragraphs keep their rhythm. */
+.info-content[data-interest-id="nostr-nips"] .nips-index__lede { margin-bottom: 8px; }
+.info-content[data-interest-id="nostr-nips"] .nips-index__search { margin-bottom: 8px; }
+.info-content[data-interest-id="nostr-nips"] .nips-index__stats { margin-bottom: 6px; }
+.nips-index__lede #nips-upstream { color: var(--muted); }
+.info-content[data-interest-id="nostr-nips"] .nips-index__tabs { margin-bottom: 6px; }
+
+.nips-index__pane {
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    flex: 1 1 auto;
+}
+
+.nips-index__pane[hidden] { display: none; }
 
 .nips-index__list {
     display: grid;
+    align-content: start;   /* rows keep their own height instead of stretching to fill the frame */
     gap: 2px;
-    max-height: 34vh;
+    min-height: 8rem;
+    flex: 1 1 auto;
+    height: 0;
+    max-height: none;
     overflow-y: auto;
     overscroll-behavior: contain;
     padding-right: 2px;
@@ -309,8 +397,8 @@
 .nips-index__item {
     display: grid;
     grid-template-columns: auto minmax(0, 1fr);
-    gap: 4px 10px;
-    padding: 6px 8px;
+    gap: 1px 10px;
+    padding: 5px 8px;
     border: 1px solid transparent;
     border-radius: 6px;
     background: none;
@@ -350,16 +438,11 @@
 .nips-index__from {
     grid-column: 2;
     color: var(--muted);
-    font-size: 0.72rem;
+    font-size: 0.7rem;
+    line-height: 1.35;
 }
 
 .nips-index__item--kind { grid-template-columns: 4.6rem minmax(0, 1fr); }
-
-.nips-index__upstream {
-    margin: 14px 0 0;
-    color: var(--muted);
-    font-size: 0.72rem;
-}
 
 @media (max-width: 768px) {
     .nips-view__head { padding: 14px 14px 10px; }

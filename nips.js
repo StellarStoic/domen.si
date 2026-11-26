@@ -33,6 +33,7 @@ import {kindLabel, kindsOf, matchesKind, matchesNip, numberLabel, orderNips, sta
         error: '',
         selected: '',      // the NIP on screen
         filter: '',
+        tab: 'nips',       // which index the panel shows: 'nips' or 'kinds'
         cache: new Map(),  // nip -> rendered html, so going back and forth costs nothing
     };
 
@@ -89,17 +90,24 @@ import {kindLabel, kindsOf, matchesKind, matchesNip, numberLabel, orderNips, sta
         content.innerHTML = `
             <div class="breadcrumb"><span class="breadcrumb-item">FREEDOM TECH</span> <span class="breadcrumb-item">NOSTR</span></div>
             <h3>NIPS</h3>
-            <p class="nips-index__lede">Every NIP in the repository, and every event kind with the NIP that defines it. Mirrored from <a href="https://github.com/nostr-protocol/nips" target="_blank" rel="noopener noreferrer">nostr-protocol/nips</a>.</p>
+            <p class="nips-index__lede">Every NIP and the kinds it defines, mirrored from <a href="https://github.com/nostr-protocol/nips" target="_blank" rel="noopener noreferrer">nostr-protocol/nips</a><span id="nips-upstream"></span>.</p>
             <label class="nips-index__search">
                 <span>Search a number, a title or a kind</span>
                 <input type="search" id="nips-filter" placeholder="1111, comment, reaction" autocomplete="off">
             </label>
+            <div class="nips-index__tabs" role="tablist" aria-label="Index">
+                <button type="button" class="nips-index__tab" role="tab" data-tab="nips" id="nips-tab-nips"
+                        aria-controls="nips-pane-nips" aria-selected="true">NIPs<span class="nips-index__tab-count" id="nips-count-nips"></span></button>
+                <button type="button" class="nips-index__tab" role="tab" data-tab="kinds" id="nips-tab-kinds"
+                        aria-controls="nips-pane-kinds" aria-selected="false">Kinds<span class="nips-index__tab-count" id="nips-count-kinds"></span></button>
+            </div>
             <div class="nips-index__stats" id="nips-stats"></div>
-            <h4 class="nips-index__heading">NIPs</h4>
-            <div class="nips-index__list" id="nips-list" role="list"></div>
-            <h4 class="nips-index__heading">Kinds</h4>
-            <div class="nips-index__list" id="nips-kinds" role="list"></div>
-            <p class="nips-index__upstream" id="nips-upstream"></p>
+            <div class="nips-index__pane" id="nips-pane-nips" role="tabpanel" aria-labelledby="nips-tab-nips">
+                <div class="nips-index__list" id="nips-list" role="list"></div>
+            </div>
+            <div class="nips-index__pane" id="nips-pane-kinds" role="tabpanel" aria-labelledby="nips-tab-kinds" hidden>
+                <div class="nips-index__list" id="nips-kinds" role="list"></div>
+            </div>
         `;
         if (shell) shell.hidden = false;
 
@@ -115,7 +123,34 @@ import {kindLabel, kindsOf, matchesKind, matchesNip, numberLabel, orderNips, sta
                 paintIndexes();
             });
         }
-        paintIndexes();
+
+        for (const tab of content.querySelectorAll('.nips-index__tab')) {
+            tab.addEventListener('click', () => showTab(tab.dataset.tab));
+        }
+        showTab(state.tab);
+    }
+
+    /**
+     * Show one index at a time.
+     *
+     * Both lists used to sit in the panel stacked, each with its own scrollbar, so the panel carried two
+     * scrollers and the Kinds list began somewhere below the fold. One list on screen means one place to
+     * scroll and the whole panel height for it.
+     */
+    function showTab(tab) {
+        const wanted = tab === 'kinds' ? 'kinds' : 'nips';
+        state.tab = wanted;
+        const content = document.getElementById('info-content');
+        if (!content) return;
+        for (const button of content.querySelectorAll('.nips-index__tab')) {
+            const active = button.dataset.tab === wanted;
+            button.classList.toggle('is-active', active);
+            button.setAttribute('aria-selected', active ? 'true' : 'false');
+        }
+        for (const pane of content.querySelectorAll('.nips-index__pane')) {
+            pane.hidden = pane.id !== `nips-pane-${wanted}`;
+        }
+        paintStats();
     }
 
     function paintIndexes() {
@@ -166,21 +201,36 @@ import {kindLabel, kindsOf, matchesKind, matchesNip, numberLabel, orderNips, sta
             listKinds.appendChild(item);
         }
 
-        if (statusLine) {
-            const totalNips = (state.index.nips || []).length;
-            const totalKinds = kinds.length;
-            statusLine.textContent = state.filter
-                ? `${shownNips} of ${totalNips} NIPs · ${shownKinds} of ${totalKinds} kinds`
-                : `${totalNips} NIPs · ${totalKinds} kinds`;
-        }
+        state.shown = {nips: shownNips, kinds: shownKinds};
+        const countNips = document.getElementById('nips-count-nips');
+        const countKinds = document.getElementById('nips-count-kinds');
+        if (countNips) countNips.textContent = String((state.index.nips || []).length);
+        if (countKinds) countKinds.textContent = String(kinds.length);
+        paintStats();
+
         const upstream = document.getElementById('nips-upstream');
         if (upstream && state.index.upstream) {
             const upstreamInfo = state.index.upstream;
             const short = String(upstreamInfo.commit || '').slice(0, 7);
             const when = String(upstreamInfo.committedAt || '').slice(0, 10);
-            upstream.textContent = `Mirror at ${short}${when ? `, ${when}` : ''}`;
+            upstream.textContent = ` at ${short}${when ? `, ${when}` : ''}`;
             upstream.title = upstreamInfo.repo || '';
         }
+    }
+
+    /** The line above the list, which speaks about the list on screen rather than about both. */
+    function paintStats() {
+        if (!statusLine || !state.index) return;
+        const totalNips = (state.index.nips || []).length;
+        const totalKinds = (state.index.kinds || []).length;
+        const shown = state.shown || {nips: totalNips, kinds: totalKinds};
+        // the totals live on the tabs, so this line only appears while a filter narrows the list — the
+        // panel is short and every line of chrome comes out of the list
+        statusLine.hidden = !state.filter;
+        if (!state.filter) return;
+        statusLine.textContent = state.tab === 'kinds'
+            ? `${shown.kinds} of ${totalKinds} kinds`
+            : `${shown.nips} of ${totalNips} NIPs`;
     }
 
     function explainerHead(row, highlightKind) {
