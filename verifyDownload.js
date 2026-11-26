@@ -70,6 +70,36 @@ import {algorithmFor, compareHash, describeLookup, extractArmoredKey, findEntry,
         form.appendChild(picker('key', 'Public Key', "e.g. pgp_keys.asc — optional: left empty, the fingerprint is tried on both keyservers. The project's own key file is the stronger source."));
         form.appendChild(picker('release', 'Release File', 'e.g. Sparrow-2.5.7.zip, .dmg, .deb, .rpm or .tar.gz'));
 
+        // When the keyservers are unreachable — a blocker, a hostile network, an offline machine — the key
+        // still has to arrive somehow. Pasting it needs nothing at all; a URL is what projects publish.
+        const pasteRow = element('div', 'verify-field verify-field--paste');
+        const pasteLabel = element('label', 'verify-field__label', 'Or paste the key');
+        pasteLabel.setAttribute('for', 'verify-key-text');
+        const pasteBox = element('textarea', 'verify-field__paste');
+        pasteBox.id = 'verify-key-text';
+        pasteBox.rows = 3;
+        pasteBox.placeholder = '-----BEGIN PGP PUBLIC KEY BLOCK-----';
+        pasteBox.spellcheck = false;
+        const pasteNote = element('p', 'verify-field__note', 'copied from the project\'s page — used when no key file is picked');
+        pasteRow.appendChild(pasteLabel);
+        pasteRow.appendChild(pasteBox);
+        pasteRow.appendChild(pasteNote);
+        form.appendChild(pasteRow);
+
+        const urlRow = element('div', 'verify-field');
+        const urlLabel = element('label', 'verify-field__label', 'Or a key URL');
+        urlLabel.setAttribute('for', 'verify-key-url');
+        const urlInput = element('input', 'verify-field__url');
+        urlInput.type = 'url';
+        urlInput.id = 'verify-key-url';
+        urlInput.placeholder = 'https://keybase.io/seedsigner/pgp_keys.asc';
+        urlInput.autocomplete = 'off';
+        const urlNote = element('p', 'verify-field__note', 'fetched when the keyservers cannot be reached');
+        urlRow.appendChild(urlLabel);
+        urlRow.appendChild(urlInput);
+        urlRow.appendChild(urlNote);
+        form.appendChild(urlRow);
+
         const actions = element('div', 'verify-view__actions');
         const verify = element('button', 'verify-view__run', 'Verify');
         verify.type = 'button';
@@ -305,10 +335,32 @@ import {algorithmFor, compareHash, describeLookup, extractArmoredKey, findEntry,
                 // Where a key can come from, in the order that puts the strongest evidence first: a key
                 // file the reader chose, an armoured block sitting inside what they picked, then the
                 // keyservers by fingerprint.
+                const pastedText = (root.querySelector('#verify-key-text')?.value || '').trim();
+                const keyUrl = (root.querySelector('#verify-key-url')?.value || '').trim();
+
                 const sources = [];
                 if (key) {
                     sources.push({label: 'the key file you supplied', text: async () => readText(key)});
                 } else {
+                    sources.push({label: 'the key you pasted', text: async () => (pastedText ? extractArmoredKey(pastedText) || pastedText : null)});
+                    if (keyUrl) {
+                        sources.push({label: `the key at ${keyUrl}`, text: async () => {
+                            let response = null;
+                            try {
+                                response = await fetch(keyUrl, {cache: 'no-store'});
+                            } catch (networkError) {
+                                outcome.keyFailures = [...(outcome.keyFailures || []),
+                                    `${keyUrl}: ${describeLookup({network: true, message: networkError.message})}`];
+                                return null;
+                            }
+                            if (!response.ok) {
+                                outcome.keyFailures = [...(outcome.keyFailures || []),
+                                    `${keyUrl}: ${describeLookup({status: response.status})}`];
+                                return null;
+                            }
+                            return await response.text();
+                        }});
+                    }
                     sources.push({label: 'a key block inside the files you picked', text: async () => {
                         const embedded = extractArmoredKey(signatureText) || (manifestText ? extractArmoredKey(manifestText) : '');
                         return embedded || null;
@@ -323,7 +375,8 @@ import {algorithmFor, compareHash, describeLookup, extractArmoredKey, findEntry,
                             try {
                                 response = await fetch(lookup.url, {cache: 'no-store'});
                             } catch (networkError) {
-                                outcome.keyFailures = [...(outcome.keyFailures || []), `${lookup.name}: ${describeLookup({network: true})}`];
+                                outcome.keyFailures = [...(outcome.keyFailures || []),
+                                    `${lookup.name}: ${describeLookup({network: true, message: networkError.message})}`];
                                 return null;
                             }
                             if (!response.ok) {
@@ -379,12 +432,16 @@ import {algorithmFor, compareHash, describeLookup, extractArmoredKey, findEntry,
 
                 if (!best || best.state === 'needs-key') {
                     outcome.signed = 'needs-key';
-                    outcome.signedBy = 'not checked — no key to check it with';
+                    outcome.signedBy = 'not checked — the signing key could not be obtained';
                     if (!outcome.keyNote) {
                         const failures = (outcome.keyFailures || []).join('; ');
+                        // A fingerprint is not a key, and a line that prints one next to "no key" reads as
+                        // if the tool were refusing the very thing it just named. Say which key is wanted,
+                        // what was tried, and the three ways to provide it.
                         outcome.keyNote = fingerprint
-                            ? `no key for ${shaped} came back${failures ? ` (${failures})` : ''} — pick the project's key file, which is the strongest source anyway`
-                            : 'this signature carries no fingerprint, so pick the project\'s key file';
+                            ? `this file was signed by ${shaped}. No public key for it could be fetched${failures ? `: ${failures}` : ''}.`
+                                + ' Pick the key file the project publishes, paste the key text, or paste its URL.'
+                            : 'this signature carries no fingerprint, so the public key has to be supplied';
                     }
                 }
             }
@@ -412,6 +469,11 @@ import {algorithmFor, compareHash, describeLookup, extractArmoredKey, findEntry,
                 name.textContent = 'no file picked';
                 name.classList.remove('is-set');
             }
+        }
+        // Clear clears what it owns: a pasted key or a URL left behind would go on being used by the next
+        // verification without the reader seeing it
+        for (const text of root.querySelectorAll('#verify-key-text, #verify-key-url')) {
+            text.value = '';
         }
         paint(null);
     }

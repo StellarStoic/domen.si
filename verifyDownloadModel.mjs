@@ -132,8 +132,13 @@ export function keyserverLookups(fingerprint) {
  * reader looking for the wrong problem. A 429 is a rate limit, a 404 is a missing key, and no response at
  * all is usually a blocker or an offline machine — three different next steps.
  */
-export function describeLookup({status, network}) {
-    if (network) return 'the request did not complete — a blocker, an offline machine, or the server is down';
+export function describeLookup({status, network, message}) {
+    if (network) {
+        // the browser's own words, kept: "Failed to fetch" from a blocker and from a dead server look
+        // identical otherwise, and the reader is the one who knows which of those their machine does
+        const said = String(message || '').trim();
+        return `the request did not complete${said ? ` (${said})` : ''} — a blocker, an offline machine, or the server is down`;
+    }
     if (status === 404) return 'no key with that fingerprint there';
     if (status === 429) return 'rate limited, too many lookups';
     if (status >= 500) return `server error (${status})`;

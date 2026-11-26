@@ -120,6 +120,29 @@
 
 .verify-field__name.is-set { color: var(--ink); }
 
+/* the two ways in that need no keyserver: pasted text, and a URL the project publishes */
+.verify-field__paste,
+.verify-field__url {
+    min-width: 0;
+    padding: 7px 9px;
+    border: 1px solid var(--rule);
+    border-radius: 6px;
+    background: var(--surface);
+    color: var(--ink);
+    font-family: 'Courier New', monospace;
+    font-size: 0.74rem;
+}
+
+.verify-field__paste { resize: vertical; min-height: 3.6rem; }
+
+.verify-field__paste:focus-visible,
+.verify-field__url:focus-visible {
+    border-color: var(--accent);
+    outline: none;
+}
+
+.verify-field--paste { align-items: start; }
+
 .verify-field__note {
     grid-column: 2 / -1;
     margin: 0;
