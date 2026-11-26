@@ -39,6 +39,14 @@ import {algorithmFor, compareHash, describeLookup, extractArmoredKey, findEntry,
         return node;
     }
 
+    function describeSize(bytes) {
+        if (!Number.isFinite(bytes)) return '';
+        if (bytes >= 1024 * 1024 * 1024) return `${(bytes / (1024 ** 3)).toFixed(1)} GB`;
+        if (bytes >= 1024 * 1024) return `${Math.round(bytes / (1024 * 1024))} MB`;
+        if (bytes >= 1024) return `${Math.round(bytes / 1024)} kB`;
+        return `${bytes} B`;
+    }
+
     function loadOpenPgp() {
         if (!openpgpPromise) openpgpPromise = import(`./${OPENPGP_URL}`);
         return openpgpPromise;
@@ -86,7 +94,7 @@ import {algorithmFor, compareHash, describeLookup, extractArmoredKey, findEntry,
         keyFile.addEventListener('change', () => {
             const picked = keyFile.files && keyFile.files[0] ? keyFile.files[0] : null;
             state.files.key = picked;
-            keyFileName.textContent = picked ? picked.name : 'or pick a key file';
+            keyFileName.textContent = picked ? `${picked.name} · ${describeSize(picked.size)}` : 'or pick a key file';
             keyFileName.classList.toggle('is-set', Boolean(picked));
         });
         const keyNote = element('p', 'verify-field__note',
@@ -182,7 +190,8 @@ import {algorithmFor, compareHash, describeLookup, extractArmoredKey, findEntry,
         input.addEventListener('change', () => {
             const file = input.files && input.files[0] ? input.files[0] : null;
             state.files[kind] = file;
-            name.textContent = file ? file.name : 'no file picked';
+            // the size, because a 50 MB image takes a moment to hash and silence reads as a freeze
+            name.textContent = file ? `${file.name} · ${describeSize(file.size)}` : 'no file picked';
             name.classList.toggle('is-set', Boolean(file));
         });
         row.appendChild(caption);
