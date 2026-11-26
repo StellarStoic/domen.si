@@ -67,25 +67,40 @@ import {algorithmFor, compareHash, describeLookup, extractArmoredKey, findEntry,
         const form = element('div', 'verify-view__form');
         form.appendChild(picker('signature', 'Signature', 'e.g. sparrow-2.5.7-manifest.txt.asc, .sig or .gpg'));
         form.appendChild(picker('manifest', 'Manifest', 'e.g. sparrow-2.5.7-manifest.txt — optional'));
-        form.appendChild(picker('key', 'Public Key', "e.g. pgp_keys.asc — optional: left empty, the fingerprint is tried on both keyservers. The project's own key file is the stronger source."));
+        // The key arrives as text or as a file, in one place: typing or pasting is what people actually do
+        // with a key they just copied from a project page, and it needs no download, no file manager and
+        // no network. The file picker stays for the case where a pgp_keys.asc is already on disk.
+        const keyRow = element('div', 'verify-field verify-field--key');
+        const keyLabel = element('label', 'verify-field__label', 'Public Key');
+        keyLabel.setAttribute('for', 'verify-key-text');
+        const keyBox = element('textarea', 'verify-field__paste');
+        keyBox.id = 'verify-key-text';
+        keyBox.rows = 4;
+        keyBox.placeholder = 'Paste or type the key — -----BEGIN PGP PUBLIC KEY BLOCK----- …';
+        keyBox.spellcheck = false;
+        const keyFile = element('input', 'verify-field__file');
+        keyFile.type = 'file';
+        keyFile.id = 'verify-key-file';
+        keyFile.dataset.kind = 'key';
+        const keyFileName = element('span', 'verify-field__name', 'or pick a key file');
+        keyFile.addEventListener('change', () => {
+            const picked = keyFile.files && keyFile.files[0] ? keyFile.files[0] : null;
+            state.files.key = picked;
+            keyFileName.textContent = picked ? picked.name : 'or pick a key file';
+            keyFileName.classList.toggle('is-set', Boolean(picked));
+        });
+        const keyNote = element('p', 'verify-field__note',
+            "text typed or pasted here is used first; a picked file is used when this box is empty. Optional either way — left empty, the fingerprint is tried on both keyservers, then a key URL.");
+        keyRow.appendChild(keyLabel);
+        keyRow.appendChild(keyBox);
+        keyRow.appendChild(keyFile);
+        keyRow.appendChild(keyFileName);
+        keyRow.appendChild(keyNote);
+        form.appendChild(keyRow);
         form.appendChild(picker('release', 'Release File', 'e.g. Sparrow-2.5.7.zip, .dmg, .deb, .rpm or .tar.gz'));
 
         // When the keyservers are unreachable — a blocker, a hostile network, an offline machine — the key
         // still has to arrive somehow. Pasting it needs nothing at all; a URL is what projects publish.
-        const pasteRow = element('div', 'verify-field verify-field--paste');
-        const pasteLabel = element('label', 'verify-field__label', 'Or paste the key');
-        pasteLabel.setAttribute('for', 'verify-key-text');
-        const pasteBox = element('textarea', 'verify-field__paste');
-        pasteBox.id = 'verify-key-text';
-        pasteBox.rows = 3;
-        pasteBox.placeholder = '-----BEGIN PGP PUBLIC KEY BLOCK-----';
-        pasteBox.spellcheck = false;
-        const pasteNote = element('p', 'verify-field__note', 'copied from the project\'s page — used when no key file is picked');
-        pasteRow.appendChild(pasteLabel);
-        pasteRow.appendChild(pasteBox);
-        pasteRow.appendChild(pasteNote);
-        form.appendChild(pasteRow);
-
         const urlRow = element('div', 'verify-field');
         const urlLabel = element('label', 'verify-field__label', 'Or a key URL');
         urlLabel.setAttribute('for', 'verify-key-url');
@@ -339,10 +354,13 @@ import {algorithmFor, compareHash, describeLookup, extractArmoredKey, findEntry,
                 const keyUrl = (root.querySelector('#verify-key-url')?.value || '').trim();
 
                 const sources = [];
+                if (pastedText) {
+                    sources.push({label: 'the key you typed or pasted', text: async () => extractArmoredKey(pastedText) || pastedText});
+                }
                 if (key) {
                     sources.push({label: 'the key file you supplied', text: async () => readText(key)});
-                } else {
-                    sources.push({label: 'the key you pasted', text: async () => (pastedText ? extractArmoredKey(pastedText) || pastedText : null)});
+                }
+                if (!pastedText && !key) {
                     if (keyUrl) {
                         sources.push({label: `the key at ${keyUrl}`, text: async () => {
                             let response = null;
@@ -423,7 +441,7 @@ import {algorithmFor, compareHash, describeLookup, extractArmoredKey, findEntry,
                         : described;
                     if (best.detail) outcome.signedDetail = best.detail;
                     outcome.signedOver = manifestText !== null ? `the manifest (${manifest.name})` : `the release file (${release.name})`;
-                    if (!key) {
+                    if (!key || pastedText) {
                         outcome.keyNote = best.state === 'valid'
                             ? `key from ${best.label}. That proves the file matches this key, not who holds it: compare the fingerprint with the one on the project's own site.`
                             : `tried ${best.label}`;

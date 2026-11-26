@@ -120,6 +120,12 @@
 
 .verify-field__name.is-set { color: var(--ink); }
 
+/* the key row: a box to paste or type into, with the file picker beside it as the alternative */
+.verify-field--key { align-items: start; }
+.verify-field--key .verify-field__paste { grid-column: 2 / -1; }
+.verify-field--key .verify-field__file { grid-column: 2 / 3; margin-top: 8px; }
+.verify-field--key .verify-field__name { grid-column: 3 / -1; margin-top: 14px; }
+
 /* the two ways in that need no keyserver: pasted text, and a URL the project publishes */
 .verify-field__paste,
 .verify-field__url {
@@ -333,5 +339,8 @@
     .verify-view__results { padding: 12px 14px 22px; }
     .verify-field { grid-template-columns: minmax(0, 1fr); }
     .verify-field__note { grid-column: 1; }
+    .verify-field--key .verify-field__paste,
+    .verify-field--key .verify-field__file,
+    .verify-field--key .verify-field__name { grid-column: 1; margin-top: 6px; }
     .verify-result { grid-template-columns: minmax(0, 1fr); gap: 4px; }
 }
