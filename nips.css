@@ -1,0 +1,369 @@
+/* NIPS — the explainer on the board, the two indexes in the side panel.
+ *
+ * Roles only, no literal colours: the palette lives in style.css and every value here has to follow both
+ * themes. `.nips-view` sets `display: grid`, so it needs its own [hidden] rule — the browser's default
+ * `[hidden] { display: none }` loses to an author rule and the shell would stay painted over the board.
+ */
+
+.nips-view {
+    position: absolute;
+    inset: 0;
+    z-index: 60;
+    display: grid;
+    grid-template-rows: auto minmax(0, 1fr);
+    background: var(--page);
+    color: var(--ink);
+}
+
+.nips-view[hidden],
+.nips-view [hidden] {
+    display: none !important;
+}
+
+.nips-view__head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 18px 22px 14px;
+    border-bottom: 1px solid var(--rule);
+}
+
+.nips-view__eyebrow {
+    margin: 0 0 4px;
+    color: var(--accent-text);
+    font-size: 0.72rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.nips-view__title {
+    margin: 0;
+    font-size: clamp(1.4rem, 3vw, 2rem);
+    letter-spacing: 0.04em;
+}
+
+.nips-view__back {
+    flex: 0 0 auto;
+    padding: 8px 14px;
+    border: 1px solid var(--rule);
+    border-radius: 6px;
+    background: var(--surface);
+    color: var(--ink);
+    font: inherit;
+    font-size: 0.78rem;
+    letter-spacing: 0.06em;
+    cursor: pointer;
+}
+
+.nips-view__back:hover,
+.nips-view__back:focus-visible {
+    border-color: var(--accent);
+    color: var(--accent-text);
+}
+
+.nips-view__doc {
+    min-height: 0;
+    overflow-y: auto;
+    /* the leftover wheel belongs to the page, not to a nested box that usually has nothing to scroll */
+    overscroll-behavior: auto;
+    padding: 22px;
+}
+
+/* ---- the explainer ------------------------------------------------------------------------- */
+
+.nips-doc__head {
+    max-width: 78ch;
+    margin: 0 0 22px;
+    padding: 0 0 18px;
+    border-bottom: 1px solid var(--rule);
+}
+
+.nips-doc__eyebrow {
+    margin: 0 0 6px;
+    color: var(--accent-text);
+    font-size: 0.78rem;
+    letter-spacing: 0.1em;
+}
+
+.nips-doc__status {
+    display: inline-block;
+    margin: 0 0 10px;
+    padding: 3px 9px;
+    border: 1px solid currentColor;
+    border-radius: 999px;
+    font-size: 0.7rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+}
+
+.nips-doc__status.is-final { color: var(--active-text); }
+.nips-doc__status.is-draft { color: var(--muted); }
+.nips-doc__status.is-unrecommended,
+.nips-doc__status.is-deprecated { color: var(--accent-text); }
+.nips-doc__status.is-other { color: var(--muted); }
+
+.nips-doc__kinds {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+    margin: 0 0 10px;
+}
+
+.nips-doc__kinds-label {
+    color: var(--muted);
+    font-size: 0.74rem;
+}
+
+/* a chip is a fill, so its label takes the ink role — accent on accent-text measures 1:1 */
+.nips-doc__kind {
+    padding: 4px 10px;
+    border: 1px solid var(--accent);
+    border-radius: 999px;
+    background: var(--accent);
+    color: var(--accent-ink);
+    font: inherit;
+    font-size: 0.76rem;
+    cursor: pointer;
+}
+
+.nips-doc__kind.is-active {
+    border-color: var(--active);
+    background: var(--active);
+    color: var(--page);
+}
+
+.nips-doc__kind:hover,
+.nips-doc__kind:focus-visible {
+    box-shadow: 0 0 0 2px var(--accent-text);
+}
+
+.nips-doc__note {
+    margin: 0;
+    color: var(--muted);
+    font-size: 0.82rem;
+    line-height: 1.6;
+}
+
+.nips-doc__loading,
+.nips-doc__error {
+    margin: 0;
+    color: var(--muted);
+    font-size: 0.86rem;
+}
+
+.nips-doc__error { color: var(--accent-text); }
+
+/* ---- the NIP text, as the upstream markdown renders ---------------------------------------- */
+
+.nips-doc__body { max-width: 82ch; }
+
+.nips-doc h1,
+.nips-doc h2,
+.nips-doc h3,
+.nips-doc h4 {
+    margin: 26px 0 10px;
+    line-height: 1.25;
+}
+
+.nips-doc h1 { font-size: 1.5rem; letter-spacing: 0.04em; }
+.nips-doc h2 { font-size: 1.18rem; }
+.nips-doc h3 { font-size: 1rem; }
+.nips-doc h4 { font-size: 0.92rem; color: var(--muted); }
+
+.nips-doc p,
+.nips-doc li {
+    font-size: 0.88rem;
+    line-height: 1.7;
+}
+
+.nips-doc p { margin: 0 0 12px; }
+.nips-doc ul,
+.nips-doc ol { margin: 0 0 14px; padding-left: 22px; }
+.nips-doc li { margin-bottom: 6px; }
+
+.nips-doc a { color: var(--accent-text); }
+
+.nips-doc code {
+    padding: 1px 5px;
+    border-radius: 4px;
+    background: var(--surface);
+    color: var(--ink);
+    font-family: inherit;
+    font-size: 0.82rem;
+    overflow-wrap: anywhere;
+}
+
+.nips-doc pre {
+    margin: 0 0 14px;
+    padding: 12px 14px;
+    overflow-x: auto;
+    border: 1px solid var(--rule);
+    border-radius: 8px;
+    background: var(--surface);
+}
+
+.nips-doc pre code {
+    padding: 0;
+    background: none;
+    font-size: 0.8rem;
+    line-height: 1.55;
+}
+
+.nips-doc table {
+    display: block;
+    width: 100%;
+    max-width: 100%;
+    margin: 0 0 16px;
+    overflow-x: auto;
+    border-collapse: collapse;
+    font-size: 0.82rem;
+}
+
+.nips-doc th,
+.nips-doc td {
+    padding: 7px 10px;
+    border: 1px solid var(--rule);
+    text-align: left;
+    vertical-align: top;
+}
+
+.nips-doc th { background: var(--surface); }
+
+.nips-doc blockquote {
+    margin: 0 0 14px;
+    padding: 4px 0 4px 14px;
+    border-left: 2px solid var(--accent);
+    color: var(--muted);
+}
+
+.nips-doc img { max-width: 100%; height: auto; }
+
+.nips-doc hr {
+    margin: 22px 0;
+    border: 0;
+    border-top: 1px solid var(--rule);
+}
+
+/* ---- the indexes, which live in the side panel --------------------------------------------- */
+
+.nips-index__lede {
+    margin: 0 0 12px;
+    color: var(--muted);
+    font-size: 0.8rem;
+    line-height: 1.6;
+}
+
+.nips-index__lede a { color: var(--accent-on-surface); }
+
+.nips-index__search { display: block; margin: 0 0 10px; }
+
+.nips-index__search span {
+    display: block;
+    margin-bottom: 6px;
+    color: var(--muted);
+    font-size: 0.74rem;
+}
+
+.nips-index__search input {
+    width: 100%;
+    padding: 8px 10px;
+    border: 1px solid var(--rule);
+    border-radius: 6px;
+    background: var(--surface);
+    color: var(--ink);
+    font: inherit;
+    font-size: 0.82rem;
+}
+
+.nips-index__search input:focus-visible {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px var(--track);
+}
+
+.nips-index__stats {
+    margin: 0 0 12px;
+    color: var(--muted);
+    font-size: 0.74rem;
+}
+
+.nips-index__heading {
+    margin: 16px 0 8px;
+    color: var(--accent-on-surface);
+    font-size: 0.76rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.nips-index__list {
+    display: grid;
+    gap: 2px;
+    max-height: 34vh;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    padding-right: 2px;
+}
+
+.nips-index__item {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    gap: 4px 10px;
+    padding: 6px 8px;
+    border: 1px solid transparent;
+    border-radius: 6px;
+    background: none;
+    color: var(--ink);
+    font: inherit;
+    font-size: 0.8rem;
+    text-align: left;
+    cursor: pointer;
+}
+
+.nips-index__item:hover,
+.nips-index__item:focus-visible {
+    border-color: var(--rule);
+    background: var(--surface);
+}
+
+.nips-index__item.is-active {
+    border-color: var(--active);
+    background: var(--active);
+    color: var(--page);
+}
+
+.nips-index__num {
+    color: var(--accent-on-surface);
+    font-size: 0.78rem;
+    white-space: nowrap;
+}
+
+.nips-index__item.is-active .nips-index__num,
+.nips-index__item.is-active .nips-index__from {
+    color: var(--page);
+}
+
+.nips-index__name { overflow-wrap: anywhere; }
+
+.nips-index__kinds,
+.nips-index__from {
+    grid-column: 2;
+    color: var(--muted);
+    font-size: 0.72rem;
+}
+
+.nips-index__item--kind { grid-template-columns: 4.6rem minmax(0, 1fr); }
+
+.nips-index__upstream {
+    margin: 14px 0 0;
+    color: var(--muted);
+    font-size: 0.72rem;
+}
+
+@media (max-width: 768px) {
+    .nips-view__head { padding: 14px 14px 10px; }
+    .nips-view__doc { padding: 14px; }
+    .nips-doc__head { margin-bottom: 16px; padding-bottom: 14px; }
+    .nips-index__list { max-height: none; }
+}

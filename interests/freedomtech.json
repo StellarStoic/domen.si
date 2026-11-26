@@ -279,6 +279,13 @@
                     "name": "RESOURCES",
                     "description": "Clients are interchangeable apps for reading and publishing Nostr events. Your identity is not locked to one app.",
                     "url": "https://nostr.net"
+                },
+                {
+                    "id": "nostr-nips",
+                    "name": "NIPS",
+                    "description": "Every NIP in the repository, mirrored, with every event kind and the NIP that defines it. Search a number or a word and the text opens beside it.",
+                    "stats": "nips",
+                    "visible": true
                 }
             ]
         },

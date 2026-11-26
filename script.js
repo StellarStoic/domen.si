@@ -131,7 +131,7 @@ function setupBoardPanZoom() {
     const onTouchStart = event => {
         if (!event.touches.length) return;
         // A touch that starts on a view or the panel is not the board's business.
-        if (event.target.closest('.polistat-view, .feed-view, .day86400-view, .pod-inspector-view, .xdeleter-view, .keytool-view, .keymaker-view, .open-eyes-view, .knjige-view')) return;
+        if (event.target.closest('.polistat-view, .feed-view, .day86400-view, .pod-inspector-view, .xdeleter-view, .keytool-view, .keymaker-view, .open-eyes-view, .knjige-view, .nips-view')) return;
         if (event.touches.length === 1) {
             touchMode = 'pan';
             start = { point: point(event.touches[0]), x: boardView.x, y: boardView.y };
@@ -189,7 +189,7 @@ function setupBoardPanZoom() {
 
     const onMouseDown = event => {
         if (event.button !== 0) return;
-        if (event.target.closest('.polistat-view, .feed-view, .day86400-view, .pod-inspector-view, .xdeleter-view, .keytool-view, .keymaker-view, .open-eyes-view, .knjige-view, .podcast-board')) return;
+        if (event.target.closest('.polistat-view, .feed-view, .day86400-view, .pod-inspector-view, .xdeleter-view, .keytool-view, .keymaker-view, .open-eyes-view, .knjige-view, .nips-view, .podcast-board')) return;
         start = { point: { x: event.clientX, y: event.clientY }, x: boardView.x, y: boardView.y };
         boardView.dragging = false;
         const onMove = moveEvent => {
@@ -293,7 +293,7 @@ function setupBoardPanZoom() {
     container.addEventListener('wheel', onWheel, { passive: false });
     // a double click on empty board space is the quick way back out
     container.addEventListener('dblclick', event => {
-        if (event.target.closest('.cube, .back-button, .polistat-view, .feed-view, .day86400-view, .pod-inspector-view, .xdeleter-view, .keytool-view, .keymaker-view, .open-eyes-view, .knjige-view, .day86400-view')) return;
+        if (event.target.closest('.cube, .back-button, .polistat-view, .feed-view, .day86400-view, .pod-inspector-view, .xdeleter-view, .keytool-view, .keymaker-view, .open-eyes-view, .knjige-view, .nips-view, .day86400-view')) return;
         resetBoardView();
     });
     window.addEventListener('resize', applyBoardView);
@@ -720,6 +720,7 @@ function renderBrain() {
     // OPEN YOUR EYES: the video view covers the container exactly as the others do.
     window.openEyesView?.close?.();
     window.knjigeView?.close?.();
+    window.nipsView?.close?.();
     window.podcastFeedView?.close?.();
     window.polistatView?.close?.();
     window.day86400View?.close?.();
@@ -1139,7 +1140,8 @@ function createCube(interest, index, isSubCube = false, parentPosition = null, d
             || interest.stats === 'keytool'
             || interest.stats === 'keymaker'
             || interest.stats === 'openEyes'
-            || interest.stats === 'knjige';
+            || interest.stats === 'knjige'
+            || interest.stats === 'nips';
 
         if (opensBoardView || getVisibleInterests(interest.subInterests).length > 0) {
             // Get current position in pixels for navigation (if not set this will produce NaN)
@@ -1388,6 +1390,11 @@ async function requestShakePermission() {
 
 // Reachable for tests and for a desktop check: the shake is the phone's door to it, not the only
 // one. `boardShuffle.mix()` mixes the level on screen and returns how many cubes moved.
+// In-view BACK controls call this. The board's BACK cube sits at z-index 50 and a view covers the board at
+// 60, so a view that fills the container has to offer its own way out — and it must leave through the same
+// function the cube uses, or BACK would close the view without the board knowing.
+window.goBack = goBack;
+
 window.boardShuffle = {
     mix: mixCubes,
     heading: () => Array.from(boardLayer().querySelectorAll('.cube'))
@@ -1437,6 +1444,12 @@ function handleCubeClick(interest, position, depth) {
     // The Pod Inspector is a tool, not a link: pressing it opens the input and the code view.
     if (interest.stats === 'podInspector') {
         window.podInspectorView?.open?.();
+        return;
+    }
+
+    // NIPS: the mirrored repository — the explainer on the board, the two indexes in the panel.
+    if (interest.stats === 'nips') {
+        window.nipsView?.open?.(interest);
         return;
     }
 
@@ -1548,6 +1561,7 @@ function leaveNewestOverlays() {
 
     for (const [view, selector] of [
         ['knjigeView', '#brain-container .knjige-view'],
+        ['nipsView', '#brain-container .nips-view'],
         ['keymakerView', '#brain-container .keymaker-view'],
         ['keytoolView', '#brain-container .keytool-view'],
         ['xdeleterView', '#brain-container .xdeleter-view'],
