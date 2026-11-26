@@ -18,6 +18,9 @@ import {algorithmFor, compareHash, describeLookup, extractArmoredKey, findEntry,
     let container = null;
     let root = null;
     let results = null;
+    let modal = null;
+    let modalHeadline = null;
+    let modalRows = null;
     let openpgpPromise = null;
 
     const state = {
@@ -26,6 +29,7 @@ import {algorithmFor, compareHash, describeLookup, extractArmoredKey, findEntry,
         files: {signature: null, manifest: null, key: null, release: null},
         outcome: null,
         error: '',
+        modal: false,
     };
 
     function element(tag, className, text) {
@@ -80,6 +84,37 @@ import {algorithmFor, compareHash, describeLookup, extractArmoredKey, findEntry,
         results = element('div', 'verify-view__results');
         results.appendChild(element('p', 'verify-view__hint', 'Results appear here once a file is picked.'));
 
+        // The answer in the middle of the screen: after pressing Verify the reader should not have to
+        // scroll a narrow list of rows at the bottom of the page to find out whether the download is good.
+        modal = element('div', 'verify-modal');
+        modal.hidden = true;
+        const box = element('div', 'verify-modal__box');
+        box.setAttribute('role', 'dialog');
+        box.setAttribute('aria-modal', 'true');
+        box.setAttribute('aria-labelledby', 'verify-modal-verdict');
+        const closeButton = element('button', 'verify-modal__close', '×');
+        closeButton.type = 'button';
+        closeButton.setAttribute('aria-label', 'Close the result');
+        closeButton.addEventListener('click', () => hideModal());
+        modalHeadline = element('p', 'verify-modal__verdict');
+        modalHeadline.id = 'verify-modal-verdict';
+        modalRows = element('div', 'verify-modal__rows');
+        const modalActions = element('div', 'verify-modal__actions');
+        const modalDone = element('button', 'verify-modal__done', 'Close');
+        modalDone.type = 'button';
+        modalDone.addEventListener('click', () => hideModal());
+        modalActions.appendChild(modalDone);
+        box.appendChild(closeButton);
+        box.appendChild(modalHeadline);
+        box.appendChild(modalRows);
+        box.appendChild(modalActions);
+        modal.appendChild(box);
+        modal.addEventListener('click', event => {
+            // the backdrop closes it; a press inside the box does not
+            if (event.target === modal) hideModal();
+        });
+        root.appendChild(modal);
+
         root.appendChild(head);
         root.appendChild(form);
         root.appendChild(results);
@@ -133,23 +168,55 @@ import {algorithmFor, compareHash, describeLookup, extractArmoredKey, findEntry,
         return row;
     }
 
+    /** The rows of one outcome, built once so the page and the dialog cannot disagree. */
+    function renderOutcome(container, outcome) {
+        if (!outcome) {
+            container.appendChild(element('p', 'verify-view__hint', 'Results appear here once a file is picked.'));
+            return null;
+        }
+        if (outcome.error) {
+            container.appendChild(element('p', 'verify-view__error', outcome.error));
+            return {ok: false, text: outcome.error};
+        }
+        container.appendChild(resultRow('Signed by', outcome.signedBy || 'not checked', outcome.signed === 'valid' ? 'ok' : (outcome.signed ? 'bad' : null)));
+        container.appendChild(resultRow('Release hash', outcome.hashText || 'not checked'));
+        if (outcome.manifestText) container.appendChild(resultRow('Manifest', outcome.manifestText, outcome.hash === 'match' ? 'ok' : (outcome.hash ? 'bad' : null)));
+        if (outcome.keyNote) container.appendChild(resultRow('Key', outcome.keyNote));
+        const final = verdict({signed: outcome.signed, hash: outcome.hash, fileName: outcome.fileName});
+        container.appendChild(resultRow('Verified', final.text, final.ok ? 'ok' : 'bad'));
+        return final;
+    }
+
     function paint(outcome) {
         if (!results) return;
         results.textContent = '';
-        if (!outcome) {
-            results.appendChild(element('p', 'verify-view__hint', 'Results appear here once a file is picked.'));
-            return;
-        }
-        if (outcome.error) {
-            results.appendChild(element('p', 'verify-view__error', outcome.error));
-            return;
-        }
-        results.appendChild(resultRow('Signed by', outcome.signedBy || 'not checked', outcome.signed === 'valid' ? 'ok' : (outcome.signed ? 'bad' : null)));
-        results.appendChild(resultRow('Release hash', outcome.hashText || 'not checked'));
-        if (outcome.manifestText) results.appendChild(resultRow('Manifest', outcome.manifestText, outcome.hash === 'match' ? 'ok' : (outcome.hash ? 'bad' : null)));
-        if (outcome.keyNote) results.appendChild(resultRow('Key', outcome.keyNote));
-        const final = verdict({signed: outcome.signed, hash: outcome.hash, fileName: outcome.fileName});
-        results.appendChild(resultRow('Verified', final.text, final.ok ? 'ok' : 'bad'));
+        renderOutcome(results, outcome);
+    }
+
+    /**
+     * The same answer, in the middle of the screen.
+     *
+     * The rows are rebuilt rather than moved: the page keeps its copy, so closing the dialog leaves the
+     * result where it was, and the headline is the one-line verdict rather than the longest row.
+     */
+    function showModal(outcome) {
+        if (!modal || !outcome) return;
+        modalRows.textContent = '';
+        const outcomeFinal = renderOutcome(modalRows, outcome);
+        modalHeadline.textContent = outcomeFinal ? outcomeFinal.text : '';
+        modalHeadline.className = `verify-modal__verdict ${outcomeFinal && outcomeFinal.ok ? 'is-ok' : 'is-bad'}`;
+        modal.dataset.state = outcomeFinal && outcomeFinal.ok ? 'ok' : 'bad';
+        modal.hidden = false;
+        state.modal = true;
+        modal.querySelector('.verify-modal__close').focus();
+    }
+
+    function hideModal() {
+        if (!modal) return;
+        modal.hidden = true;
+        state.modal = false;
+        // the button that produced the answer is where the reader's hands already are
+        root.querySelector('.verify-view__run')?.focus();
     }
 
     async function run() {
@@ -324,14 +391,18 @@ import {algorithmFor, compareHash, describeLookup, extractArmoredKey, findEntry,
 
             state.outcome = outcome;
             paint(outcome);
+            showModal(outcome);
         } catch (error) {
-            paint({error: `Verification could not run: ${error.message || error}`});
+            const failed = {error: `Verification could not run: ${error.message || error}`};
+            paint(failed);
+            showModal(failed);
         } finally {
             state.busy = false;
         }
     }
 
     function reset() {
+        hideModal();
         state.files = {signature: null, manifest: null, key: null, release: null};
         state.outcome = null;
         for (const input of root.querySelectorAll('input[type=file]')) {
@@ -357,6 +428,7 @@ import {algorithmFor, compareHash, describeLookup, extractArmoredKey, findEntry,
     }
 
     function close() {
+        hideModal();
         state.open = false;
         if (root) root.hidden = true;
         container?.classList.remove('has-verify');
@@ -365,6 +437,12 @@ import {algorithmFor, compareHash, describeLookup, extractArmoredKey, findEntry,
             delete cube.dataset.verifyHidden;
         }
     }
+
+    document.addEventListener('keydown', (event) => {
+    if (event.key !== 'Escape' || !state.modal) return;
+    hideModal();
+    event.stopPropagation();
+    }, true);
 
     global.verifyDownloadView = {open, close, isOpen: () => state.open};
 })(window);
