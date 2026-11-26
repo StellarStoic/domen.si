@@ -388,6 +388,13 @@
                     "url": "https://obtainum.org/"
                 },
                 {
+                    "id": "verify-download",
+                    "name": "VERIFY",
+                    "description": "Check a download against the signature and manifest the project published, in the browser: the file is hashed, the manifest line is compared, and the signature is verified with a public key you supply.",
+                    "stats": "verifyDownload",
+                    "visible": true
+                },
+                {
                     "id": "right-to-repair",
                     "name": "REPAIR",
                     "description": "Repairable hardware, available parts and open documentation help owners keep devices useful and independent."

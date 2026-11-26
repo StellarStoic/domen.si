@@ -1,0 +1,213 @@
+/* VERIFY — the download checker. Roles only: every colour has to follow both palettes. */
+
+.verify-view {
+    position: absolute;
+    inset: 0;
+    z-index: 60;
+    display: grid;
+    grid-template-rows: auto auto minmax(0, 1fr);
+    background: var(--page);
+    color: var(--ink);
+    overflow-y: auto;
+    overscroll-behavior: auto;
+}
+
+.verify-view[hidden],
+.verify-view [hidden] {
+    display: none !important;
+}
+
+.verify-view__head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 18px 22px 12px;
+}
+
+.verify-view__eyebrow {
+    margin: 0 0 4px;
+    color: var(--accent-text);
+    font-size: 0.72rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.verify-view__title {
+    margin: 0 0 8px;
+    font-size: clamp(1.3rem, 2.6vw, 1.8rem);
+    letter-spacing: 0.04em;
+}
+
+.verify-view__lede {
+    margin: 0;
+    max-width: 72ch;
+    color: var(--muted);
+    font-size: 0.82rem;
+    line-height: 1.6;
+}
+
+.verify-view__back {
+    flex: 0 0 auto;
+    padding: 8px 14px;
+    border: 1px solid var(--rule);
+    border-radius: 6px;
+    background: var(--surface);
+    color: var(--ink);
+    font: inherit;
+    font-size: 0.78rem;
+    letter-spacing: 0.06em;
+    cursor: pointer;
+}
+
+.verify-view__back:hover,
+.verify-view__back:focus-visible {
+    border-color: var(--accent);
+    color: var(--accent-text);
+}
+
+/* ---- the four pickers ---------------------------------------------------------------------- */
+
+.verify-view__form {
+    padding: 4px 22px 18px;
+    border-bottom: 1px solid var(--rule);
+}
+
+.verify-field {
+    display: grid;
+    grid-template-columns: 7.5rem minmax(0, 1fr) minmax(0, 15rem);
+    align-items: center;
+    gap: 4px 14px;
+    padding: 8px 0;
+    border-top: 1px solid var(--rule);
+}
+
+.verify-field:first-child { border-top: 0; }
+
+.verify-field__label {
+    color: var(--ink);
+    font-size: 0.82rem;
+}
+
+.verify-field__file {
+    min-width: 0;
+    padding: 6px 8px;
+    border: 1px solid var(--rule);
+    border-radius: 6px;
+    background: var(--surface);
+    color: var(--ink);
+    font: inherit;
+    font-size: 0.78rem;
+}
+
+.verify-field__file::file-selector-button {
+    margin-right: 10px;
+    padding: 5px 10px;
+    border: 1px solid var(--rule);
+    border-radius: 5px;
+    background: var(--surface);
+    color: var(--ink);
+    font: inherit;
+    font-size: 0.76rem;
+    cursor: pointer;
+}
+
+.verify-field__name {
+    color: var(--muted);
+    font-size: 0.76rem;
+    overflow-wrap: anywhere;
+}
+
+.verify-field__name.is-set { color: var(--ink); }
+
+.verify-field__note {
+    grid-column: 2 / -1;
+    margin: 0;
+    color: var(--muted);
+    font-size: 0.72rem;
+}
+
+.verify-view__actions {
+    display: flex;
+    gap: 10px;
+    padding: 14px 0 2px;
+}
+
+.verify-view__run,
+.verify-view__clear {
+    padding: 9px 18px;
+    border: 1px solid var(--rule);
+    border-radius: 6px;
+    background: var(--surface);
+    color: var(--ink);
+    font: inherit;
+    font-size: 0.82rem;
+    cursor: pointer;
+}
+
+/* the primary action is a fill, so its label takes the ink role (accent on accent-text is 1:1) */
+.verify-view__run {
+    border-color: var(--accent);
+    background: var(--accent);
+    color: var(--accent-ink);
+}
+
+.verify-view__run:hover,
+.verify-view__run:focus-visible {
+    box-shadow: 0 0 0 2px var(--accent-text);
+}
+
+.verify-view__clear:hover,
+.verify-view__clear:focus-visible {
+    border-color: var(--accent);
+    color: var(--accent-text);
+}
+
+/* ---- results ------------------------------------------------------------------------------- */
+
+.verify-view__results {
+    padding: 16px 22px 28px;
+}
+
+.verify-result {
+    display: grid;
+    grid-template-columns: 7.5rem minmax(0, 1fr);
+    gap: 14px;
+    padding: 9px 0;
+    border-top: 1px solid var(--rule);
+}
+
+.verify-result__label {
+    color: var(--muted);
+    font-size: 0.78rem;
+}
+
+.verify-result__value {
+    color: var(--ink);
+    font-size: 0.82rem;
+    line-height: 1.55;
+    overflow-wrap: anywhere;
+}
+
+.verify-result.is-ok .verify-result__value { color: var(--active-text); }
+.verify-result.is-bad .verify-result__value { color: var(--accent-text); }
+
+.verify-view__hint,
+.verify-view__error {
+    margin: 0;
+    color: var(--muted);
+    font-size: 0.82rem;
+}
+
+.verify-view__error { color: var(--accent-text); }
+
+@media (max-width: 768px) {
+    /* the BACK button beside a narrow column squeezes the lede into a sliver, so on a phone the head
+       stacks and BACK sits under the text */
+    .verify-view__head { flex-direction: column-reverse; align-items: flex-start; padding: 14px 14px 10px; }
+    .verify-view__form { padding: 4px 14px 14px; }
+    .verify-view__results { padding: 12px 14px 22px; }
+    .verify-field { grid-template-columns: minmax(0, 1fr); }
+    .verify-field__note { grid-column: 1; }
+    .verify-result { grid-template-columns: minmax(0, 1fr); gap: 4px; }
+}
