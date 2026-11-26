@@ -382,10 +382,10 @@
                     "url": "https://f-droid.org/"
                 },
                 {
-                    "id": "obtainum",
-                    "name": "OBTAINUM",
+                    "id": "obtainium",
+                    "name": "OBTAINIUM",
                     "description": "Install software without an app store or package manager by downloading and verifying releases directly from developers.",
-                    "url": "https://obtainum.org/"
+                    "url": "https://github.com/ImranR98/Obtainium"
                 },
                 {
                     "id": "verify-download",
@@ -397,7 +397,14 @@
                 {
                     "id": "right-to-repair",
                     "name": "REPAIR",
-                    "description": "Repairable hardware, available parts and open documentation help owners keep devices useful and independent."
+                    "description": "Repairable hardware, available parts and open documentation help owners keep devices useful and independent.",
+                    "url": "https://www.ifixit.com/"
+                },
+                {
+                    "id": "open-source-guide",
+                    "name": "GUIDE",
+                    "description": "How open source actually works: starting a project, choosing a licence, taking contributions, measuring health and growing a community that lasts.",
+                    "url": "https://opensource.guide/"
                 }
             ]
         }
