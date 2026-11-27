@@ -1,14 +1,14 @@
 {
- "builtAt": "2026-11-26T16:20:17.177970+00:00",
+ "builtAt": "2026-11-27T06:20:17.690965+00:00",
  "window": {
   "hours": 24,
-  "from": "2026-11-25T16:20:17.177970+00:00",
-  "to": "2026-11-26T16:20:17.177970+00:00"
+  "from": "2026-11-26T06:20:17.690965+00:00",
+  "to": "2026-11-27T06:20:17.690965+00:00"
  },
  "counts": {
-  "total": 14,
+  "total": 13,
   "cz": 8,
-  "policija": 6
+  "policija": 5
  },
  "bulletin": {
   "day": "26. 11. 2026",
@@ -113,6 +113,15 @@
   },
   {
    "source": "policija",
+   "topic": "dogodki",
+   "category": "Policija",
+   "title": "Kratek statistični pregled dogodkov v zadnjih 24 urah",
+   "text": "V zadnjih 24 urah je bilo na interventni številki policije '113' zabeleženih 2881 klicev. Med 699 interventnimi dogodki smo policisti med drugim obravnavali 233 prometnih nesreč, 47 kršitev javnega reda in miru, ter 52 kaznivih dejanj. V 209 prometnih nesrečah je nastala premoženjska škoda, v 22 nesrečah so bili udeleženci lažje in v 2 nesrečah huje telesno poškodovani. Zaradi storitve hujših prekrškov v cestnem prometu smo 6 voznikom zasegli vozilo. Zaradi kršitve javnega reda in miru smo opravili 36 intervencij na javnem kraju, 11 pa v zasebnih prostorih. Da bi zaščitili žrtve nasilja v družini smo 1 osebi izrekli ukrep prepovedi približevanja. Med kaznivimi dejanji smo zabeležili 24 vlomov, 10 tatvin, 4 poškodovanja tuje stvari, 4 grožnje, 3 povzročitve telesne poškodbe, 2 kaznivi dejanji v zvezi s prepovedanimi drogami, 2 kaznivi dejanji nasilja v družini, 1 rop, 1 ponarejanje denarja in 1 preprečitev uradnega dejanja oz. napada na pooblaščeno osebo. V zadnjih 24 urah je bilo obravnavanih 53 oseb zaradi nezakonitega vstopa na meji z Republiko Hrvaško in sicer 53 na območju PU Novo mesto. Med njimi smo obravnavali največ državljanov Bangladeša (25), Pakistana (10) in Palestine (9).",
+   "url": "https://www.policija.si/medijsko-sredisce/dogodki-v-zadnjih-24-urah/129635-kratek-statisticni-pregled-dogodkov-v-zadnjih-24-urah-1943",
+   "published": "2026-11-27T04:51:55+00:00"
+  },
+  {
+   "source": "policija",
    "topic": "sporocila",
    "category": "PU Celje",
    "title": "Letošnja kampanja Heroji furajo v pižami opozarja starše, naj bodo dober zgled svojim otrokom",
@@ -146,24 +155,6 @@
    "text": "Preklicujemo iskanje od 25. novembra 2026 pogrešane Dragice Cestnik iz okolice Podlehnika.",
    "url": "https://www.policija.si/medijsko-sredisce/sporocila-za-javnost/sporocila-za-javnost-gpue/129632-preklic-iskanja-pogresane-osebe-311",
    "published": "2026-11-26T07:35:14+00:00"
-  },
-  {
-   "source": "policija",
-   "topic": "dogodki",
-   "category": "Policija",
-   "title": "Kratek statistični pregled dogodkov v zadnjih 24 urah",
-   "text": "V zadnjih 24 urah je bilo na interventni številki policije '113' zabeleženih 2336 klicev. Med 556 interventnimi dogodki smo policisti med drugim obravnavali 148 prometnih nesreč, 33 kršitev javnega reda in miru, ter 70 kaznivih dejanj. V 137 prometnih nesrečah je nastala premoženjska škoda, v 11 nesrečah pa so bili udeleženci lažje telesno oškodovani. Zaradi storitve hujših prekrškov v cestnem prometu smo 7 voznikom zasegli vozilo, zaradi vožnje pod vplivom alkohola pa smo pridržali 1 voznika. Zaradi kršitve javnega reda in miru smo opravili 20 intervencij na javnem kraju, 13 pa v zasebnih prostorih. Da bi zaščitili žrtve nasilja v družini smo 2 osebama izrekli ukrep prepovedi približevanja. Med kaznivimi dejanji smo zabeležili 25 tatvin, 16 vlomov, 8 povzročitev telesne poškodbe, 6 poškodovanj tuje stvari, 4 grožnje, 3 ponarejanja listin, 3 kazniva dejanja nasilja v družini, 2 ropa, 1 drzno tatvino, 1 kaznivo dejanje v zvezi s prepovedanimi drogami in 1 preprečitev uradnega dejanja oz. napada na pooblaščeno osebo. V zadnjih 24 urah je bilo obravnavanih 31 oseb zaradi nezakonitega vstopa na meji z Republiko Hrvaško in sicer 28 na območju PU Novo mesto, 2 na območju PU Ljubljana in 1 na območju PU Celje. Med njimi smo obravnavali največ državljanov Maroka (9), Bangladeša (6) in Iraka (4).",
-   "url": "https://www.policija.si/medijsko-sredisce/dogodki-v-zadnjih-24-urah/129611-kratek-statisticni-pregled-dogodkov-v-zadnjih-24-urah-1942",
-   "published": "2026-11-26T04:29:15+00:00"
-  },
-  {
-   "source": "policija",
-   "topic": "sporocila",
-   "category": "Generalna policijska uprava",
-   "title": "Obvestilo o pogrešani osebi",
-   "text": "Policisti Policijske postaje Grosuplje so bili obveščeni, da svojci pogrešajo 19-letno Diano Borysovo iz Grosuplja.",
-   "url": "https://www.policija.si/medijsko-sredisce/sporocila-za-javnost/sporocila-za-javnost-gpue/129626-obvestilo-o-pogresani-osebi-356",
-   "published": "2026-11-26T02:01:47+00:00"
   }
  ]
 }
