@@ -151,7 +151,21 @@
                     "id": "lightning",
                     "name": "LIGHTNING",
                     "description": "A payment network built on Bitcoin for fast, inexpensive and small transactions.",
-                    "url": "https://lightning.network/"
+                    "subInterests": [
+                        {
+                            "id": "ln-checker",
+                            "name": "LN CHECK",
+                            "description": "Read a Lightning invoice, an lnurl or a Lightning address: what it carries, what it promises, and what is wrong with it.",
+                            "stats": "lnCheck",
+                            "visible": true
+                        },
+                        {
+                            "id": "lightning-network",
+                            "name": "SPEC",
+                            "description": "The Lightning Network paper and the project's own reference pages.",
+                            "url": "https://lightning.network/"
+                        }
+                    ]
                 },
                 {
                     "id": "bitcoin-reading",

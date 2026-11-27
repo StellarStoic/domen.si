@@ -131,7 +131,7 @@ function setupBoardPanZoom() {
     const onTouchStart = event => {
         if (!event.touches.length) return;
         // A touch that starts on a view or the panel is not the board's business.
-        if (event.target.closest('.polistat-view, .feed-view, .day86400-view, .pod-inspector-view, .xdeleter-view, .keytool-view, .keymaker-view, .open-eyes-view, .knjige-view, .nips-view, .verify-view')) return;
+        if (event.target.closest('.polistat-view, .feed-view, .day86400-view, .pod-inspector-view, .xdeleter-view, .keytool-view, .keymaker-view, .open-eyes-view, .knjige-view, .nips-view, .verify-view, .lncheck-view')) return;
         if (event.touches.length === 1) {
             touchMode = 'pan';
             start = { point: point(event.touches[0]), x: boardView.x, y: boardView.y };
@@ -189,7 +189,7 @@ function setupBoardPanZoom() {
 
     const onMouseDown = event => {
         if (event.button !== 0) return;
-        if (event.target.closest('.polistat-view, .feed-view, .day86400-view, .pod-inspector-view, .xdeleter-view, .keytool-view, .keymaker-view, .open-eyes-view, .knjige-view, .nips-view, .verify-view, .podcast-board')) return;
+        if (event.target.closest('.polistat-view, .feed-view, .day86400-view, .pod-inspector-view, .xdeleter-view, .keytool-view, .keymaker-view, .open-eyes-view, .knjige-view, .nips-view, .verify-view, .lncheck-view, .podcast-board')) return;
         start = { point: { x: event.clientX, y: event.clientY }, x: boardView.x, y: boardView.y };
         boardView.dragging = false;
         const onMove = moveEvent => {
@@ -293,7 +293,7 @@ function setupBoardPanZoom() {
     container.addEventListener('wheel', onWheel, { passive: false });
     // a double click on empty board space is the quick way back out
     container.addEventListener('dblclick', event => {
-        if (event.target.closest('.cube, .back-button, .polistat-view, .feed-view, .day86400-view, .pod-inspector-view, .xdeleter-view, .keytool-view, .keymaker-view, .open-eyes-view, .knjige-view, .nips-view, .verify-view, .day86400-view')) return;
+        if (event.target.closest('.cube, .back-button, .polistat-view, .feed-view, .day86400-view, .pod-inspector-view, .xdeleter-view, .keytool-view, .keymaker-view, .open-eyes-view, .knjige-view, .nips-view, .verify-view, .lncheck-view, .day86400-view')) return;
         resetBoardView();
     });
     window.addEventListener('resize', applyBoardView);
@@ -722,6 +722,7 @@ function renderBrain() {
     window.knjigeView?.close?.();
     window.nipsView?.close?.();
     window.verifyDownloadView?.close?.();
+    window.lnCheckView?.close?.();
     window.podcastFeedView?.close?.();
     window.polistatView?.close?.();
     window.day86400View?.close?.();
@@ -1143,7 +1144,8 @@ function createCube(interest, index, isSubCube = false, parentPosition = null, d
             || interest.stats === 'openEyes'
             || interest.stats === 'knjige'
             || interest.stats === 'nips'
-            || interest.stats === 'verifyDownload';
+            || interest.stats === 'verifyDownload'
+            || interest.stats === 'lnCheck';
 
         if (opensBoardView || getVisibleInterests(interest.subInterests).length > 0) {
             // Get current position in pixels for navigation (if not set this will produce NaN)
@@ -1461,6 +1463,12 @@ function handleCubeClick(interest, position, depth) {
         return;
     }
 
+    // LN CHECK: read an invoice, an lnurl or a Lightning address.
+    if (interest.stats === 'lnCheck') {
+        window.lnCheckView?.open?.(interest);
+        return;
+    }
+
     // THE GATE: a small game whose prize is the contact address, which the cube carries.
     if (interest.stats === 'contactGate') {
         window.contactGateView?.open?.(interest);
@@ -1571,6 +1579,7 @@ function leaveNewestOverlays() {
         ['knjigeView', '#brain-container .knjige-view'],
         ['nipsView', '#brain-container .nips-view'],
         ['verifyDownloadView', '#brain-container .verify-view'],
+        ['lnCheckView', '#brain-container .lncheck-view'],
         ['keymakerView', '#brain-container .keymaker-view'],
         ['keytoolView', '#brain-container .keytool-view'],
         ['xdeleterView', '#brain-container .xdeleter-view'],
