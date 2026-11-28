@@ -1,0 +1,514 @@
+/* KEY MINER — the board view. Roles only: every colour is a token, so both themes follow. */
+
+.keyminer-view {
+    position: absolute;
+    inset: 0;
+    z-index: 60;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: auto auto auto auto auto auto auto minmax(0, 1fr);
+    background: var(--page);
+    color: var(--ink);
+    overflow-y: auto;
+    overscroll-behavior: auto;
+}
+
+.keyminer-view[hidden],
+.keyminer-view [hidden] {
+    display: none !important;
+}
+
+.keyminer-view > * { min-width: 0; }
+
+/* ---- head ------------------------------------------------------------------------------------- */
+
+.keyminer-view__head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 18px 22px 10px;
+}
+
+.keyminer-view__eyebrow {
+    margin: 0 0 4px;
+    color: var(--accent-text);
+    font-size: 0.72rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.keyminer-view__title {
+    margin: 0 0 8px;
+    font-size: clamp(1.3rem, 2.6vw, 1.8rem);
+    letter-spacing: 0.04em;
+}
+
+.keyminer-view__lede {
+    margin: 0;
+    max-width: 72ch;
+    color: var(--ink-soft);
+    font-size: 0.86rem;
+    line-height: 1.5;
+}
+
+.keyminer-view__back {
+    flex: 0 0 auto;
+    padding: 8px 12px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: var(--surface);
+    color: var(--ink);
+    font: inherit;
+    font-size: 0.78rem;
+    letter-spacing: 0.06em;
+    cursor: pointer;
+}
+
+.keyminer-view__back:hover,
+.keyminer-view__back:focus-visible {
+    border-color: var(--accent);
+    color: var(--accent-text);
+}
+
+/* ---- mode switch ------------------------------------------------------------------------------ */
+
+.keyminer-modes {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    padding: 0 22px 10px;
+}
+
+.keyminer-mode {
+    padding: 7px 12px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: var(--surface);
+    color: var(--ink-soft);
+    font: inherit;
+    font-size: 0.78rem;
+    letter-spacing: 0.04em;
+    cursor: pointer;
+}
+
+.keyminer-mode:hover,
+.keyminer-mode:focus-visible {
+    border-color: var(--accent);
+    color: var(--accent-text);
+}
+
+.keyminer-mode.is-active {
+    border-color: var(--accent);
+    background: var(--accent);
+    color: var(--page);
+}
+
+/* ---- controls --------------------------------------------------------------------------------- */
+
+.keyminer-row {
+    display: grid;
+    grid-template-columns: 96px minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 10px;
+    padding: 0 22px 8px;
+}
+
+.keyminer-row__label {
+    color: var(--ink-soft);
+    font-size: 0.78rem;
+    letter-spacing: 0.03em;
+}
+
+.keyminer-slider {
+    width: 100%;
+    min-width: 0;
+    accent-color: var(--accent);
+}
+
+.keyminer-bits-value {
+    min-width: 4.5ch;
+    color: var(--accent-text);
+    font-size: 0.9rem;
+    font-variant-numeric: tabular-nums;
+    text-align: right;
+}
+
+.keyminer-input {
+    min-width: 0;
+    padding: 8px 10px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: var(--surface);
+    color: var(--ink);
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 0.86rem;
+    letter-spacing: 0.04em;
+}
+
+.keyminer-input:focus-visible,
+.keyminer-slider:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 1px;
+}
+
+/* ---- target summary --------------------------------------------------------------------------- */
+
+.keyminer-target {
+    margin: 2px 22px 8px;
+    padding: 10px 12px;
+    border: 1px solid var(--line);
+    border-left: 3px solid var(--accent);
+    border-radius: 8px;
+    background: var(--surface);
+}
+
+.keyminer-target.is-invalid {
+    border-left-color: var(--warn, var(--accent-text));
+}
+
+.keyminer-target__line {
+    margin: 0 0 3px;
+    font-size: 0.8rem;
+    line-height: 1.5;
+}
+
+.keyminer-target__line--time {
+    color: var(--accent-text);
+}
+
+.keyminer-target__warn {
+    margin: 4px 0 0;
+    color: var(--ink-soft);
+    font-size: 0.76rem;
+}
+
+.keyminer-problems {
+    margin: 0;
+    padding-left: 16px;
+    color: var(--warn, var(--accent-text));
+    font-size: 0.8rem;
+    line-height: 1.5;
+}
+
+/* ---- actions ---------------------------------------------------------------------------------- */
+
+.keyminer-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    padding: 0 22px 8px;
+}
+
+.keyminer-button {
+    padding: 9px 14px;
+    border: 1px solid var(--accent);
+    border-radius: 8px;
+    background: var(--accent);
+    color: var(--page);
+    font: inherit;
+    font-size: 0.82rem;
+    letter-spacing: 0.03em;
+    cursor: pointer;
+    white-space: nowrap;
+}
+
+.keyminer-button--ghost {
+    border-color: var(--line);
+    background: var(--surface);
+    color: var(--ink);
+}
+
+.keyminer-button--tiny {
+    padding: 3px 8px;
+    margin-left: 8px;
+    font-size: 0.7rem;
+}
+
+.keyminer-button.is-stop {
+    border-color: var(--warn, var(--accent-text));
+    background: transparent;
+    color: var(--warn, var(--accent-text));
+}
+
+.keyminer-button:hover,
+.keyminer-button:focus-visible {
+    border-color: var(--accent-text);
+    color: var(--accent-text);
+    background: var(--surface);
+}
+
+.keyminer-button--primary:hover,
+.keyminer-button--primary:focus-visible {
+    background: var(--accent-text);
+    color: var(--page);
+}
+
+.keyminer-button[disabled] {
+    opacity: 0.45;
+    cursor: not-allowed;
+}
+
+/* ---- status ----------------------------------------------------------------------------------- */
+
+.keyminer-status {
+    margin: 0;
+    padding: 0 22px 10px;
+    min-height: 1.2em;
+    color: var(--ink-soft);
+    font-size: 0.78rem;
+    line-height: 1.5;
+}
+
+.keyminer-status[data-tone="good"] { color: var(--accent-text); }
+.keyminer-status[data-tone="bad"] { color: var(--warn, var(--accent-text)); }
+
+/* ---- the run ---------------------------------------------------------------------------------- */
+
+.keyminer-run {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 0 22px 18px;
+    min-height: 0;
+}
+
+.keyminer-meter {
+    position: relative;
+    height: 8px;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    background: var(--surface);
+    overflow: hidden;
+}
+
+.keyminer-meter__fill {
+    height: 100%;
+    width: 0;
+    border-radius: 999px;
+    background: var(--accent);
+    transition: width 240ms ease-out;
+}
+
+.keyminer-meter__note {
+    margin: 0;
+    color: var(--ink-soft);
+    font-size: 0.76rem;
+    line-height: 1.5;
+}
+
+.keyminer-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 8px;
+    margin: 0;
+}
+
+.keyminer-stat {
+    padding: 8px 10px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: var(--surface);
+    min-width: 0;
+}
+
+.keyminer-stat__key {
+    color: var(--ink-soft);
+    font-size: 0.7rem;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+}
+
+.keyminer-stat__value {
+    margin: 3px 0 0;
+    font-size: 0.9rem;
+    font-variant-numeric: tabular-nums;
+    overflow-wrap: anywhere;
+}
+
+/* the flood of candidate keys, which makes the search visible without being a gimmick */
+.keyminer-stream {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px 10px;
+    max-height: 84px;
+    overflow: hidden;
+    padding: 8px 10px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: var(--page);
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 0.7rem;
+    color: var(--ink-soft);
+    opacity: 0.9;
+}
+
+.keyminer-stream__row {
+    letter-spacing: 0.06em;
+}
+
+.keyminer-stream__row.is-zero {
+    color: var(--accent-text);
+}
+
+/* ---- a found key ------------------------------------------------------------------------------ */
+
+.keyminer-found {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 12px;
+    border: 1px solid var(--accent);
+    border-radius: 10px;
+    background: var(--surface);
+}
+
+.keyminer-found__title {
+    margin: 0;
+    color: var(--accent-text);
+    font-size: 0.9rem;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+}
+
+.keyminer-found__rows {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin: 0;
+}
+
+.keyminer-found__row {
+    display: grid;
+    grid-template-columns: minmax(96px, 0.28fr) minmax(0, 1fr);
+    gap: 10px;
+    align-items: baseline;
+}
+
+.keyminer-found__row dt {
+    color: var(--ink-soft);
+    font-size: 0.74rem;
+}
+
+.keyminer-found__row dd {
+    margin: 0;
+    min-width: 0;
+    overflow-wrap: anywhere;
+}
+
+.keyminer-found__row code {
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 0.76rem;
+    line-height: 1.5;
+}
+
+.keyminer-found__note {
+    margin: 4px 0 0;
+    color: var(--ink-soft);
+    font-size: 0.76rem;
+    line-height: 1.55;
+}
+
+.keyminer-code {
+    margin: 0 22px 18px;
+    padding: 10px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: var(--surface);
+    color: var(--ink);
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 0.72rem;
+    line-height: 1.5;
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+}
+
+/* ---- side panel ------------------------------------------------------------------------------- */
+
+.keyminer-panel__eyebrow {
+    margin: 0 0 4px;
+    color: var(--accent-text);
+    font-size: 0.7rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.keyminer-panel__title {
+    margin: 0 0 8px;
+    font-size: 1rem;
+    letter-spacing: 0.05em;
+}
+
+.keyminer-panel__lede,
+.keyminer-panel__body,
+.keyminer-panel__hint {
+    margin: 0 0 10px;
+    color: var(--ink-soft);
+    font-size: 0.78rem;
+    line-height: 1.55;
+}
+
+.keyminer-panel__heading {
+    margin: 12px 0 4px;
+    font-size: 0.76rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--accent-text);
+}
+
+.keyminer-panel__list {
+    margin: 0;
+    padding-left: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    color: var(--ink-soft);
+    font-size: 0.78rem;
+    line-height: 1.5;
+}
+
+.keyminer-panel__list code {
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 0.75rem;
+}
+
+.keyminer-panel__hint {
+    margin-top: 12px;
+    padding-top: 10px;
+    border-top: 1px solid var(--line);
+}
+
+/* ---- narrow ----------------------------------------------------------------------------------- */
+
+@media (max-width: 640px) {
+    .keyminer-view__head {
+        flex-direction: column-reverse;
+        gap: 8px;
+        padding: 12px 14px 6px;
+    }
+
+    .keyminer-modes,
+    .keyminer-row,
+    .keyminer-target,
+    .keyminer-actions,
+    .keyminer-status,
+    .keyminer-run,
+    .keyminer-code {
+        padding-left: 14px;
+        padding-right: 14px;
+    }
+
+    .keyminer-target { margin-left: 14px; margin-right: 14px; }
+
+    .keyminer-row {
+        grid-template-columns: minmax(0, 1fr) auto;
+        row-gap: 4px;
+    }
+
+    .keyminer-row__label { grid-column: 1 / -1; }
+
+    .keyminer-found__row {
+        grid-template-columns: minmax(0, 1fr);
+        gap: 2px;
+    }
+}
