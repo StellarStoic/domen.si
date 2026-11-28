@@ -36,7 +36,7 @@ import { encryptPrivateKey, DEFAULT_LOG_N } from './nip49.mjs';
         if (root && container.contains(root)) return true;
 
         root = element('section', 'keymaker-view');
-        root.setAttribute('aria-label', 'KEY MAKER — create Nostr keys');
+        root.setAttribute('aria-label', 'GET KEY — create Nostr keys');
         root.tabIndex = -1;
 
         const head = element('div', 'keymaker-view__head');

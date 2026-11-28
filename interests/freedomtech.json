@@ -1,4 +1,4 @@
-{
+﻿{
     "id": "freedom-tech",
     "name": "FREEDOM TECH",
     "description": "Tools and protocols that give people more control over their money, identity, communication, data and computing.",
@@ -280,7 +280,7 @@
                     "subInterests": [
                         {
                             "id": "keymaker",
-                            "name": "KEY MAKER",
+                            "name": "GET KEY",
                             "description": "Create Nostr keys. Pick your flavour: a plain nsec, or one locked with a password (ncryptsec).<br><br><b>npub</b> is your public key — the name people follow, safe to share.<br><b>nsec</b> is your private key — it signs for you, and anyone who sees it owns your identity.<br><b>ncryptsec</b> is that nsec encrypted with a password (NIP-49), so it can be stored as text without being usable on its own.",
                             "stats": "keymaker",
                             "visible": true

@@ -37,14 +37,14 @@ test('the cube sits under FREEDOM TECH > NOSTR > KEYS', () => {
     assert.ok(nostr, 'NOSTR has to exist');
     const keys = findByName(nostr.subInterests, 'KEYS');
     assert.ok(keys, 'KEYS has to exist');
-    const maker = findByName(keys.subInterests, 'KEY MAKER');
+    const maker = findByName(keys.subInterests, 'GET KEY');
     assert.ok(maker, 'the tool belongs inside KEYS');
     assert.equal(maker.stats, 'keymaker');
 });
 
 test('the info panel says what the three words mean', () => {
     const maker = findByName(findByName(findByName(TREE.subInterests, 'NOSTR').subInterests, 'KEYS').subInterests,
-        'KEY MAKER');
+        'GET KEY');
     const text = maker.description;
     assert.match(text, /Create Nostr keys/);
     assert.match(text, /pick your flavour/i);
