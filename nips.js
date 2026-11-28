@@ -369,8 +369,12 @@ import {kindLabel, kindsOf, matchesKind, matchesNip, numberLabel, orderNips, sta
             content.innerHTML = '';
             content.dataset.interestId = '';
         }
-        const shell = document.getElementById('info-panel');
-        if (shell) shell.hidden = true;
+        // The panel is the board's, not this view's. Hiding the element itself left every later cube
+        // silent — `showInfoPanel` only adds `.active`, which cannot beat the `hidden` attribute's
+        // display:none, so one closed view made the whole right-hand column disappear for good.
+        // Dropping `.active` is enough: the index block is already gone, so the panel collapses empty.
+        const panel = document.getElementById('info-panel');
+        if (panel) panel.classList.remove('active');
     }
 
     global.nipsView = {open, close, isOpen: () => state.open, select};

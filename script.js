@@ -1969,6 +1969,9 @@ function showInfoPanel(interest, depth) {
     // Attach thumbnail events after the gallery HTML is added to the panel.
     setupGalleryThumbnails(infoContent, interest.gallery);
     
+    // A stray `hidden` on this element beats `.active` (the attribute is display:none, the class only
+    // sets visibility), so clear it every time a cell is selected rather than trusting that nothing set it.
+    infoPanel.hidden = false;
     infoPanel.classList.add('active');
 }
 
