@@ -165,8 +165,14 @@ test('pressing the cube opens the view — all five wiring sites', () => {
     // createCube only calls handleCubeClick for a cube that opens a board view, so the condition matters
     // match the enclosing block, not one line: the condition grows a clause per new view
     assert.match(SCRIPT, /opensBoardView =[\s\S]{0,700}interest\.stats === 'openEyes'/);
-    // the board rebuild closes it before the container is cleared
-    assert.match(SCRIPT, /openEyesView\?\.close\?\.\(\);[\s\S]{0,400}container\.innerHTML = ''/);
+    // the board rebuild closes it before the container is cleared — checked by position inside
+    // renderBrain rather than by a character budget, which broke every time another view was added
+    const renderStart = SCRIPT.indexOf('function renderBrain()');
+    assert.ok(renderStart > -1, 'renderBrain went missing');
+    const renderBrain = SCRIPT.slice(renderStart, renderStart + 4000);
+    assert.ok(renderBrain.includes('openEyesView?.close?.()'), 'renderBrain must close the view');
+    assert.ok(renderBrain.indexOf('openEyesView?.close?.()') < renderBrain.indexOf("container.innerHTML = ''"),
+        'the view must be closed before the container is cleared');
     // BACK leaves the recording, then the view
     assert.match(SCRIPT, /function leaveNewestOverlays\(\)[\s\S]{0,400}openEyesView/);
     // every gesture handler must leave the view alone, or the board pans under the finger

@@ -69,6 +69,13 @@
                     "name": "SHITSTR.COM",
                     "description": "A poop sound sequencer. It does exactly what the name says.",
                     "url": "https://shitstr.com"
+                },
+                {
+                    "id": "radio-explorer",
+                    "name": "RADIO EXPLORER",
+                    "description": "Search 53,000 radio stations, play what the browser can play, and curate the directory as domen.si — stations curator.",
+                    "stats": "radioExplorer",
+                    "visible": true
                 }
             ]
         },

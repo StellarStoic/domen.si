@@ -1,0 +1,669 @@
+/* RADIO EXPLORER — the board view. Roles only: every colour is a token, so both themes follow. */
+
+.radio-view {
+    position: absolute;
+    inset: 0;
+    z-index: 60;
+    display: grid;
+    /* one explicit column, or the implicit max-content column sizes itself to the widest child */
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: auto auto auto auto minmax(0, 1fr) auto;
+    background: var(--page);
+    color: var(--ink);
+    overflow: hidden;
+}
+
+.radio-view[hidden],
+.radio-view [hidden] {
+    display: none !important;
+}
+
+.radio-view > * { min-width: 0; }
+
+/* ---- head ------------------------------------------------------------------------------------- */
+
+.radio-view__head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 16px 20px 8px;
+}
+
+.radio-view__eyebrow {
+    margin: 0 0 4px;
+    color: var(--accent-text);
+    font-size: 0.72rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.radio-view__title {
+    margin: 0 0 6px;
+    font-size: clamp(1.25rem, 2.4vw, 1.7rem);
+    letter-spacing: 0.04em;
+}
+
+.radio-view__lede {
+    margin: 0;
+    max-width: 74ch;
+    color: var(--ink-soft);
+    font-size: 0.86rem;
+    line-height: 1.5;
+}
+
+.radio-view__back {
+    flex: 0 0 auto;
+    padding: 8px 12px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: var(--surface);
+    color: var(--ink);
+    font: inherit;
+    font-size: 0.78rem;
+    letter-spacing: 0.06em;
+    cursor: pointer;
+}
+
+.radio-view__back:hover,
+.radio-view__back:focus-visible {
+    border-color: var(--accent);
+    color: var(--accent-text);
+}
+
+/* ---- search ----------------------------------------------------------------------------------- */
+
+.radio-search {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 20px 10px;
+}
+
+.radio-search__input {
+    flex: 1 1 220px;
+    min-width: 0;
+    padding: 9px 12px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: var(--surface);
+    color: var(--ink);
+    font: inherit;
+    font-size: 0.9rem;
+}
+
+.radio-search__select {
+    /* the country list runs to "United States Minor Outlying Islands (12)", and a <select> sizes itself to
+       its widest option — without a cap it grew to 546px inside a 322px phone */
+    flex: 0 1 auto;
+    min-width: 0;
+    max-width: 100%;
+    padding: 9px 10px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: var(--surface);
+    color: var(--ink);
+    font: inherit;
+    font-size: 0.82rem;
+}
+
+.radio-search__input:focus-visible,
+.radio-search__select:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 1px;
+}
+
+/* ---- buttons ---------------------------------------------------------------------------------- */
+
+.radio-button {
+    padding: 9px 14px;
+    border: 1px solid var(--accent);
+    border-radius: 8px;
+    background: var(--accent);
+    color: var(--page);
+    font: inherit;
+    font-size: 0.82rem;
+    letter-spacing: 0.03em;
+    cursor: pointer;
+    white-space: nowrap;
+}
+
+.radio-button--ghost {
+    border-color: var(--line);
+    background: var(--surface);
+    color: var(--ink);
+}
+
+.radio-button--primary {
+    border-color: var(--accent);
+    background: var(--accent);
+    color: var(--page);
+}
+
+.radio-button--small {
+    padding: 6px 10px;
+    font-size: 0.76rem;
+}
+
+.radio-button:hover,
+.radio-button:focus-visible {
+    border-color: var(--accent-text);
+    color: var(--accent-text);
+    background: var(--surface);
+}
+
+.radio-button--primary:hover,
+.radio-button--primary:focus-visible {
+    background: var(--accent-text);
+    color: var(--page);
+}
+
+.radio-button[disabled] {
+    opacity: 0.45;
+    cursor: not-allowed;
+}
+
+/* ---- status ----------------------------------------------------------------------------------- */
+
+.radio-stats,
+.radio-status {
+    margin: 0;
+    padding: 0 20px;
+    font-size: 0.78rem;
+    line-height: 1.5;
+}
+
+.radio-stats {
+    color: var(--ink-soft);
+    font-variant-numeric: tabular-nums;
+}
+
+.radio-status {
+    padding-bottom: 8px;
+    min-height: 1.2em;
+    color: var(--ink-soft);
+}
+
+.radio-status[data-tone="good"] { color: var(--accent-text); }
+.radio-status[data-tone="bad"] { color: var(--warn, var(--accent-text)); }
+
+/* ---- body ------------------------------------------------------------------------------------- */
+
+.radio-view__body {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 14px;
+    padding: 0 20px 8px;
+    min-height: 0;
+}
+
+.radio-pane {
+    min-height: 0;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    padding-right: 4px;
+}
+
+.radio-pane--list {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.radio-pane--detail {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.radio-empty,
+.radio-note {
+    margin: 0;
+    color: var(--ink-soft);
+    font-size: 0.82rem;
+    line-height: 1.5;
+}
+
+/* ---- result rows ------------------------------------------------------------------------------ */
+
+.radio-row {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 10px;
+    border: 1px solid var(--line);
+    border-radius: 9px;
+    background: var(--surface);
+}
+
+.radio-row__icon {
+    width: 28px;
+    height: 28px;
+    object-fit: contain;
+    border-radius: 5px;
+    background: var(--page);
+}
+
+.radio-row__name {
+    padding: 0;
+    border: 0;
+    background: none;
+    color: var(--ink);
+    font: inherit;
+    font-size: 0.88rem;
+    text-align: left;
+    cursor: pointer;
+}
+
+.radio-row__name:hover,
+.radio-row__name:focus-visible {
+    color: var(--accent-text);
+    text-decoration: underline;
+}
+
+.radio-row__meta {
+    margin: 2px 0 0;
+    color: var(--ink-soft);
+    font-size: 0.74rem;
+}
+
+.radio-row__actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.radio-row__count {
+    color: var(--ink-soft);
+    font-size: 0.72rem;
+    font-variant-numeric: tabular-nums;
+}
+
+.radio-more {
+    margin: 6px 0 10px;
+    align-self: flex-start;
+}
+
+/* ---- one station ------------------------------------------------------------------------------ */
+
+.radio-detail {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 12px;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    background: var(--surface);
+}
+
+.radio-detail__head {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.radio-detail__icon {
+    width: 40px;
+    height: 40px;
+    object-fit: contain;
+    border-radius: 6px;
+    background: var(--page);
+}
+
+.radio-detail__title {
+    margin: 0;
+    font-size: 1rem;
+    line-height: 1.3;
+}
+
+.radio-detail__meta {
+    margin: 2px 0 0;
+    color: var(--ink-soft);
+    font-size: 0.76rem;
+}
+
+.radio-rows {
+    display: grid;
+    grid-template-columns: minmax(80px, 0.4fr) minmax(0, 1fr);
+    gap: 3px 12px;
+    margin: 0;
+    font-size: 0.79rem;
+}
+
+.radio-rows__key {
+    color: var(--ink-soft);
+}
+
+.radio-rows__value {
+    margin: 0;
+    overflow-wrap: anywhere;
+}
+
+.radio-rows__value a {
+    color: var(--accent-text);
+}
+
+.radio-detail__actions,
+.radio-form__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+/* ---- history ---------------------------------------------------------------------------------- */
+
+.radio-history {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.radio-history__title {
+    margin: 4px 0 0;
+    font-size: 0.8rem;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: var(--accent-text);
+}
+
+.radio-history__row {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 10px;
+    padding: 6px 8px;
+    border: 1px solid var(--line);
+    border-radius: 7px;
+    font-size: 0.76rem;
+}
+
+.radio-history__when {
+    color: var(--ink-soft);
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+}
+
+.radio-history__what {
+    overflow-wrap: anywhere;
+}
+
+/* ---- raw record ------------------------------------------------------------------------------- */
+
+.radio-raw summary {
+    color: var(--ink-soft);
+    font-size: 0.76rem;
+    cursor: pointer;
+}
+
+.radio-code {
+    margin: 6px 0 0;
+    padding: 8px 10px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: var(--page);
+    color: var(--ink);
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 0.72rem;
+    line-height: 1.45;
+    max-height: 260px;
+    overflow: auto;
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+}
+
+/* ---- curation form ---------------------------------------------------------------------------- */
+
+.radio-form {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 12px;
+    border: 1px solid var(--accent);
+    border-radius: 10px;
+    background: var(--surface);
+}
+
+.radio-form__title {
+    margin: 0;
+    font-size: 0.92rem;
+}
+
+.radio-form__note,
+.radio-form__subtitle {
+    margin: 0;
+    color: var(--ink-soft);
+    font-size: 0.76rem;
+    line-height: 1.5;
+}
+
+.radio-form__subtitle {
+    margin-top: 4px;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    font-size: 0.7rem;
+}
+
+.radio-form__grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 8px;
+}
+
+.radio-form__field {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    min-width: 0;
+}
+
+.radio-form__field--name,
+.radio-form__field--url,
+.radio-form__field--homepage,
+.radio-form__field--favicon {
+    grid-column: span 2;
+}
+
+.radio-form__label {
+    color: var(--ink-soft);
+    font-size: 0.72rem;
+}
+
+.radio-form__input {
+    padding: 7px 9px;
+    border: 1px solid var(--line);
+    border-radius: 7px;
+    background: var(--page);
+    color: var(--ink);
+    font: inherit;
+    font-size: 0.8rem;
+    min-width: 0;
+}
+
+.radio-form__input:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 1px;
+}
+
+.radio-problems {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.radio-problems__item {
+    font-size: 0.75rem;
+    line-height: 1.45;
+}
+
+.radio-problems__item--error { color: var(--warn, var(--accent-text)); }
+.radio-problems__item--warn { color: var(--ink-soft); }
+
+.radio-answer {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.radio-answer__line {
+    margin: 0;
+    font-size: 0.78rem;
+    line-height: 1.5;
+    overflow-wrap: anywhere;
+}
+
+.radio-answer__line--good { color: var(--accent-text); }
+.radio-answer__line--bad { color: var(--warn, var(--accent-text)); }
+.radio-answer__line--meta,
+.radio-answer__pending { color: var(--ink-soft); }
+
+/* ---- player ----------------------------------------------------------------------------------- */
+
+.radio-player {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 8px 20px 10px;
+    border-top: 1px solid var(--line);
+    background: var(--surface);
+}
+
+.radio-player__label {
+    flex: 1 1 auto;
+    min-width: 0;
+    color: var(--ink-soft);
+    font-size: 0.76rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.radio-player__audio {
+    flex: 0 0 auto;
+    width: min(320px, 52vw);
+    height: 32px;
+}
+
+.radio-copy-fallback {
+    position: absolute;
+    left: 20px;
+    right: 20px;
+    bottom: 56px;
+    z-index: 2;
+    padding: 10px;
+    border: 1px solid var(--accent);
+    border-radius: 10px;
+    background: var(--surface);
+    max-height: 40vh;
+    overflow: auto;
+}
+
+/* ---- side panel ------------------------------------------------------------------------------- */
+
+.radio-panel__eyebrow {
+    margin: 0 0 4px;
+    color: var(--accent-text);
+    font-size: 0.7rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.radio-panel__title {
+    margin: 0 0 8px;
+    font-size: 1rem;
+    letter-spacing: 0.05em;
+}
+
+.radio-panel__lede,
+.radio-panel__hint {
+    margin: 0 0 10px;
+    color: var(--ink-soft);
+    font-size: 0.78rem;
+    line-height: 1.55;
+}
+
+.radio-panel__heading {
+    margin: 12px 0 4px;
+    font-size: 0.76rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--accent-text);
+}
+
+.radio-panel__list {
+    margin: 0;
+    padding-left: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    color: var(--ink-soft);
+    font-size: 0.78rem;
+    line-height: 1.5;
+}
+
+.radio-panel__hint {
+    margin-top: 12px;
+    padding-top: 10px;
+    border-top: 1px solid var(--line);
+}
+
+/* ---- narrow ----------------------------------------------------------------------------------- */
+
+@media (max-width: 900px) {
+    .radio-view {
+        overflow-y: auto;
+    }
+
+    .radio-view__body {
+        grid-template-columns: minmax(0, 1fr);
+        grid-template-rows: auto auto;
+        overflow: visible;
+    }
+
+    .radio-pane {
+        overflow: visible;
+        max-height: none;
+    }
+}
+
+@media (max-width: 640px) {
+    .radio-view__head {
+        flex-direction: column-reverse;
+        gap: 8px;
+        padding: 12px 14px 6px;
+    }
+
+    .radio-search,
+    .radio-stats,
+    .radio-status,
+    .radio-view__body,
+    .radio-player {
+        padding-left: 14px;
+        padding-right: 14px;
+    }
+
+    .radio-search__input { flex: 1 1 100%; }
+
+    .radio-row {
+        grid-template-columns: minmax(0, 1fr) auto;
+    }
+
+    .radio-row__icon { display: none; }
+
+    .radio-form__field--name,
+    .radio-form__field--url,
+    .radio-form__field--homepage,
+    .radio-form__field--favicon {
+        grid-column: span 1;
+    }
+
+    .radio-player {
+        flex-wrap: wrap;
+    }
+
+    .radio-player__audio { width: 100%; }
+}

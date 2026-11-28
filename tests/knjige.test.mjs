@@ -118,7 +118,13 @@ test('the cell states results and never explains its own machinery', () => {
 test('pressing the cube opens the view, and BACK closes it', () => {
     assert.match(SCRIPT, /interest\.stats === 'knjige'[\s\S]{0,120}knjigeView\?\.open\?\./);
     assert.match(SCRIPT, /opensBoardView =[\s\S]{0,800}interest\.stats === 'knjige'/);
-    assert.match(SCRIPT, /knjigeView\?\.close\?\.\(\);[\s\S]{0,400}container\.innerHTML = ''/);
+    // closed inside renderBrain before the container is cleared — by position, not by a character budget
+    const renderStart = SCRIPT.indexOf('function renderBrain()');
+    assert.ok(renderStart > -1, 'renderBrain went missing');
+    const renderBrain = SCRIPT.slice(renderStart, renderStart + 4000);
+    assert.ok(renderBrain.indexOf('knjigeView?.close?.()') > -1, 'renderBrain must close the view');
+    assert.ok(renderBrain.indexOf('knjigeView?.close?.()') < renderBrain.indexOf("container.innerHTML = ''"),
+        'the view must be closed before the container is cleared');
     assert.match(SCRIPT, /\['knjigeView', '#brain-container \.knjige-view'\]/);
     // every gesture handler knows the view, or the board pans under the finger
     const gestureLists = SCRIPT.split('\n').filter(line => line.includes(".closest('.") && line.includes('-view'));
